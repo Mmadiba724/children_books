@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Poppins:wght@300;400;600&display=swap');
+@import "tailwindcss";
+
+@plugin "daisyui" {
+	themes: false;
+}
+
+
+:root {
+	/* Design tokens */
+	--font-display: 'Nunito', 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+	--font-body: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+	--color-bg: #fff1f2;
+	/* soft rose */
+	--color-brand: #fb7185;
+	/* pink */
+	--color-accent: #06b6d4;
+	/* cyan */
+	--color-cta: #6366f1;
+	/* indigo */
+	--radius-lg: 12px;
+
+	font-family: var(--font-body);
+	line-height: 1.5;
+	font-weight: 400;
+
+	margin: 0 auto;
+	text-align: center;
+
+	--daisyui-theme: none;
+}
+
+body {
+	background-color: var(--color-bg);
+	font-family: var(--font-body);
+	color: #1f2937;
+	/* gray-800 */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--font-display);
+}
