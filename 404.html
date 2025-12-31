@@ -1,14 +1,28 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="refresh" content="0; url=/" />
+        <!-- No meta refresh: use JS for robust redirect -->
     </head>
     <body>
         <script>
-            // Redirect all requests to index.html for SPA routing
-            var l = window.location;
-            var path = l.pathname.replace(/^\/children_books/, '');
-            window.location.replace('/children_books/' + (path ? '#' + path : ''));
+            // GitHub Pages SPA redirect: preserve path, query, and hash
+            (function () {
+                var l = globalThis.location;
+                var repo = "/children_books";
+                var path = l.pathname.startsWith(repo)
+                    ? l.pathname.slice(repo.length)
+                    : l.pathname;
+                var search = l.search || "";
+                var hash = l.hash || "";
+                // Redirect to index.html with original path as hash
+                var newUrl =
+                    repo +
+                    "/index.html#" +
+                    path.replace(/^\//, "") +
+                    (search ? "&" + search.slice(1) : "") +
+                    hash;
+                globalThis.location.replace(newUrl);
+            })();
         </script>
     </body>
 </html>
