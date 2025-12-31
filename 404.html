@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="refresh" content="0; url=/" />
+    </head>
+    <body>
+        <script>
+            // Redirect all requests to index.html for SPA routing
+            var l = window.location;
+            var path = l.pathname.replace(/^\/children_books/, '');
+            window.location.replace('/children_books/' + (path ? '#' + path : ''));
+        </script>
+    </body>
+</html>
