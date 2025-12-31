@@ -26,11 +26,13 @@ function ReviewsList({
                 return (
                     <div
                         key={key}
-                        className="bg-white rounded-lg p-3 shadow-sm"
+                        className="bg-white rounded-lg p-2.5 sm:p-3 shadow-sm"
                     >
                         <div className="flex items-center justify-between">
-                            <div className="font-semibold">{r.name}</div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm sm:text-base font-semibold">
+                                {r.name}
+                            </div>
+                            <div className="text-xs sm:text-sm text-gray-500">
                                 {Array.from({ length: r.rating }).map(
                                     (_, sIdx) => (
                                         <Star
@@ -76,12 +78,12 @@ function AddReviewForm({ onAdd }: Readonly<{ onAdd: (r: Review) => void }>) {
     return (
         <form
             onSubmit={submit}
-            className="mt-4 bg-white rounded-lg p-4 shadow-sm"
+            className="mt-3 sm:mt-4 bg-white rounded-lg p-3 sm:p-4 shadow-sm"
         >
-            <h4 className="block text-sm font-medium text-gray-700">
+            <h4 className="block text-xs sm:text-sm font-medium text-gray-700">
                 Add your review
             </h4>
-            <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="mt-2 sm:mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <label htmlFor="review-name" className="sr-only">
                     Your name
                 </label>
@@ -91,7 +93,7 @@ function AddReviewForm({ onAdd }: Readonly<{ onAdd: (r: Review) => void }>) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your name"
-                    className="input input-bordered w-full sm:col-span-1"
+                    className="input input-bordered w-full sm:col-span-1 text-sm"
                 />
 
                 <label htmlFor="review-rating" className="sr-only">
@@ -101,7 +103,7 @@ function AddReviewForm({ onAdd }: Readonly<{ onAdd: (r: Review) => void }>) {
                     id="review-rating"
                     value={rating}
                     onChange={(e) => setRating(Number(e.target.value))}
-                    className="input input-bordered w-full sm:col-span-1"
+                    className="input input-bordered w-full sm:col-span-1 text-sm"
                 >
                     {[5, 4, 3, 2, 1].map((r) => (
                         <option key={r} value={r}>
@@ -112,7 +114,7 @@ function AddReviewForm({ onAdd }: Readonly<{ onAdd: (r: Review) => void }>) {
 
                 <button
                     type="submit"
-                    className="btn btn-primary w-full sm:col-span-1"
+                    className="btn btn-primary w-full sm:col-span-1 text-sm"
                 >
                     Submit
                 </button>
@@ -128,10 +130,10 @@ function AddReviewForm({ onAdd }: Readonly<{ onAdd: (r: Review) => void }>) {
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Write your review"
                 rows={3}
-                className="mt-3 input input-bordered w-full"
+                className="mt-2 sm:mt-3 input input-bordered w-full text-sm"
             />
             {success && (
-                <div className="mt-2 text-sm text-rose-600">
+                <div className="mt-2 text-xs sm:text-sm text-rose-600">
                     Thanks for your review!
                 </div>
             )}
@@ -143,8 +145,8 @@ function BookDetailsColumn({
     book,
     rating,
     bookReviews,
-    // onAddReview,
-}: Readonly<{
+}: // onAddReview,
+Readonly<{
     book: Book;
     rating: number;
     bookReviews: Review[];
@@ -152,10 +154,10 @@ function BookDetailsColumn({
 }>) {
     return (
         <div className="lg:col-span-1">
-            <h1 className="text-4xl font-extrabold text-rose-600">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-rose-600">
                 {book.title}
             </h1>
-            <p className="text-gray-700 mt-1">
+            <p className="text-sm sm:text-base text-gray-700 mt-1">
                 by{" "}
                 <Link
                     to={`/search?author=${encodeURIComponent(book.author)}`}
@@ -165,51 +167,55 @@ function BookDetailsColumn({
                 </Link>
             </p>
 
-            <div className="mt-4 flex items-center gap-4">
-                <div className="inline-flex items-center gap-2 bg-rose-50 px-3 py-1 rounded-full">
-                    <Star className="w-4 h-4 text-yellow-400" />
-                    <span className="font-semibold">{rating.toFixed(1)}</span>
-                    <span className="text-sm text-gray-500">
+            <div className="mt-3 sm:mt-4 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-rose-50 px-2 sm:px-3 py-1 rounded-full">
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400" />
+                    <span className="text-sm sm:text-base font-semibold">
+                        {rating.toFixed(1)}
+                    </span>
+                    <span className="text-xs sm:text-sm text-gray-500">
                         ({bookReviews.length} reviews)
                     </span>
                 </div>
 
-                <div className="text-sm text-gray-500">
+                <div className="text-xs sm:text-sm text-gray-500">
                     {book.ageRange ? `Ages ${book.ageRange}` : ""}
-                </div>
-
-                <div className="ml-2 flex gap-2">
-                    {book.categories?.map((c) => (
-                        <span
-                            key={c}
-                            className="text-sm px-2 py-1 rounded-full bg-rose-50 text-rose-600"
-                        >
-                            {c}
-                        </span>
-                    ))}
                 </div>
             </div>
 
-            <div className="mt-6 text-gray-700 leading-relaxed">
+            <div className="mt-2 flex flex-wrap justify-center gap-1.5 sm:gap-2">
+                {book.categories?.map((c) => (
+                    <span
+                        key={c}
+                        className="text-xs sm:text-sm px-2 py-0.5 sm:py-1 rounded-full bg-rose-50 text-rose-600"
+                    >
+                        {c}
+                    </span>
+                ))}
+            </div>
+
+            <div className="mt-4 sm:mt-6 text-sm sm:text-base text-gray-700 leading-relaxed">
                 <p>{book.description}</p>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-4">
-                <h4 className="font-semibold text-gray-700 mb-2">Sneak Peek</h4>
+            <div className="bg-white rounded-lg shadow p-3 sm:p-4">
+                <h4 className="text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                    Sneak Peek
+                </h4>
                 <BookPreview book={book} />
             </div>
 
-            <div className="mt-8">
-                <h3 className="text-xl font-semibold mb-3">About the author</h3>
-                <p className="text-sm text-gray-600">
+            <div className="mt-6 sm:mt-8">
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">
+                    About the author
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600">
                     {book.author} is a children's author who writes gentle
                     stories for early readers. Their books focus on curiosity,
                     kindness, and cozy adventures. (Author bio placeholder — we
                     can add real bios later.)
                 </p>
             </div>
-
-            
         </div>
     );
 }
@@ -319,14 +325,14 @@ export default function BookDetailPage() {
     const bookReviews = reviewsMap[book.id] ?? reviewsByBook[book.id] ?? [];
 
     return (
-        <div className="max-w-8xl mx-auto p-6 px-12">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="max-w-8xl mx-auto p-4 sm:p-6 px-4 sm:px-6 lg:px-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 items-start">
                 {/* Left column: cover + preview */}
                 <div className="lg:col-span-1">
                     <img
                         src={book.coverUrl}
                         alt={book.title}
-                        className="w-full rounded-3xl shadow-xl mb-6 object-cover"
+                        className="w-full rounded-2xl sm:rounded-3xl shadow-xl mb-4 sm:mb-6 object-cover max-w-md mx-auto lg:max-w-none"
                         style={{ aspectRatio: "3 / 4" }}
                     />
                 </div>
@@ -340,29 +346,33 @@ export default function BookDetailPage() {
                 />
 
                 {/* Right column: order summary */}
-                <aside className="lg:col-span-1 sticky top-24">
-                    <div className="bg-rose-50 rounded-2xl p-6 shadow">
-                        <div className="text-sm text-gray-500">Price</div>
-                        <div className="text-3xl font-bold text-indigo-600">
+                <aside className="lg:col-span-1 lg:sticky lg:top-24">
+                    <div className="bg-rose-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow">
+                        <div className="text-xs sm:text-sm text-gray-500">
+                            Price
+                        </div>
+                        <div className="text-2xl sm:text-3xl font-bold text-indigo-600">
                             ${(book.priceCents / 100).toFixed(2)}
                         </div>
 
-                        <div className="mt-4 text-sm text-gray-500">
+                        <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500">
                             Quantity
                         </div>
-                        <div className="mt-2 flex items-center bg-white rounded-full shadow px-2 w-fit">
+                        <div className="mt-2 flex items-center bg-white rounded-full shadow px-1 sm:px-2 w-fit">
                             <button
                                 aria-label="decrease"
                                 onClick={() => setQty(Math.max(1, qty - 1))}
-                                className="px-3 py-1 text-xl"
+                                className="px-2 sm:px-3 py-1 text-lg sm:text-xl"
                             >
                                 −
                             </button>
-                            <div className="px-4 font-bold">{qty}</div>
+                            <div className="px-3 sm:px-4 font-bold text-sm sm:text-base">
+                                {qty}
+                            </div>
                             <button
                                 aria-label="increase"
                                 onClick={() => setQty(qty + 1)}
-                                className="px-3 py-1 text-xl"
+                                className="px-2 sm:px-3 py-1 text-lg sm:text-xl"
                             >
                                 +
                             </button>
@@ -370,23 +380,25 @@ export default function BookDetailPage() {
 
                         <button
                             onClick={() => add(book, qty)}
-                            className="mt-4 w-full bg-linear-to-r from-indigo-500 to-cyan-500 text-white px-4 py-3 rounded-full shadow"
+                            className="mt-3 sm:mt-4 w-full bg-linear-to-r from-indigo-500 to-cyan-500 text-white px-4 py-2.5 sm:py-3 rounded-full shadow text-sm sm:text-base"
                         >
                             Add to cart
                         </button>
                         <button
                             onClick={() => add(book, 5)}
-                            className="mt-3 w-full bg-amber-400 text-black px-4 py-3 rounded-full"
+                            className="mt-2 sm:mt-3 w-full bg-amber-400 text-black px-4 py-2.5 sm:py-3 rounded-full text-sm sm:text-base"
                         >
                             Add 5 (gift)
                         </button>
 
-                        <div className="mt-4 text-sm text-gray-600">
+                        <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
                             Free shipping on orders over $25
                         </div>
                     </div>
-                    <div className="mt-8">
-                        <h3 className="text-xl font-semibold mb-3">Reviews</h3>
+                    <div className="mt-6 sm:mt-8">
+                        <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">
+                            Reviews
+                        </h3>
                         <AddReviewForm onAdd={(r) => addReview(book.id, r)} />
                         <div className="mt-4">
                             <ReviewsList bookReviews={bookReviews} />
@@ -396,11 +408,11 @@ export default function BookDetailPage() {
             </div>
 
             {/* Similar books */}
-            <div className="mt-12">
-                <h3 className="text-2xl font-bold text-rose-600 mb-4">
+            <div className="mt-8 sm:mt-12">
+                <h3 className="text-xl sm:text-2xl font-bold text-rose-600 mb-3 sm:mb-4">
                     Similar books
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                     {similarBooks.length === 0 && (
                         <div className="text-sm text-gray-500">
                             We couldn't find similar books — try browsing the
