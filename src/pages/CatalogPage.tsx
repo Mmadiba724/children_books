@@ -32,9 +32,11 @@ export default function CatalogPage() {
 
             <Testimonials />
 
-            <main className="mt-10">
+            <main className="mt-10 px-30 max-w-8xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold">All Books</h2>
+                    <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
+                    All Books
+                </h2>
                     {query && (
                         <div className="text-sm text-gray-600">
                             Found {filtered.length} matches

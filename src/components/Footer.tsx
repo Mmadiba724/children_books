@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail } from "lucide-react";
+import logo from "../assets/logo.png";
 
 // Facebook icon SVG from simpleicons.org (https://simpleicons.org/icons/facebook.svg)
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -67,7 +68,13 @@ const Footer = () => {
                                 to="/"
                                 className="flex items-center gap-2 sm:gap-3"
                             >
-                                <div className="text-3xl">📚</div>
+                                <div className="text-3xl">
+                                    <img
+                                        src={logo}
+                                        alt="KidsBooks Logo"
+                                        className="h-8 w-8"
+                                    />
+                                </div>
                                 <span className="font-extrabold text-rose-600 text-base sm:text-lg">
                                     KidsBooks
                                 </span>

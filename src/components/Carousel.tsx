@@ -86,11 +86,11 @@ const Carousel = () => {
 
     return (
         <div className="w-full py-6">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 max-w-8xl px-25 mx-auto">
                 <div className="flex items-center justify-between px-4 gap-4 mb-2">
-                    <h3 className="text-3xl font-bold text-left text-rose-600">
-                        New Books
-                    </h3>
+                    <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
+                    New books
+                </h2>
 
                     {/* Scroll buttons */}
                     <div className="flex gap-2">
@@ -112,7 +112,7 @@ const Carousel = () => {
                 </div>
                 <div
                     ref={carouselRef}
-                    className="flex overflow-x-auto scroll-smooth gap-4 px-4"
+                    className="flex overflow-x-auto scroll-smooth gap-4 py-2 px-4"
                     style={{ scrollbarWidth: "none" }}
                 >
                     {images.map((img, idx) => {
@@ -122,7 +122,7 @@ const Carousel = () => {
                             carouselBooks[idx];
                         return (
                             <div
-                                className="min-w-[220px] h-[420px] rounded-2xl overflow-hidden shadow-md bg-white shrink-0 transition-transform duration-200 hover:-translate-y-1 cursor-pointer flex flex-col"
+                                className="min-w-[220px] pb-8  h-[420px] rounded-2xl overflow-hidden shadow-md bg-white shrink-0 transition-transform duration-200 hover:-translate-y-1 cursor-pointer flex flex-col"
                                 key={String(img) + idx}
                             >
                                 <div className="relative h-[220px] w-full">
@@ -132,7 +132,8 @@ const Carousel = () => {
                                         className="w-full h-full object-cover block"
                                     />
                                 </div>
-                                <div className="flex-1 flex flex-col justify-between p-4">
+
+                                <div className="flex-1 flex flex-col justify-between py-4 px-4">
                                     <div>
                                         <div className="mb-2 inline-flex items-center gap-2 bg-rose-50 px-2 py-1 rounded-full text-sm text-rose-600 w-fit">
                                             <Star className="w-4 h-4 text-yellow-400" />
@@ -148,7 +149,7 @@ const Carousel = () => {
                                             By {book.author}
                                         </p>
                                         <h4
-                                            className="text-lg font-semibold text-gray-900 truncate text-left"
+                                            className="text-sm h-12 font-semibold text-gray-900 text-left break-words w-64 line-clamp-2"
                                             title={book.title}
                                         >
                                             {book.title}

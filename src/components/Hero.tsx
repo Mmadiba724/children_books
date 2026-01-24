@@ -1,7 +1,7 @@
 import baby from "../assets/baby_reading.png";
 import displaybook from "../assets/15frt.jpg";
 import { Info, Star } from "lucide-react";
-import SearchBar from "./SearchBar";
+// import SearchBar from "./SearchBar";
 import { books, type Book } from "../data/books";
 import { Link } from "react-router-dom";
 
@@ -16,7 +16,7 @@ type HeroProps = {
     searchResults?: Book[];
 };
 
-const Hero = ({ onSearch, query, searchResults }: HeroProps) => {
+const Hero = ({  query, searchResults }: HeroProps) => {
     const featured = books.slice(0, 2);
     const displayed =
         query && searchResults ? searchResults.slice(0, 3) : featured;
@@ -65,9 +65,9 @@ const Hero = ({ onSearch, query, searchResults }: HeroProps) => {
                         
                     </div>
 
-                    <div className="mt-6">
+                    {/* <div className="mt-6">
                         <SearchBar onSearch={onSearch} />
-                    </div>
+                    </div> */}
 
                     <div className="mt-4 md:mt-6  ">
                         <h4 className="text-xs sm:text-sm font-semibold text-gray-600 mb-2 md:mb-3 ">

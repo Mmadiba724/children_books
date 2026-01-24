@@ -1,126 +1,240 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import logo from "../assets/logo.png";
+import {
+    // MapPin,
+    User,
+    Heart,
+    ShoppingCart,
+    Search,
+    ChevronDown,
+} from "lucide-react";
+
+const AccountMenu = ({
+    isOpen,
+    onToggle,
+}: {
+    isOpen: boolean;
+    onToggle: () => void;
+}) => (
+    <div className="relative">
+        <button
+            onClick={onToggle}
+            className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
+        >
+            <User size={14} />
+            <span>MY ACCOUNT</span>
+            <ChevronDown size={12} />
+        </button>
+        {isOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg border border-gray-200 py-2 z-50">
+                <Link
+                    to="#"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                    Sign In
+                </Link>
+                <Link
+                    to="#"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                    Create Account
+                </Link>
+                <Link
+                    to="#"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                    Order Status
+                </Link>
+            </div>
+        )}
+    </div>
+);
 
 const Navbar = () => {
     const { state } = useCart();
+    const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+    const [searchCategory, setSearchCategory] = useState("All");
+    const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
     const count = state.items.reduce((s, i) => s + i.quantity, 0);
-    const [menuOpen, setMenuOpen] = useState(false);
+
+    const categories = [
+        "Books",
+        "Fiction",
+        "Nonfiction",
+        "eBooks",
+        "Audiobooks",
+        "Teens & YA",
+        "Kids",
+        "Toys & Games",
+        "Stationery & Gifts",
+        "Music & Movies",
+    ];
 
     return (
-        <header className="bg-linear-to-r from-rose-50 via-white to-cyan-50 shadow-sm sticky top-0 z-20">
-            <div className="max-w-8xl mx-auto p-4 px-8">
-                <nav className="flex justify-between items-center">
-                    <Link to="/" className="flex items-center space-x-3">
-                        <div className="text-3xl">📚</div>
-                        <div className="font-extrabold text-rose-600 text-lg">
-                            KidsBooks
+        <header className="w-full bg-rose-50 sticky mx-auto top-0 z-30 shadow-sm">
+            {/* Top Bar */}
+            <div className=" border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 py-2">
+                    <div className="flex justify-end items-center text-xs">
+                        {/* <div className="flex items-center gap-4">
+                            <Link
+                                to="#"
+                                className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
+                            >
+                                <MapPin size={14} />
+                                STORES & EVENTS
+                            </Link>
+                            <span className="text-gray-300">|</span>
+                            <Link
+                                to="#"
+                                className="text-gray-700 hover:text-gray-900"
+                            >
+                                MEMBERSHIP
+                            </Link>
+                            <span className="text-gray-300">|</span>
+                            <Link
+                                to="#"
+                                className="text-gray-700 hover:text-gray-900"
+                            >
+                                KIDS READS BLOG
+                            </Link>
+                            <span className="text-gray-300">|</span>
+                            <Link
+                                to="#"
+                                className="text-gray-700 hover:text-gray-900"
+                            >
+                                PODCAST
+                            </Link>
+                            <span className="text-gray-300">|</span>
+                            <Link
+                                to="#"
+                                className="text-gray-700 hover:text-gray-900"
+                            >
+                                SWEEPSTAKES
+                            </Link>
+                            <span className="text-gray-300">|</span>
+                            <Link
+                                to="#"
+                                className="text-gray-700 hover:text-gray-900"
+                            >
+                                GIFT CARDS
+                            </Link>
+                        </div> */}
+                        <div className="flex items-center gap-4">
+                            <AccountMenu
+                                isOpen={accountMenuOpen}
+                                onToggle={() =>
+                                    setAccountMenuOpen(!accountMenuOpen)
+                                }
+                            />
+                            <span className="text-gray-300">|</span>
+                            <Link
+                                to="#"
+                                className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
+                            >
+                                <Heart size={14} />
+                                WISHLIST
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Header */}
+            <div className="max-w-7xl mx-auto px-4 py-4">
+                <div className="flex items-center justify-between gap-6">
+                    {/* Logo */}
+                    <Link to="/" className="flex items-center gap-2">
+                        <img src={logo} alt="KidsBooks" className="h-12" />
+                        <div className="text-2xl font-bold">
+                            <span className="text-rose-600">KIDS</span>
+                            <span className="text-gray-700">BOOKS</span>
                         </div>
                     </Link>
 
-                    {/* Hamburger for mobile */}
-                    <button
-                        className="md:hidden flex flex-col justify-center items-center w-10 h-10"
-                        onClick={() => setMenuOpen((open) => !open)}
-                        aria-label="Toggle menu"
-                    >
-                        <span
-                            className={`block h-0.5 w-6 bg-gray-800 mb-1 transition-all ${
-                                menuOpen ? "rotate-45 translate-y-1.5" : ""
-                            }`}
-                        ></span>
-                        <span
-                            className={`block h-0.5 w-6 bg-gray-800 mb-1 transition-all ${
-                                menuOpen ? "opacity-0" : ""
-                            }`}
-                        ></span>
-                        <span
-                            className={`block h-0.5 w-6 bg-gray-800 transition-all ${
-                                menuOpen ? "-rotate-45 -translate-y-1.5" : ""
-                            }`}
-                        ></span>
-                    </button>
-
-                    {/* Desktop menu */}
-                    <ul className="hidden md:flex space-x-6 ml-4 text-sm">
-                        <li>
-                            <Link to="/" className="hover:underline">
-                                Home
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/about" className="hover:underline">
-                                About
-                            </Link>
-                        </li>
-                    </ul>
-
-                    <div className="hidden md:flex items-center space-x-4">
-                        <Link
-                            to="/cart"
-                            className="relative inline-flex items-center"
-                        >
-                            <span className="inline-block bg-linear-to-r from-indigo-500 to-cyan-500 text-white px-3 py-2 rounded-full shadow">
-                                Cart
-                            </span>
-                            {count > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
-                                    {count}
-                                </span>
-                            )}
-                        </Link>
-                        <div className="text-sm text-gray-600">
-                            Login
+                    {/* Search Bar */}
+                    <div className="flex-1 max-w-250">
+                        <div className="flex items-stretch border border-gray-300 rounded">
+                            <div className="relative">
+                                <button
+                                    onClick={() =>
+                                        setCategoryDropdownOpen(
+                                            !categoryDropdownOpen,
+                                        )
+                                    }
+                                    className="flex items-center gap-2 px-4 h-full bg-gray-50 hover:bg-gray-100 border-r border-gray-300 text-sm font-medium"
+                                >
+                                    {searchCategory}
+                                    <ChevronDown size={16} />
+                                </button>
+                                {categoryDropdownOpen && (
+                                    <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded shadow-lg border border-gray-200 py-1 z-50">
+                                        {["All", ...categories].map((cat) => (
+                                            <button
+                                                key={cat}
+                                                onClick={() => {
+                                                    setSearchCategory(cat);
+                                                    setCategoryDropdownOpen(
+                                                        false,
+                                                    );
+                                                }}
+                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search by Title, Author, Keyword or ISBN"
+                                className="flex-1 px-4 py-2 text-sm focus:outline-none"
+                            />
+                            <button className="px-6 bg-gray-800 hover:bg-gray-900 text-white">
+                                <Search size={20} />
+                            </button>
                         </div>
                     </div>
-                </nav>
 
-                {/* Mobile menu */}
-                {menuOpen && (
-                    <div className="md:hidden mt-2">
-                        <ul className="flex flex-col space-y-2 text-sm bg-white rounded shadow p-4">
-                            <li>
+                    {/* Cart */}
+                    <Link
+                        to="/cart"
+                        className="relative flex items-center justify-center"
+                    >
+                        <ShoppingCart size={28} className="text-gray-700" />
+                        {count > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                {count}
+                            </span>
+                        )}
+                    </Link>
+                </div>
+            </div>
+
+            {/* Category Navigation */}
+            <div className="border-t border-gray-200">
+                <div className="max-w-8xl mx-auto px-4">
+                    <nav className="flex items-center justify-center gap-8 py-3 text-sm font-medium overflow-x-auto">
+                        {categories.map((category, index) => (
+                            <div key={category} className="flex items-center">
                                 <Link
-                                    to="/"
-                                    className="hover:underline"
-                                    onClick={() => setMenuOpen(false)}
+                                    to={`/catalog?category=${category}`}
+                                    className="text-gray-700 hover:text-rose-600 whitespace-nowrap"
                                 >
-                                    Home
+                                    {category}
                                 </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    to="/about"
-                                    className="hover:underline"
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    About
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    to="/cart"
-                                    className="relative inline-flex items-center mt-2"
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    <span className="inline-block bg-linear-to-r from-indigo-500 to-cyan-500 text-white px-3 py-2 rounded-full shadow">
-                                        Cart
+                                {index < categories.length - 1 && (
+                                    <span className="text-gray-300 ml-8">
+                                        |
                                     </span>
-                                    {count > 0 && (
-                                        <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
-                                            {count}
-                                        </span>
-                                    )}
-                                </Link>
-                            </li>
-                            <li>
-                                <div className="text-sm text-gray-600 mt-2">
-                                    Login
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                )}
+                                )}
+                            </div>
+                        ))}
+                    </nav>
+                </div>
             </div>
         </header>
     );

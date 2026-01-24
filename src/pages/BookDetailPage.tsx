@@ -1,304 +1,30 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getBookById, books as allBooks, type Book } from "../data/books";
-import BookPreview from "../components/BookPreview";
 import BookCard from "../components/BookCard";
-import { useCart } from "../context/CartContext";
-import { useState, useMemo } from "react";
-import { Star } from "lucide-react";
+import BookDetailsColumn from "../components/BookDetailsColumn";
+import ReviewsList from "../components/ReviewsList";
+import AddReviewForm from "../components/AddReviewForm";
+// import { useCart } from "../context/CartContext";
+import { useBookReviews } from "../hooks/useBookReviews";
+import { useMemo } from "react";
+// import { useState, useMemo } from "react";
 
-// Review type used locally
-type Review = { name: string; rating: number; text: string; date?: string };
-
-function ReviewsList({
-    bookReviews,
-}: Readonly<{
-    bookReviews: Review[];
-}>) {
-    return (
-        <div className="space-y-4">
-            {bookReviews.length === 0 && (
-                <div className="text-sm text-gray-500">
-                    No reviews yet — be the first to review this book.
-                </div>
-            )}
-            {bookReviews.map((r) => {
-                const key = `${r.name}-${r.text.slice(0, 24)}`;
-                return (
-                    <div
-                        key={key}
-                        className="bg-white rounded-lg p-2.5 sm:p-3 shadow-sm"
-                    >
-                        <div className="flex items-center justify-between">
-                            <div className="text-sm sm:text-base font-semibold">
-                                {r.name}
-                            </div>
-                            <div className="text-xs sm:text-sm text-gray-500">
-                                {Array.from({ length: r.rating }).map(
-                                    (_, sIdx) => (
-                                        <Star
-                                            key={`star-${r.name}-${sIdx}`}
-                                            className="w-4 h-4 text-yellow-400 inline"
-                                        />
-                                    )
-                                )}
-                            </div>
-                        </div>
-                        <div className="text-sm text-gray-700 mt-1">
-                            {r.text}
-                        </div>
-                    </div>
-                );
-            })}
-        </div>
-    );
-}
-
-function AddReviewForm({ onAdd }: Readonly<{ onAdd: (r: Review) => void }>) {
-    const [name, setName] = useState("");
-    const [rating, setRating] = useState(5);
-    const [text, setText] = useState("");
-    const [success, setSuccess] = useState(false);
-
-    function submit(e: React.FormEvent) {
-        e.preventDefault();
-        if (!name.trim() || !text.trim()) return;
-        onAdd({
-            name: name.trim(),
-            rating,
-            text: text.trim(),
-            date: new Date().toISOString(),
-        });
-        setName("");
-        setRating(5);
-        setText("");
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 2500);
-    }
-
-    return (
-        <form
-            onSubmit={submit}
-            className="mt-3 sm:mt-4 bg-white rounded-lg p-3 sm:p-4 shadow-sm"
-        >
-            <h4 className="block text-xs sm:text-sm font-medium text-gray-700">
-                Add your review
-            </h4>
-            <div className="mt-2 sm:mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <label htmlFor="review-name" className="sr-only">
-                    Your name
-                </label>
-                <input
-                    id="review-name"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your name"
-                    className="input input-bordered w-full sm:col-span-1 text-sm"
-                />
-
-                <label htmlFor="review-rating" className="sr-only">
-                    Rating
-                </label>
-                <select
-                    id="review-rating"
-                    value={rating}
-                    onChange={(e) => setRating(Number(e.target.value))}
-                    className="input input-bordered w-full sm:col-span-1 text-sm"
-                >
-                    {[5, 4, 3, 2, 1].map((r) => (
-                        <option key={r} value={r}>
-                            {r} stars
-                        </option>
-                    ))}
-                </select>
-
-                <button
-                    type="submit"
-                    className="btn btn-primary w-full sm:col-span-1 text-sm"
-                >
-                    Submit
-                </button>
-            </div>
-
-            <label htmlFor="review-text" className="sr-only">
-                Write your review
-            </label>
-            <textarea
-                id="review-text"
-                required
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Write your review"
-                rows={3}
-                className="mt-2 sm:mt-3 input input-bordered w-full text-sm"
-            />
-            {success && (
-                <div className="mt-2 text-xs sm:text-sm text-rose-600">
-                    Thanks for your review!
-                </div>
-            )}
-        </form>
-    );
-}
-
-function BookDetailsColumn({
-    book,
-    rating,
-    bookReviews,
-}: // onAddReview,
-Readonly<{
-    book: Book;
-    rating: number;
-    bookReviews: Review[];
-    onAddReview: (r: Review) => void;
-}>) {
-    return (
-        <div className="lg:col-span-1">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-rose-600">
-                {book.title}
-            </h1>
-            <p className="text-sm sm:text-base text-gray-700 mt-1">
-                by{" "}
-                <Link
-                    to={`/search?author=${encodeURIComponent(book.author)}`}
-                    className="text-indigo-600 font-medium"
-                >
-                    {book.author}
-                </Link>
-            </p>
-
-            <div className="mt-3 sm:mt-4 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-                <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-rose-50 px-2 sm:px-3 py-1 rounded-full">
-                    <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400" />
-                    <span className="text-sm sm:text-base font-semibold">
-                        {rating.toFixed(1)}
-                    </span>
-                    <span className="text-xs sm:text-sm text-gray-500">
-                        ({bookReviews.length} reviews)
-                    </span>
-                </div>
-
-                <div className="text-xs sm:text-sm text-gray-500">
-                    {book.ageRange ? `Ages ${book.ageRange}` : ""}
-                </div>
-            </div>
-
-            <div className="mt-2 flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                {book.categories?.map((c) => (
-                    <span
-                        key={c}
-                        className="text-xs sm:text-sm px-2 py-0.5 sm:py-1 rounded-full bg-rose-50 text-rose-600"
-                    >
-                        {c}
-                    </span>
-                ))}
-            </div>
-
-            <div className="mt-4 sm:mt-6 text-sm sm:text-base text-gray-700 leading-relaxed">
-                <p>{book.description}</p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-3 sm:p-4">
-                <h4 className="text-sm sm:text-base font-semibold text-gray-700 mb-2">
-                    Sneak Peek
-                </h4>
-                <BookPreview book={book} />
-            </div>
-
-            <div className="mt-6 sm:mt-8">
-                <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">
-                    About the author
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-600">
-                    {book.author} is a children's author who writes gentle
-                    stories for early readers. Their books focus on curiosity,
-                    kindness, and cozy adventures. (Author bio placeholder — we
-                    can add real bios later.)
-                </p>
-            </div>
-        </div>
-    );
-}
+// Mock ratings for display — can be replaced with real data later
+const MOCK_RATINGS: Record<string, number> = {
+    "bunny-adventure": 4.6,
+    "stella-stargazer": 4.8,
+    "little-chef": 4.4,
+    "forest-music": 4.2,
+    "milo-moonboat": 4.9,
+    "rainbow-garden": 4.3,
+};
 
 export default function BookDetailPage() {
     const { id } = useParams();
     const book = id ? getBookById(id) : undefined;
-    const { add } = useCart();
-    const [qty, setQty] = useState(1);
-
-    // Mock ratings and reviews for display — can be replaced with real data later
-    const mockRatings: Record<string, number> = {
-        "bunny-adventure": 4.6,
-        "stella-stargazer": 4.8,
-        "little-chef": 4.4,
-        "forest-music": 4.2,
-        "milo-moonboat": 4.9,
-        "rainbow-garden": 4.3,
-    };
-
-    const reviewsByBook: Record<string, Review[]> = {
-        "bunny-adventure": [
-            {
-                name: "Ava",
-                rating: 5,
-                text: "My toddler loves the bunny—so gentle and fun!",
-                date: new Date().toISOString(),
-            },
-            {
-                name: "Noah",
-                rating: 4,
-                text: "Great pictures and rhythm; bedtime winner.",
-                date: new Date().toISOString(),
-            },
-        ],
-    };
-
-    // Persisted reviews (localStorage). Merge saved reviews with built-in ones.
-    const [reviewsMap, setReviewsMap] = useState<Record<string, Review[]>>(
-        () => {
-            let parsed: Record<string, Review[]> = {};
-            try {
-                parsed = JSON.parse(
-                    localStorage.getItem("bookReviews") || "{}"
-                );
-            } catch (e) {
-                console.warn("Failed to parse saved reviews", e);
-                parsed = {};
-            }
-            const merged: Record<string, Review[]> = { ...reviewsByBook };
-            Object.keys(parsed).forEach((k) => {
-                merged[k] = [...(merged[k] || []), ...parsed[k]];
-            });
-            return merged;
-        }
-    );
-
-    const addReview = (bookId: string, r: Review) => {
-        setReviewsMap((prev) => {
-            const next = {
-                ...prev,
-                [bookId]: [
-                    ...(prev[bookId] || []),
-                    { ...r, date: new Date().toISOString() },
-                ],
-            };
-            try {
-                // Save only user-added reviews to localStorage to avoid duplicating built-ins
-                const saved: Record<string, Review[]> = {};
-                Object.keys(next).forEach((id) => {
-                    // to preserve built-ins, save only items beyond the built-in count
-                    const built = reviewsByBook[id] || [];
-                    if (next[id].length > built.length) {
-                        saved[id] = next[id].slice(built.length);
-                    }
-                });
-                localStorage.setItem("bookReviews", JSON.stringify(saved));
-            } catch (e) {
-                console.warn("Failed to save reviews", e);
-            }
-            return next;
-        });
-    };
+    // const { add } = useCart();
+    const { addReview, getReviewsForBook } = useBookReviews();
+    // const [qty, setQty] = useState(1);
 
     // Compute similar books by category or ageRange
     const similarBooks: Book[] = useMemo(() => {
@@ -321,97 +47,249 @@ export default function BookDetailPage() {
 
     if (!book) return <div className="p-6">Book not found.</div>;
 
-    const rating = mockRatings[book.id] ?? 4.4;
-    const bookReviews = reviewsMap[book.id] ?? reviewsByBook[book.id] ?? [];
+    const rating = MOCK_RATINGS[book.id] ?? 4.4;
+    const bookReviews = getReviewsForBook(book.id);
 
     return (
         <div className="max-w-8xl mx-auto p-4 sm:p-6 px-4 sm:px-6 lg:px-12">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 items-start">
+            {/* top section */}
+            <div className="flex flex-col items-start mx-auto justify-center lg:grid lg:grid-cols-2 lg:gap-6 w-400 ">
                 {/* Left column: cover + preview */}
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 justify-self-end pr-12">
+                    {/* here we can fetch/show other covers if they exist */}
+
+                    {/* cover image of the book */}
                     <img
                         src={book.coverUrl}
                         alt={book.title}
-                        className="w-full rounded-2xl sm:rounded-3xl shadow-xl mb-4 sm:mb-6 object-cover max-w-md mx-auto lg:max-w-none"
+                        className="w-full shadow-xl mb-4 sm:mb-6 object-cover max-w-md mx-auto "
                         style={{ aspectRatio: "3 / 4" }}
                     />
+
+                    {/* Add to Wishlist button */}
+                    <button className="flex items-center justify-center gap-2 w-full max-w-md mx-auto text-teal-600 hover:text-teal-700 py-2 transition-colors">
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                            />
+                        </svg>
+                        <span className="font-medium">Add to Wishlist</span>
+                    </button>
                 </div>
 
-                {/* Middle column: details, description, author, reviews */}
-                <BookDetailsColumn
-                    book={book}
-                    rating={rating}
-                    bookReviews={bookReviews}
-                    onAddReview={(r) => addReview(book.id, r)}
-                />
-
                 {/* Right column: order summary */}
-                <aside className="lg:col-span-1 lg:sticky lg:top-24">
-                    <div className="bg-rose-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow">
-                        <div className="text-xs sm:text-sm text-gray-500">
-                            Price
-                        </div>
-                        <div className="text-2xl sm:text-3xl font-bold text-indigo-600">
-                            ${(book.priceCents / 100).toFixed(2)}
-                        </div>
-
-                        <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500">
-                            Quantity
-                        </div>
-                        <div className="mt-2 flex items-center bg-white rounded-full shadow px-1 sm:px-2 w-fit">
-                            <button
-                                aria-label="decrease"
-                                onClick={() => setQty(Math.max(1, qty - 1))}
-                                className="px-2 sm:px-3 py-1 text-lg sm:text-xl"
-                            >
-                                −
-                            </button>
-                            <div className="px-3 sm:px-4 font-bold text-sm sm:text-base">
-                                {qty}
-                            </div>
-                            <button
-                                aria-label="increase"
-                                onClick={() => setQty(qty + 1)}
-                                className="px-2 sm:px-3 py-1 text-lg sm:text-xl"
-                            >
-                                +
-                            </button>
-                        </div>
-
-                        <button
-                            onClick={() => add(book, qty)}
-                            className="mt-3 sm:mt-4 w-full bg-linear-to-r from-indigo-500 to-cyan-500 text-white px-4 py-2.5 sm:py-3 rounded-full shadow text-sm sm:text-base"
-                        >
-                            Add to cart
-                        </button>
-                        <button
-                            onClick={() => add(book, 5)}
-                            className="mt-2 sm:mt-3 w-full bg-amber-400 text-black px-4 py-2.5 sm:py-3 rounded-full text-sm sm:text-base"
-                        >
-                            Add 5 (gift)
-                        </button>
-
-                        <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
-                            Free shipping on orders over $25
-                        </div>
-                    </div>
-                    <div className="mt-6 sm:mt-8">
-                        <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">
-                            Reviews
-                        </h3>
-                        <AddReviewForm onAdd={(r) => addReview(book.id, r)} />
-                        <div className="mt-4">
-                            <ReviewsList bookReviews={bookReviews} />
-                        </div>
+                <aside className="lg:col-span-1 lg:sticky lg:top-24 ">
+                    <div className="px-4">
+                        {/* Middle column: details, description, author, reviews */}
+                        <BookDetailsColumn
+                            book={book}
+                            rating={rating}
+                            bookReviews={bookReviews}
+                        />
                     </div>
                 </aside>
             </div>
 
+            {/* book overview */}
+            <div className="mt-8 sm:mt-12 max-w-7xl mx-auto">
+                <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
+                    Overview
+                </h2>
+                <div className="bg-white border border-gray-300 p-8 sm:p-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Left column: Main description */}
+                        <div className="space-y-4">
+                            <p className="text-gray-900 leading-relaxed text-sm">
+                                {book.description}
+                            </p>
+                            {book.previewPages &&
+                                book.previewPages.length > 0 && (
+                                    <>
+                                        {book.previewPages.map(
+                                            (preview, index) => (
+                                                <p
+                                                    key={index}
+                                                    className="text-gray-900 leading-relaxed text-sm"
+                                                >
+                                                    {preview}
+                                                </p>
+                                            ),
+                                        )}
+                                    </>
+                                )}
+                        </div>
+
+                        {/* Right column: Highlights and features */}
+                        <div className="space-y-6">
+                            <p className="text-gray-900 leading-relaxed text-sm">
+                                This engaging story captivates young readers
+                                with its vivid imagery and heartwarming
+                                narrative, making it perfect for bedtime reading
+                                or classroom story time.
+                            </p>
+
+                            <ul className="space-y-3 text-sm text-gray-900">
+                                {book.ageRange && (
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-gray-900 mt-1">
+                                            •
+                                        </span>
+                                        <span>
+                                            Perfect for ages {book.ageRange}{" "}
+                                            years
+                                        </span>
+                                    </li>
+                                )}
+                                {book.categories &&
+                                    book.categories.length > 0 && (
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-gray-900 mt-1">
+                                                •
+                                            </span>
+                                            <span>
+                                                Features themes of{" "}
+                                                {book.categories
+                                                    .join(", ")
+                                                    .toLowerCase()}
+                                            </span>
+                                        </li>
+                                    )}
+                                <li className="flex items-start gap-2">
+                                    <span className="text-gray-900 mt-1">
+                                        •
+                                    </span>
+                                    <span>
+                                        Beautifully illustrated story that
+                                        captures imagination and inspires
+                                        creativity
+                                    </span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-gray-900 mt-1">
+                                        •
+                                    </span>
+                                    <span>
+                                        Includes discussion questions for family
+                                        reading time and book clubs
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Reviews Section */}
+            <div className="mt-8 sm:mt-12 max-w-7xl mx-auto">
+                <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
+                    Testimonials
+                </h2>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left column: Rating summary */}
+                    <div className="lg:col-span-1">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                            Customer reviews
+                        </h3>
+
+                        {/* Overall rating */}
+                        <div className="flex items-center gap-2 mb-2">
+                            {[...Array(5)].map((_, i) => (
+                                <span
+                                    key={i}
+                                    className={`text-2xl ${
+                                        i < Math.floor(rating)
+                                            ? "text-orange-400"
+                                            : "text-gray-300"
+                                    }`}
+                                >
+                                    ★
+                                </span>
+                            ))}
+                            <span className="text-lg font-normal text-gray-900 ml-2">
+                                {rating.toFixed(1)} out of 5
+                            </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-6">
+                            {bookReviews.length} global ratings
+                        </p>
+
+                        {/* Rating breakdown */}
+                        <div className="space-y-2">
+                            {[5, 4, 3, 2, 1].map((stars) => {
+                                const count = bookReviews.filter(
+                                    (r) => r.rating === stars,
+                                ).length;
+                                const percentage =
+                                    bookReviews.length > 0
+                                        ? Math.round(
+                                              (count / bookReviews.length) *
+                                                  100,
+                                          )
+                                        : 0;
+                                return (
+                                    <div
+                                        key={stars}
+                                        className="flex items-center gap-2 text-sm"
+                                    >
+                                        <span className="text-blue-600 hover:text-orange-600 cursor-pointer w-12">
+                                            {stars} star
+                                        </span>
+                                        <div className="flex-1 h-5 bg-gray-200 rounded overflow-hidden">
+                                            <div
+                                                className="h-full bg-orange-400"
+                                                style={{
+                                                    width: `${percentage}%`,
+                                                }}
+                                            />
+                                        </div>
+                                        <span className="text-blue-600 hover:text-orange-600 cursor-pointer w-10 text-right">
+                                            {percentage}%
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Review this product */}
+                        <div className="mt-8 pt-6 border-t border-gray-300">
+                            <h4 className="text-lg font-bold text-gray-900 mb-2">
+                                Review this product
+                            </h4>
+                            <p className="text-sm text-gray-700 mb-4">
+                                Share your thoughts with other customers
+                            </p>
+                            <AddReviewForm
+                                onAdd={(r) => addReview(book.id, r)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Right column: Reviews list */}
+                    <div className="lg:col-span-2">
+                        <h3 className="text-xl font-bold text-gray-900 mb-6">
+                            Top reviews
+                        </h3>
+                        <ReviewsList bookReviews={bookReviews} />
+                    </div>
+                </div>
+            </div>
+
+            {/* About Author */}
+            <div className=""></div>
+
             {/* Similar books */}
             <div className="mt-8 sm:mt-12">
-                <h3 className="text-xl sm:text-2xl font-bold text-rose-600 mb-3 sm:mb-4">
-                    Similar books
-                </h3>
+                <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
+                    Similar Books
+                </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                     {similarBooks.length === 0 && (
                         <div className="text-sm text-gray-500">

@@ -104,7 +104,7 @@ export const books: Book[] = [
     },
     {
         id: "rainbow-garden",
-        title: "The Rainbow Garden",
+        title: "The High 5 Habit: Take Control of Your Life with One Simple Habit",
         author: "Priya Desai",
         priceCents: 699,
         coverUrl: coverRainbow,
