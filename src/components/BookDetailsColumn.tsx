@@ -7,16 +7,16 @@ import { useState } from "react";
 type BookDetailsColumnProps = {
     book: Book;
     rating: number;
-    bookReviews: Review[];
+    // bookReviews: Review[];
 };
 
-type Review = {
-    id: string;
-    rating: number;
-    comment: string;
-    reviewer: string;
-    date: string;
-};
+// type Review = {
+//     id: string;
+//     rating: number;
+//     comment: string;
+//     reviewer: string;
+//     date: string;
+// };
 
 // type BookFormat = "hardcover" | "paperback" | "ebook";
 

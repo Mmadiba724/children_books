@@ -92,7 +92,7 @@ export default function BookDetailPage() {
                         <BookDetailsColumn
                             book={book}
                             rating={rating}
-                            bookReviews={bookReviews}
+                            // bookReviews={bookReviews}
                         />
                     </div>
                 </aside>
