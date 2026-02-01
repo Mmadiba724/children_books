@@ -1,45 +1,75 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
-import type { Book } from "../data/books";
-
-import { books as siteBooks } from "../data/books";
+import bookService from "../services/bookService";
 import { Star } from "lucide-react";
+import type { Book } from "../types/book";
 
-// Use the app's shared book data for the carousel so images and details stay consistent
-const bookData = siteBooks.map((b) => ({
-    img: b.coverUrl,
-    title: b.title,
-    author: b.author,
-    // placeholder rating — we can add a real rating field later
-    rating: 4.5,
-    price: b.priceCents,
-}));
-
-const initialImages = bookData.map((b) => b.img);
+type CarouselBook = {
+    img: string;
+    title: string;
+    author: string;
+    rating: number;
+    price: number;
+};
 
 const Carousel = () => {
     const carouselRef = useRef<HTMLDivElement>(null);
-    const [images, setImages] = useState(initialImages);
-    const [carouselBooks] = useState(bookData);
+    const [images, setImages] = useState<string[]>([]);
+    const [carouselBooks, setCarouselBooks] = useState<CarouselBook[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
     const { add } = useCart();
 
-    type CarouselBook = {
-        img: string;
-        title: string;
-        author: string;
-        rating: number;
-        price: number;
-    };
+    useEffect(() => {
+        const fetchBooks = async () => {
+            try {
+                setLoading(true);
+                const books = await bookService.getAllBooks();
+                if (books && Array.isArray(books)) {
+                    // Transform API books to carousel format
+                    const carouselData = books.map((b: Book) => ({
+                        img:
+                            b.coverImageUrl ||
+                            "",
+                        title: b.title,
+                        author: b.author,
+                        rating: 4.5, // Default rating - could be replaced with real data
+                        price: (b.price || 0) * 100, // Convert to cents to match existing logic
+                    }));
 
-    const asBook = (b: CarouselBook, idx: number): Book => ({
-        id: `carousel-${idx}`,
-        title: b.title,
-        author: b.author,
-        priceCents: b.price,
-        coverUrl: b.img,
-        description: b.title,
-        previewPages: [b.title],
-    });
+                    setCarouselBooks(carouselData);
+                    setImages(carouselData.map((b) => b.img));
+                }
+            } catch (err) {
+                console.error("Error fetching books for carousel:", err);
+                setCarouselBooks([]);
+                setImages([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBooks();
+    }, []);
+
+    const asBook = (b: CarouselBook, idx: number): Book => {
+        const timestamp = new Date().toISOString();
+        return {
+            id: `carousel-${idx}`,
+            title: b.title,
+            author: b.author,
+            description: b.title,
+            price: b.price / 100,
+            format: "PHYSICAL",
+            coverImageUrl: b.img,
+            fileId: null,
+            stockQuantity: 0,
+            categoryNames: [],
+            previewSnippetUrls: [b.title],
+            createdAt: timestamp,
+            updatedAt: timestamp,
+        };
+    };
 
     const scroll = (direction: "left" | "right") => {
         if (!carouselRef.current) return;
@@ -89,8 +119,8 @@ const Carousel = () => {
             <div className="flex flex-col gap-4 max-w-8xl px-25 mx-auto">
                 <div className="flex items-center justify-between px-4 gap-4 mb-2">
                     <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
-                    New books
-                </h2>
+                        New books
+                    </h2>
 
                     {/* Scroll buttons */}
                     <div className="flex gap-2">
@@ -110,67 +140,111 @@ const Carousel = () => {
                         </button>
                     </div>
                 </div>
-                <div
-                    ref={carouselRef}
-                    className="flex overflow-x-auto scroll-smooth gap-4 py-2 px-4"
-                    style={{ scrollbarWidth: "none" }}
-                >
-                    {images.map((img, idx) => {
-                        // Find the book info for this image
-                        const book =
-                            carouselBooks.find((b) => b.img === img) ||
-                            carouselBooks[idx];
-                        return (
-                            <div
-                                className="min-w-[220px] pb-8  h-[420px] rounded-2xl overflow-hidden shadow-md bg-white shrink-0 transition-transform duration-200 hover:-translate-y-1 cursor-pointer flex flex-col"
-                                key={String(img) + idx}
-                            >
-                                <div className="relative h-[220px] w-full">
-                                    <img
-                                        src={book.img}
-                                        alt={book.title}
-                                        className="w-full h-full object-cover block"
-                                    />
-                                </div>
 
-                                <div className="flex-1 flex flex-col justify-between py-4 px-4">
-                                    <div>
-                                        <div className="mb-2 inline-flex items-center gap-2 bg-rose-50 px-2 py-1 rounded-full text-sm text-rose-600 w-fit">
-                                            <Star className="w-4 h-4 text-yellow-400" />
-                                            <span className="font-semibold">
-                                                {book.rating}
-                                            </span>
-                                        </div>
+                {loading && (
+                    <div className="flex items-center justify-center py-12">
+                        <p className="text-gray-500">Loading books...</p>
+                    </div>
+                )}
 
-                                        <p
-                                            className="text-sm text-gray-700 truncate text-left"
-                                            title={book.author}
-                                        >
-                                            By {book.author}
-                                        </p>
-                                        <h4
-                                            className="text-sm h-12 font-semibold text-gray-900 text-left break-words w-64 line-clamp-2"
-                                            title={book.title}
-                                        >
-                                            {book.title}
-                                        </h4>
-                                        <h4 className="text-md font-bold text-indigo-600">
-                                            ${(book.price / 100).toFixed(2)}
-                                        </h4>
+                {!loading && carouselBooks.length === 0 && (
+                    <div className="flex items-center justify-center py-12">
+                        <p className="text-gray-500">No books available.</p>
+                    </div>
+                )}
+
+                {!loading && carouselBooks.length > 0 && (
+                    <div
+                        ref={carouselRef}
+                        className="flex overflow-x-auto scroll-smooth gap-4 py-2 px-4"
+                        style={{ scrollbarWidth: "none" }}
+                    >
+                        {images.map((img, idx) => {
+                            // Find the book info for this image
+                            const book =
+                                carouselBooks.find((b) => b.img === img) ||
+                                carouselBooks[idx];
+                            const hasError = imageErrors.has(img);
+                            return (
+                                <div
+                                    className="min-w-[220px] pb-8  h-[420px] rounded-2xl overflow-hidden shadow-md bg-white shrink-0 transition-transform duration-200 hover:-translate-y-1 cursor-pointer flex flex-col"
+                                    key={String(img) + idx}
+                                >
+                                    <div className="relative  h-[220px] w-full">
+                                        {!hasError ? (
+                                            <img
+                                                src={book.img}
+                                                alt={book.title}
+                                                className="w-full h-full object-cover block"
+                                                onError={() => {
+                                                    setImageErrors((prev) =>
+                                                        new Set(prev).add(img),
+                                                    );
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-[220px] bg-gray-200 flex items-center justify-center">
+                                                <div className="text-center p-4">
+                                                    <svg
+                                                        className="w-12 h-12 mx-auto mb-2 text-gray-400"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth="2"
+                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                        />
+                                                    </svg>
+                                                    <p className="text-xs text-gray-500 font-medium">
+                                                        No Cover
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    <button
-                                        onClick={() =>
-                                            add(asBook(book, idx), 1)
-                                        }
-                                        className="mt-3 bg-linear-to-r from-rose-400 to-amber-400 text-black font-semibold py-2 px-3 rounded-full transition-colors w-full"
-                                    >
-                                        Add to Cart
-                                    </button>
+
+                                    <div className="flex-1 flex flex-col justify-between py-4 px-4">
+                                        <div>
+                                            <div className="mb-2 inline-flex items-center gap-2 bg-rose-50 px-2 py-1 rounded-full text-sm text-rose-600 w-fit">
+                                                <Star className="w-4 h-4 text-yellow-400" />
+                                                <span className="font-semibold">
+                                                    {book.rating}
+                                                </span>
+                                            </div>
+
+                                            <p
+                                                className="text-sm text-gray-700 truncate text-left"
+                                                title={book.author}
+                                            >
+                                                By {book.author}
+                                            </p>
+                                            <h4
+                                                className="text-sm h-12 font-semibold text-gray-900 text-left break-words w-64 line-clamp-2"
+                                                title={book.title}
+                                            >
+                                                {book.title}
+                                            </h4>
+                                            <h4 className="text-md font-bold text-indigo-600">
+                                                ugx {(book.price / 100).toFixed(2)}
+                                            </h4>
+                                        </div>
+                                        <button
+                                            onClick={() =>
+                                                add(asBook(book, idx), 1)
+                                            }
+                                            className="mt-3 bg-linear-to-r from-rose-400 to-amber-400 text-black font-semibold py-2 px-3 rounded-full transition-colors w-full"
+                                        >
+                                            Add to Cart
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </div>
     );

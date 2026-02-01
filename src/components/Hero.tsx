@@ -2,7 +2,7 @@ import baby from "../assets/baby_reading.png";
 import displaybook from "../assets/15frt.jpg";
 import { Info, Star } from "lucide-react";
 // import SearchBar from "./SearchBar";
-import { books, type Book } from "../data/books";
+import type { Book } from "../types/book";
 import { Link } from "react-router-dom";
 
 function scrollToCatalog() {
@@ -14,12 +14,13 @@ type HeroProps = {
     onSearch?: (q: string) => void;
     query?: string;
     searchResults?: Book[];
+    books?: Book[];
 };
 
-const Hero = ({  query, searchResults }: HeroProps) => {
-    const featured = books.slice(0, 2);
-    const displayed =
-        query && searchResults ? searchResults.slice(0, 3) : featured;
+const Hero = ({ query, books = [] }: HeroProps) => {
+    // const featured = books.slice(0, 2);
+    // const displayed =
+    //     query && searchResults ? searchResults.slice(0, 3) : featured;
     const heading = query ? `Results for "${query}"` : "Featured picks";
 
     return (
@@ -61,15 +62,13 @@ const Hero = ({  query, searchResults }: HeroProps) => {
                         >
                             Learn More <Info className="ml-1 sm:ml-2 w-4 h-4" />
                         </Link>
-
-                        
                     </div>
 
                     {/* <div className="mt-6">
                         <SearchBar onSearch={onSearch} />
                     </div> */}
 
-                    <div className="mt-4 md:mt-6  ">
+                    {/* <div className="mt-4 md:mt-6  ">
                         <h4 className="text-xs sm:text-sm font-semibold text-gray-600 mb-2 md:mb-3 ">
                             {query ? `Search results` : "Featured picks"}
                         </h4>
@@ -102,7 +101,7 @@ const Hero = ({  query, searchResults }: HeroProps) => {
                                 ))
                             )}
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
                 <div className="relative flex justify-center items-center mt-8 lg:mt-0 order-1 lg:order-2">
@@ -124,7 +123,7 @@ const Hero = ({  query, searchResults }: HeroProps) => {
                             {books.slice(3, 6).map((b) => (
                                 <img
                                     key={b.id}
-                                    src={b.coverUrl}
+                                    src={b.coverImageUrl || ""}
                                     alt={b.title}
                                     className="w-16 h-22 md:w-20 md:h-28 object-cover rounded-md shadow"
                                 />

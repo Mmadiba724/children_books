@@ -7,22 +7,20 @@ export default function CartItemRow({
     remove,
 }: Readonly<{
     item: CartItem;
-    update: (bookId: string, qty: number) => void;
-    remove: (bookId: string) => void;
+    update: (bookId: string | number, qty: number) => void;
+    remove: (bookId: string | number) => void;
 }>) {
     return (
         <div className="flex items-center bg-white p-4 rounded shadow">
             <img
-                src={item.book.coverUrl}
+                src={item.book.coverImageUrl || ""}
                 alt={item.book.title}
                 className="w-20 h-28 object-cover rounded mr-4"
             />
             <div className="flex-1">
                 <div className="font-bold">{item.book.title}</div>
                 <div className="text-sm text-gray-600">{item.book.author}</div>
-                <div className="mt-2">
-                    ${(item.book.priceCents / 100).toFixed(2)}
-                </div>
+                <div className="mt-2">${(item.book.price ?? 0).toFixed(2)}</div>
             </div>
             <div className="flex items-center space-x-2">
                 <div className="inline-flex items-center bg-white rounded-full shadow px-2">

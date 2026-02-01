@@ -1,6 +1,6 @@
-import type { Book } from "../data/books";
+import type { LocalBook } from "../data/books";
 
-export default function BookPreview({ book }: { book: Book }) {
+export default function BookPreview({ book }: { book: LocalBook }) {
     return (
         <aside className="p-4 bg-gradient-to-r from-white to-rose-50 rounded-2xl shadow-inner border border-rose-100">
             <h4 className="text-lg font-bold mb-2 text-rose-600">

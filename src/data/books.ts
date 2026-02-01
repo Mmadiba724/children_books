@@ -1,4 +1,4 @@
-export interface Book {
+export interface LocalBook {
     id: string;
     title: string;
     author: string;
@@ -26,7 +26,7 @@ import coverNine from "../assets/Book covers/9frt (1).jpg";
 import coverTen from "../assets/Book covers/10frt.jpg";
 import coverEleven from "../assets/Book covers/11frt.jpg";
 
-export const books: Book[] = [
+export const books: LocalBook[] = [
     {
         id: "bunny-adventure",
         title: "The Great Bunny Adventure",
@@ -209,6 +209,6 @@ export const books: Book[] = [
     }
 ];
 
-export function getBookById(id: string): Book | undefined {
+export function getBookById(id: string): LocalBook | undefined {
     return books.find((b) => b.id === id);
 }

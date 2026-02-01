@@ -1,67 +1,55 @@
 import { Link } from "react-router-dom";
 import { ShoppingCart, Store } from "lucide-react";
-import { type Book } from "../data/books";
 import { useCart } from "../context/CartContext";
 import { useState } from "react";
+import type { Book } from "../types/book";
 
 type BookDetailsColumnProps = {
     book: Book;
     rating: number;
-    // bookReviews: Review[];
 };
 
-// type Review = {
-//     id: string;
-//     rating: number;
-//     comment: string;
-//     reviewer: string;
-//     date: string;
+// const QuantitySelector = () => {
+//     const [qty, setQty] = useState(1);
+
+//     return (
+//         <div className="flex items-center border border-gray-300 rounded w-32">
+//             <button
+//                 aria-label="decrease"
+//                 onClick={() => setQty(Math.max(1, qty - 1))}
+//                 className="px-4 py-2 text-lg font-semibold hover:bg-gray-50 transition"
+//             >
+//                 −
+//             </button>
+//             <div className="flex-1 text-center font-bold text-base border-x border-gray-300 py-2">
+//                 {qty}
+//             </div>
+//             <button
+//                 aria-label="increase"
+//                 onClick={() => setQty(qty + 1)}
+//                 className="px-4 py-2 text-lg font-semibold hover:bg-gray-50 transition"
+//             >
+//                 +
+//             </button>
+//         </div>
+//     );
 // };
-
-// type BookFormat = "hardcover" | "paperback" | "ebook";
-
-const QuantitySelector = () => {
-    const [qty, setQty] = useState(1);
-
-    return (
-        <div className="flex items-center border border-gray-300 rounded w-32">
-            <button
-                aria-label="decrease"
-                onClick={() => setQty(Math.max(1, qty - 1))}
-                className="px-4 py-2 text-lg font-semibold hover:bg-gray-50 transition"
-            >
-                −
-            </button>
-            <div className="flex-1 text-center font-bold text-base border-x border-gray-300 py-2">
-                {qty}
-            </div>
-            <button
-                aria-label="increase"
-                onClick={() => setQty(qty + 1)}
-                className="px-4 py-2 text-lg font-semibold hover:bg-gray-50 transition"
-            >
-                +
-            </button>
-        </div>
-    );
-};
 
 export default function BookDetailsColumn({
     book,
     rating,
 }: Readonly<BookDetailsColumnProps>) {
     const { add } = useCart();
-
-    const basePrice = book.priceCents / 100;
-
-    const ebookPrice = (basePrice * 0.65).toFixed(2);
+    const [qty, setQty] = useState(1);
 
     const handleAddToCart = () => {
         add(book);
     };
 
+    const inStock = (book.stockQuantity ?? 0) > 0;
+
     return (
-        <div className="space-y-6 w-[40rem] text-left">
+        <div className="space-y-6 w-160 text-left">
             {/* Title and Author */}
             <div className="border-b border-gray-200 pb-4">
                 <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
@@ -92,91 +80,121 @@ export default function BookDetailsColumn({
                         ))}
                     </div>
                     <span className="text-sm text-gray-600">
-                        <span className="font-bold" >{rating.toFixed(1)} </span>
+                        <span className="font-bold">{rating.toFixed(1)} </span>
                     </span>
                 </div>
             </div>
 
             {/* Format Selection */}
             <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">eBook</h3>
-                <div className="text-3xl font-bold text-gray-900 mb-4">
-                    ${ebookPrice}
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Price</h3>
+                <div className="text-4xl font-bold text-rose-600 mb-4">
+                    ugx {(book.price ?? 0).toFixed(2)}
                 </div>
 
-                {/* <Link
-                    to="#"
-                    className="text-sm text-teal-600 hover:text-teal-700 hover:underline inline-block mb-6"
-                >
-                    View All Available Formats & Editions
-                </Link> */}
+                {/* Availability Badge */}
+                <div className="mb-4">
+                    {inStock ? (
+                        <span className="inline-block bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded">
+                            ✓ In Stock ({book.stockQuantity} available)
+                        </span>
+                    ) : (
+                        <span className="inline-block bg-red-100 text-red-800 text-sm font-semibold px-3 py-1 rounded">
+                            Out of Stock
+                        </span>
+                    )}
+                </div>
+            </div>
+
+            {/* Book Details */}
+            <div className="border-t border-b border-gray-200 py-4 space-y-3">
+                {book.format && (
+                    <div>
+                        <p className="text-xs text-gray-600 uppercase font-semibold">
+                            Format
+                        </p>
+                        <p className="text-sm text-gray-900">{book.format}</p>
+                    </div>
+                )}
+
+                {book.categoryNames && book.categoryNames.length > 0 && (
+                    <div>
+                        <p className="text-xs text-gray-600 uppercase font-semibold">
+                            Categories
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                            {book.categoryNames.map((cat) => (
+                                <span
+                                    key={cat}
+                                    className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
+                                >
+                                    {cat}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {book.createdAt && (
+                    <div>
+                        <p className="text-xs text-gray-600 uppercase font-semibold">
+                            Published
+                        </p>
+                        <p className="text-sm text-gray-900">
+                            {new Date(book.createdAt).toLocaleDateString()}
+                        </p>
+                    </div>
+                )}
+
+                {book.fileId && (
+                    <div className="pt-2">
+                        <span className="inline-block bg-blue-50 text-blue-700 text-xs font-semibold px-2 py-1 rounded">
+                            ✓ Digital Edition Available
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Quantity and Add to Cart */}
-            <div className="border border-gray-200 rounded-lg p-5 bg-white">
-                <div className="mb-4">
+            <div className="border border-gray-200 rounded-lg p-5 bg-white space-y-4">
+                <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-2">
                         Quantity
                     </label>
-                    <QuantitySelector />
+                    <div className="flex items-center border border-gray-300 rounded w-32">
+                        <button
+                            aria-label="decrease"
+                            onClick={() => setQty(Math.max(1, qty - 1))}
+                            className="px-4 py-2 text-lg font-semibold hover:bg-gray-50 transition"
+                        >
+                            −
+                        </button>
+                        <div className="flex-1 text-center font-bold text-base border-x border-gray-300 py-2">
+                            {qty}
+                        </div>
+                        <button
+                            aria-label="increase"
+                            onClick={() => setQty(qty + 1)}
+                            className="px-4 py-2 text-lg font-semibold hover:bg-gray-50 transition"
+                        >
+                            +
+                        </button>
+                    </div>
                 </div>
 
                 <button
                     onClick={handleAddToCart}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded transition-colors flex items-center justify-center gap-2 mb-3"
+                    disabled={!inStock}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded transition-colors flex items-center justify-center gap-2"
                 >
                     <ShoppingCart className="w-5 h-5" />
-                    ADD TO CART
+                    {inStock ? "ADD TO CART" : "OUT OF STOCK"}
                 </button>
 
-                <button
-                    onClick={() => add(book, 5)}
-                    className="w-full bg-amber-400 hover:bg-amber-500 text-gray-900 font-semibold py-3 px-6 rounded transition-colors"
-                >
-                    Add 5 (Gift Package)
-                </button>
-
-                <p className="text-sm text-gray-600 mt-4 text-center">
+                <p className="text-sm text-gray-600 text-center">
                     Free shipping on orders over $25
                 </p>
             </div>
-
-            {/* Premium Members Section */}
-            {/* <div className="bg-gray-50 border border-gray-200 rounded p-4">
-                <div className="flex items-start gap-3">
-                    <div className="text-2xl">📖</div>
-                    <div className="text-sm text-gray-700">
-                        <span className="font-semibold">Premium Members</span>{" "}
-                        get an additional{" "}
-                        <span className="font-semibold">10% off</span> AND
-                        collect stamps to save with{" "}
-                        <span className="font-semibold">Rewards</span>.{" "}
-                        <span className="text-gray-600">
-                            10 stamps = $5 reward
-                        </span>{" "}
-                        <Link to="#" className="text-teal-600 hover:underline">
-                            Learn more
-                        </Link>
-                    </div>
-                </div>
-            </div> */}
-
-            {/* Ship This Item */}
-            {/* <div className="border border-gray-200 rounded-lg p-5">
-                <h4 className="font-bold text-gray-900 text-base mb-2">
-                    SHIP THIS ITEM
-                </h4>
-                <p className="text-sm text-gray-700 mb-4">
-                    In stock. Ships in 1-2 days.
-                </p>
-                <button
-                    onClick={handleAddToCart}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded transition-colors flex items-center justify-center gap-2"
-                >
-                    <ShoppingCart className="w-5 h-5" />
-                    ADD TO CART
-                </button>
-            </div> */}
 
             {/* Pick Up in Store */}
             <div className="border border-gray-200 rounded-lg p-5">

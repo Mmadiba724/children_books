@@ -1,13 +1,13 @@
 import { useParams } from "react-router-dom";
-import { getBookById, books as allBooks, type Book } from "../data/books";
 import BookCard from "../components/BookCard";
 import BookDetailsColumn from "../components/BookDetailsColumn";
 import ReviewsList from "../components/ReviewsList";
 import AddReviewForm from "../components/AddReviewForm";
+import bookService from "../services/bookService";
+import type { Book } from "../types/book";
 // import { useCart } from "../context/CartContext";
 import { useBookReviews } from "../hooks/useBookReviews";
-import { useMemo } from "react";
-// import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 // Mock ratings for display — can be replaced with real data later
 const MOCK_RATINGS: Record<string, number> = {
@@ -21,34 +21,68 @@ const MOCK_RATINGS: Record<string, number> = {
 
 export default function BookDetailPage() {
     const { id } = useParams();
-    const book = id ? getBookById(id) : undefined;
+    const [book, setBook] = useState<Book | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [imageError, setImageError] = useState(false);
     // const { add } = useCart();
     const { addReview, getReviewsForBook } = useBookReviews();
     // const [qty, setQty] = useState(1);
 
-    // Compute similar books by category or ageRange
+    useEffect(() => {
+        const fetchBook = async () => {
+            if (!id) return;
+
+            try {
+                setLoading(true);
+                setError(null);
+                setImageError(false);
+                const fetchedBook = await bookService.getBookById(id);
+                setBook(fetchedBook);
+            } catch (err: unknown) {
+                const errorMessage =
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to fetch book details";
+                setError(errorMessage);
+                console.error("Error fetching book:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBook();
+    }, [id]);
+
+    // Compute similar books by category
     const similarBooks: Book[] = useMemo(() => {
-        if (!book) return [];
-        const matches = allBooks.filter((b) => {
-            if (b.id === book.id) return false;
-            // match by shared category
-            const sharesCategory =
-                b.categories &&
-                book.categories &&
-                b.categories.some((c) => book.categories?.includes(c));
-            const sameAge =
-                b.ageRange &&
-                book.ageRange &&
-                b.ageRange.split("-")[0] === book.ageRange.split("-")[0];
-            return Boolean(sharesCategory || sameAge);
-        });
-        return matches.slice(0, 4);
+        // For now, return empty array - we can implement similar books API call later
+        return [];
     }, [book]);
+
+    if (loading) {
+        return (
+            <div className="max-w-8xl mx-auto p-6 flex items-center justify-center min-h-screen">
+                <p className="text-gray-500 text-lg">Loading book details...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="max-w-8xl mx-auto p-6">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                    <p className="text-red-700 text-lg">{error}</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!book) return <div className="p-6">Book not found.</div>;
 
-    const rating = MOCK_RATINGS[book.id] ?? 4.4;
-    const bookReviews = getReviewsForBook(book.id);
+    const rating = MOCK_RATINGS[String(book.id)] ?? 4.4;
+    const bookReviews = getReviewsForBook(String(book.id));
+    const coverImage = book.coverImageUrl || null;
 
     return (
         <div className="max-w-8xl mx-auto p-4 sm:p-6 px-4 sm:px-6 lg:px-12">
@@ -58,31 +92,72 @@ export default function BookDetailPage() {
                 <div className="lg:col-span-1 justify-self-end pr-12">
                     {/* here we can fetch/show other covers if they exist */}
 
-                    {/* cover image of the book */}
-                    <img
-                        src={book.coverUrl}
-                        alt={book.title}
-                        className="w-full shadow-xl mb-4 sm:mb-6 object-cover max-w-md mx-auto "
-                        style={{ aspectRatio: "3 / 4" }}
-                    />
-
-                    {/* Add to Wishlist button */}
-                    <button className="flex items-center justify-center gap-2 w-full max-w-md mx-auto text-teal-600 hover:text-teal-700 py-2 transition-colors">
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    <div className="mt-4 sm:mt-6 flex flex-col items-center justify-end w-full  ">
+                        {/* cover image of the book */}
+                        {!imageError && coverImage ? (
+                            <img
+                                src={coverImage}
+                                alt={book.title}
+                                className="w-72 h-102 shadow-xl mb-4 sm:mb-6 object-cover max-w-md mx-auto "
+                                style={{ aspectRatio: "3 / 4" }}
+                                onError={() => setImageError(true)}
                             />
-                        </svg>
-                        <span className="font-medium">Add to Wishlist</span>
-                    </button>
+                        ) : (
+                            <div
+                                className="w-72 h-102 shadow-xl mb-4 sm:mb-6 max-w-md mx-aut bg-gray-200 flex items-center justify-center"
+                                style={{ aspectRatio: "3 / 4" }}
+                            >
+                                <div className="text-center p-8">
+                                    <svg
+                                        className="w-48 h-24 mx-auto mb-4 text-gray-400"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                        />
+                                    </svg>
+                                    <p className="text-gray-500 font-medium">
+                                        No Cover Available
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        {/* Add to Wishlist button */}
+                        <button className="flex items-center justify-center gap-2 w-full max-w-md mx-auto text-teal-600 hover:text-teal-700 py-2 transition-colors">
+                            <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                                />
+                            </svg>
+                            <span className="font-medium">Add to Wishlist</span>
+                        </button>
+                    </div>
+
+                    {/* book overview */}
+                    <div className="mt-8 sm:mt-12 max-w-7xl mx-auto">
+                        <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
+                            Overview
+                        </h2>
+                        <div className="bg-white border border-gray-300 p-8 sm:p-10">
+                            <p className="text-gray-900 leading-relaxed text-base">
+                                {book.description ||
+                                    "No description available for this book."}
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Right column: order summary */}
@@ -96,95 +171,6 @@ export default function BookDetailPage() {
                         />
                     </div>
                 </aside>
-            </div>
-
-            {/* book overview */}
-            <div className="mt-8 sm:mt-12 max-w-7xl mx-auto">
-                <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
-                    Overview
-                </h2>
-                <div className="bg-white border border-gray-300 p-8 sm:p-10">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Left column: Main description */}
-                        <div className="space-y-4">
-                            <p className="text-gray-900 leading-relaxed text-sm">
-                                {book.description}
-                            </p>
-                            {book.previewPages &&
-                                book.previewPages.length > 0 && (
-                                    <>
-                                        {book.previewPages.map(
-                                            (preview, index) => (
-                                                <p
-                                                    key={index}
-                                                    className="text-gray-900 leading-relaxed text-sm"
-                                                >
-                                                    {preview}
-                                                </p>
-                                            ),
-                                        )}
-                                    </>
-                                )}
-                        </div>
-
-                        {/* Right column: Highlights and features */}
-                        <div className="space-y-6">
-                            <p className="text-gray-900 leading-relaxed text-sm">
-                                This engaging story captivates young readers
-                                with its vivid imagery and heartwarming
-                                narrative, making it perfect for bedtime reading
-                                or classroom story time.
-                            </p>
-
-                            <ul className="space-y-3 text-sm text-gray-900">
-                                {book.ageRange && (
-                                    <li className="flex items-start gap-2">
-                                        <span className="text-gray-900 mt-1">
-                                            •
-                                        </span>
-                                        <span>
-                                            Perfect for ages {book.ageRange}{" "}
-                                            years
-                                        </span>
-                                    </li>
-                                )}
-                                {book.categories &&
-                                    book.categories.length > 0 && (
-                                        <li className="flex items-start gap-2">
-                                            <span className="text-gray-900 mt-1">
-                                                •
-                                            </span>
-                                            <span>
-                                                Features themes of{" "}
-                                                {book.categories
-                                                    .join(", ")
-                                                    .toLowerCase()}
-                                            </span>
-                                        </li>
-                                    )}
-                                <li className="flex items-start gap-2">
-                                    <span className="text-gray-900 mt-1">
-                                        •
-                                    </span>
-                                    <span>
-                                        Beautifully illustrated story that
-                                        captures imagination and inspires
-                                        creativity
-                                    </span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="text-gray-900 mt-1">
-                                        •
-                                    </span>
-                                    <span>
-                                        Includes discussion questions for family
-                                        reading time and book clubs
-                                    </span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {/* Reviews Section */}
@@ -267,7 +253,7 @@ export default function BookDetailPage() {
                                 Share your thoughts with other customers
                             </p>
                             <AddReviewForm
-                                onAdd={(r) => addReview(book.id, r)}
+                                onAdd={(r) => addReview(String(book.id), r)}
                             />
                         </div>
                     </div>

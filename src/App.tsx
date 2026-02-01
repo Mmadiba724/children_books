@@ -7,6 +7,7 @@ import BookDetailPage from "./pages/BookDetailPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import AboutPage from "./pages/AboutPage";
+import SearchResultsPage from "./pages/SearchResultsPage";
 import { CartProvider } from "./context/CartContext";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
                 <Navbar />
                 <Routes>
                     <Route path="/" element={<CatalogPage />} />
+                    <Route path="/search" element={<SearchResultsPage />} />
                     <Route path="/book/:id" element={<BookDetailPage />} />
                     <Route path="/cart" element={<CartPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />

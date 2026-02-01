@@ -32,7 +32,7 @@ export default function Testimonials() {
     return (
         <section aria-label="Customer testimonials" className="mt-10">
             <div className="max-w-7xl mx-auto px-4 py-8">
-                <h2 className="text-2xl font-bold text-rose-600 mb-4">
+                <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
                     What readers and families say
                 </h2>
                 <p className="text-sm text-gray-600 mb-6">

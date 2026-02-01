@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import categoryService from "../services/categoryService";
 import logo from "../assets/logo.png";
 import {
     // MapPin,
@@ -53,24 +54,45 @@ const AccountMenu = ({
 );
 
 const Navbar = () => {
+    const navigate = useNavigate();
     const { state } = useCart();
     const [accountMenuOpen, setAccountMenuOpen] = useState(false);
     const [searchCategory, setSearchCategory] = useState("All");
+    const [searchInput, setSearchInput] = useState("");
     const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+    const [categories, setCategories] = useState<string[]>([]);
     const count = state.items.reduce((s, i) => s + i.quantity, 0);
 
-    const categories = [
-        "Books",
-        "Fiction",
-        "Nonfiction",
-        "eBooks",
-        "Audiobooks",
-        "Teens & YA",
-        "Kids",
-        "Toys & Games",
-        "Stationery & Gifts",
-        "Music & Movies",
-    ];
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await categoryService.getAllCategories();
+                if (response && Array.isArray(response)) {
+                    const categoryNames = response.map((cat) => cat.name);
+                    setCategories(categoryNames);
+                }
+            } catch (err) {
+                console.error("Error fetching categories:", err);
+                // Fallback to empty array if fetch fails
+                setCategories([]);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        // Navigate to search results page with search params
+        const params = new URLSearchParams();
+        if (searchInput.trim()) {
+            params.append("q", searchInput.trim());
+        }
+        if (searchCategory !== "All") {
+            params.append("category", searchCategory);
+        }
+        navigate(`/search?${params.toString()}`);
+    };
 
     return (
         <header className="w-full bg-rose-50 sticky mx-auto top-0 z-30 shadow-sm">
@@ -156,9 +178,13 @@ const Navbar = () => {
 
                     {/* Search Bar */}
                     <div className="flex-1 max-w-250">
-                        <div className="flex items-stretch border border-gray-300 rounded">
+                        <form
+                            onSubmit={handleSearch}
+                            className="flex items-stretch border border-gray-300 rounded"
+                        >
                             <div className="relative">
                                 <button
+                                    type="button"
                                     onClick={() =>
                                         setCategoryDropdownOpen(
                                             !categoryDropdownOpen,
@@ -174,6 +200,7 @@ const Navbar = () => {
                                         {["All", ...categories].map((cat) => (
                                             <button
                                                 key={cat}
+                                                type="button"
                                                 onClick={() => {
                                                     setSearchCategory(cat);
                                                     setCategoryDropdownOpen(
@@ -191,12 +218,17 @@ const Navbar = () => {
                             <input
                                 type="text"
                                 placeholder="Search by Title, Author, Keyword or ISBN"
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
                                 className="flex-1 px-4 py-2 text-sm focus:outline-none"
                             />
-                            <button className="px-6 bg-gray-800 hover:bg-gray-900 text-white">
+                            <button
+                                type="submit"
+                                className="px-6 bg-gray-800 hover:bg-gray-900 text-white"
+                            >
                                 <Search size={20} />
                             </button>
-                        </div>
+                        </form>
                     </div>
 
                     {/* Cart */}

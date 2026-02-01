@@ -7,7 +7,7 @@ import {
     useCallback,
 } from "react";
 import type { ReactNode } from "react";
-import { Book } from "../data/books";
+import type { Book } from "../types/book";
 
 export type CartItem = {
     book: Book;
@@ -20,8 +20,8 @@ type State = {
 
 type Action =
     | { type: "add"; book: Book; quantity?: number }
-    | { type: "remove"; bookId: string }
-    | { type: "update"; bookId: string; quantity: number }
+    | { type: "remove"; bookId: string | number }
+    | { type: "update"; bookId: string | number; quantity: number }
     | { type: "clear" };
 
 const initialState: State = { items: [] };
@@ -30,7 +30,7 @@ function cartReducer(state: State, action: Action): State {
     switch (action.type) {
         case "add": {
             const exists = state.items.find(
-                (i) => i.book.id === action.book.id
+                (i) => i.book.id === action.book.id,
             );
             if (exists) {
                 return {
@@ -40,7 +40,7 @@ function cartReducer(state: State, action: Action): State {
                                   ...i,
                                   quantity: i.quantity + (action.quantity ?? 1),
                               }
-                            : i
+                            : i,
                     ),
                 };
             }
@@ -60,7 +60,7 @@ function cartReducer(state: State, action: Action): State {
                 items: state.items.map((i) =>
                     i.book.id === action.bookId
                         ? { ...i, quantity: action.quantity }
-                        : i
+                        : i,
                 ),
             };
         case "clear":
@@ -73,8 +73,8 @@ function cartReducer(state: State, action: Action): State {
 const CartContext = createContext<{
     state: State;
     add: (book: Book, qty?: number) => void;
-    remove: (bookId: string) => void;
-    update: (bookId: string, qty: number) => void;
+    remove: (bookId: string | number) => void;
+    update: (bookId: string | number, qty: number) => void;
     clear: () => void;
     subtotalCents: () => number;
 } | null>(null);
@@ -101,19 +101,24 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
 
     const add = (book: Book, qty = 1) =>
         dispatch({ type: "add", book, quantity: qty });
-    const remove = (bookId: string) => dispatch({ type: "remove", bookId });
-    const update = (bookId: string, qty: number) =>
+    const remove = (bookId: string | number) =>
+        dispatch({ type: "remove", bookId });
+    const update = (bookId: string | number, qty: number) =>
         dispatch({ type: "update", bookId, quantity: qty });
     const clear = () => dispatch({ type: "clear" });
     const subtotalCents = useCallback(
         () =>
-            state.items.reduce((s, i) => s + i.book.priceCents * i.quantity, 0),
-        [state.items]
+            state.items.reduce(
+                (s, i) =>
+                    s + Math.round((i.book.price ?? 0) * 100) * i.quantity,
+                0,
+            ),
+        [state.items],
     );
 
     const value = useMemo(
         () => ({ state, add, remove, update, clear, subtotalCents }),
-        [state, subtotalCents]
+        [state, subtotalCents],
     );
 
     return (
