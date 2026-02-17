@@ -1,6 +1,7 @@
 
 import apiClient, { publicRequest } from '../config/api';
 import { handleError } from '../utils/errorHandler';
+import tokenStorage from '../utils/tokenStorage';
 
 interface RegisterPayload {
     email: string;
@@ -34,10 +35,10 @@ const authService = {
             });
             const { accessToken, refreshToken } = response.data;
             if (accessToken) {
-                localStorage.setItem('authToken', accessToken);
+                tokenStorage.setAccessToken(accessToken);
             }
             if (refreshToken) {
-                localStorage.setItem('refreshToken', refreshToken);
+                tokenStorage.setRefreshToken(refreshToken);
             }
             return response.data;
         } catch (error) {
@@ -70,12 +71,10 @@ const authService = {
             console.log("Extracted tokens:", { hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken });
 
             if (accessToken) {
-                localStorage.setItem('authToken', accessToken);
-                console.log("Stored authToken in localStorage");
+                tokenStorage.setAccessToken(accessToken);
             }
             if (refreshToken) {
-                localStorage.setItem('refreshToken', refreshToken);
-                console.log("Stored refreshToken in localStorage");
+                tokenStorage.setRefreshToken(refreshToken);
             }
             return response.data;
         } catch (error) {
@@ -86,7 +85,7 @@ const authService = {
     // Refresh access token (public endpoint)
     refreshToken: async (): Promise<AuthResponse> => {
         try {
-            const refreshToken = localStorage.getItem('refreshToken');
+            const refreshToken = tokenStorage.getRefreshToken();
             if (!refreshToken) {
                 throw new Error('No refresh token available');
             }
@@ -95,14 +94,34 @@ const authService = {
                 url: '/api/v1/auth/refresh',
                 data: { refreshToken },
             });
-            const { accessToken } = response.data;
-            if (accessToken) {
-                localStorage.setItem('authToken', accessToken);
+
+            // Handle different response structures
+            let accessToken, newRefreshToken;
+
+            // Check if tokens are in data.data or directly in data
+            if (response.data.data) {
+                accessToken = response.data.data.accessToken;
+                newRefreshToken = response.data.data.refreshToken;
+            } else {
+                accessToken = response.data.accessToken;
+                newRefreshToken = response.data.refreshToken;
             }
+
+            console.log("Refresh token API response:", { hasAccessToken: !!accessToken, hasRefreshToken: !!newRefreshToken });
+
+            if (accessToken) {
+                tokenStorage.setAccessToken(accessToken);
+            }
+
+            // Update refresh token if a new one is provided
+            if (newRefreshToken) {
+                tokenStorage.setRefreshToken(newRefreshToken);
+            }
+
             return response.data;
         } catch (error) {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('refreshToken');
+            // Clear tokens if refresh fails
+            tokenStorage.clearAll();
             throw handleError(error as unknown as import('../utils/errorHandler').ErrorType, { serviceName: 'AuthService' });
         }
     },
@@ -111,24 +130,22 @@ const authService = {
     logout: async (): Promise<void> => {
         try {
             await apiClient.post('/api/v1/auth/logout');
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('refreshToken');
+            tokenStorage.clearAll();
         } catch (error) {
             // Clear tokens even if logout fails
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('refreshToken');
+            tokenStorage.clearAll();
             throw handleError(error as unknown as import('../utils/errorHandler').ErrorType, { serviceName: 'AuthService' });
         }
     },
 
     // Check if user is authenticated
     isAuthenticated: (): boolean => {
-        return !!localStorage.getItem('authToken');
+        return tokenStorage.isAuthenticated();
     },
 
     // Get current auth token
     getAuthToken: (): string | null => {
-        return localStorage.getItem('authToken');
+        return tokenStorage.getAccessToken();
     },
 };
 

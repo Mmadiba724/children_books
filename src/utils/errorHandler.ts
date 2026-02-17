@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import tokenStorage from './tokenStorage';
 
 export interface ErrorResponse {
     status: number;
@@ -106,8 +107,7 @@ export const handleError = (
         const status = error.response?.status || 500;
         if (status === 401) {
             // Clear auth tokens on unauthorized
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('refreshToken');
+            tokenStorage.clearAll();
         }
     } else if (error instanceof TypeError) {
         // Network errors

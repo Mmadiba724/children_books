@@ -3,6 +3,7 @@ import { X, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import categoryService, { type Category } from "../services/categoryService";
 import authService from "../services/authService";
+import tokenStorage from "../utils/tokenStorage";
 
 interface CategoryModalProps {
     isOpen: boolean;
@@ -197,8 +198,7 @@ const CategoryModal = ({
                     errorMessage =
                         "Authentication failed. Please log in again and try.";
                     // Clear auth token if it's invalid
-                    localStorage.removeItem("authToken");
-                    localStorage.removeItem("refreshToken");
+                    tokenStorage.clearAll();
                 } else if (axiosError.response?.data) {
                     const errorData = axiosError.response.data;
                     if (typeof errorData === "string") {

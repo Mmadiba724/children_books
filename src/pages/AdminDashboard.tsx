@@ -26,15 +26,16 @@ export default function AdminDashboard() {
                     <div className="border-b border-gray-200">
                         <div className="flex flex-wrap -mb-px">
                             <button
-                                onClick={() => setActiveTab("categories")}
+                                onClick={() => setActiveTab("orders")}
                                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                                    activeTab === "categories"
+                                    activeTab === "orders"
                                         ? "border-rose-600 text-rose-600"
                                         : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                                 }`}
                             >
-                                Categories
+                                Orders
                             </button>
+
                             <button
                                 onClick={() => setActiveTab("books")}
                                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
@@ -45,15 +46,16 @@ export default function AdminDashboard() {
                             >
                                 Books
                             </button>
+
                             <button
-                                onClick={() => setActiveTab("orders")}
+                                onClick={() => setActiveTab("categories")}
                                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                                    activeTab === "orders"
+                                    activeTab === "categories"
                                         ? "border-rose-600 text-rose-600"
                                         : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                                 }`}
                             >
-                                Orders
+                                Categories
                             </button>
                         </div>
                     </div>

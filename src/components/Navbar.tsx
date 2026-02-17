@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import categoryService from "../services/categoryService";
+import toast from "react-hot-toast";
 import logo from "../assets/logo.png";
 import {
     // MapPin,
@@ -11,8 +12,8 @@ import {
     ShoppingCart,
     Search,
     ChevronDown,
-    BookPlus,
     ShieldCheck,
+    BookOpen,
 } from "lucide-react";
 import LoginModal from "./LoginModal";
 import AddBookModal from "./AddBookModal";
@@ -22,10 +23,14 @@ const AccountMenu = ({
     isOpen,
     onToggle,
     onSignInClick,
+    isAuthenticated,
+    onLogout,
 }: {
     isOpen: boolean;
     onToggle: () => void;
     onSignInClick?: () => void;
+    isAuthenticated: boolean;
+    onLogout?: () => void;
 }) => (
     <div className="relative">
         <button
@@ -38,27 +43,66 @@ const AccountMenu = ({
         </button>
         {isOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg border border-gray-200 py-2 z-50">
-                <button
-                    onClick={() => {
-                        onSignInClick?.();
-                        onToggle();
-                    }}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                >
-                    Sign In
-                </button>
-                <Link
-                    to="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                >
-                    Create Account
-                </Link>
-                <Link
-                    to="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                >
-                    Order Status
-                </Link>
+                {isAuthenticated ? (
+                    <>
+                        <Link
+                            to="/library"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            onClick={onToggle}
+                        >
+                            <BookOpen size={14} />
+                            My Library
+                        </Link>
+                        <Link
+                            to="/admin"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            onClick={onToggle}
+                        >
+                            <ShieldCheck size={14} />
+                            Admin Dashboard
+                        </Link>
+                        <Link
+                            to="#"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                            Order Status
+                        </Link>
+                        <hr className="my-2 border-gray-200" />
+                        <button
+                            onClick={() => {
+                                onLogout?.();
+                                onToggle();
+                            }}
+                            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                        >
+                            Sign Out
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <button
+                            onClick={() => {
+                                onSignInClick?.();
+                                onToggle();
+                            }}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                            Sign In
+                        </button>
+                        <Link
+                            to="#"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                            Create Account
+                        </Link>
+                        <Link
+                            to="#"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                            Order Status
+                        </Link>
+                    </>
+                )}
             </div>
         )}
     </div>
@@ -67,7 +111,7 @@ const AccountMenu = ({
 const Navbar = () => {
     const navigate = useNavigate();
     const { state } = useCart();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, logout } = useAuth();
     const [accountMenuOpen, setAccountMenuOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
@@ -77,6 +121,17 @@ const Navbar = () => {
     const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
     const [categories, setCategories] = useState<string[]>([]);
     const count = state.items.reduce((s, i) => s + i.quantity, 0);
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            toast.success("Successfully logged out");
+            navigate("/");
+        } catch (error) {
+            console.error("Logout failed:", error);
+            toast.error("Logout failed. Please try again.");
+        }
+    };
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -166,11 +221,13 @@ const Navbar = () => {
                                     setAccountMenuOpen(!accountMenuOpen)
                                 }
                                 onSignInClick={() => setIsLoginModalOpen(true)}
+                                isAuthenticated={isAuthenticated}
+                                onLogout={handleLogout}
                             />
                             {isAuthenticated && (
                                 <>
-                                    <span className="text-gray-300">|</span>
-                                    <button
+                                    {/* <span className="text-gray-300">|</span> */}
+                                    {/* <button
                                         onClick={() =>
                                             setIsAddBookModalOpen(true)
                                         }
@@ -178,7 +235,7 @@ const Navbar = () => {
                                     >
                                         <BookPlus size={14} />
                                         ADD BOOK
-                                    </button>
+                                    </button> */}
                                     <span className="text-gray-300">|</span>
                                     <Link
                                         to="/admin"

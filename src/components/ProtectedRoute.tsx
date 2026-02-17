@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { Loader2 } from "lucide-react";
@@ -11,13 +11,20 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     const { isAuthenticated, isLoading } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            toast.error("Please sign in to access the admin panel");
+            const pageName = location.pathname.includes("admin")
+                ? "admin panel"
+                : location.pathname.includes("library")
+                  ? "your library"
+                  : "this page";
+
+            toast.error(`Please sign in to access ${pageName}`);
             navigate("/", { replace: true });
         }
-    }, [isAuthenticated, isLoading, navigate]);
+    }, [isAuthenticated, isLoading, navigate, location]);
 
     // Show loading spinner while checking authentication
     if (isLoading) {

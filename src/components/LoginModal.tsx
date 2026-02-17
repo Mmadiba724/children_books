@@ -3,6 +3,7 @@ import { Eye, EyeOff, X } from "lucide-react";
 import authService from "../services/authService";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { logTokenStatus } from "../utils/tokenDebugger";
 
 interface LoginModalProps {
     isOpen: boolean;
@@ -52,10 +53,9 @@ const LoginModal = ({
             try {
                 const response = await authService.login({ email, password });
                 console.log("Login successful, response:", response);
-                console.log(
-                    "Auth token stored:",
-                    localStorage.getItem("authToken"),
-                );
+
+                // Log complete token status for debugging
+                logTokenStatus();
 
                 // Extract user data from response
                 // Response structure may vary: response.user

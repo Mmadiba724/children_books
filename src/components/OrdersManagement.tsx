@@ -6,6 +6,12 @@ import {
     Package,
     Clock,
     Filter,
+    Mail,
+    MapPin,
+    CreditCard,
+    Hash,
+    ShoppingBag,
+    DollarSign,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import orderService from "../services/orderService";
@@ -247,194 +253,326 @@ export default function OrdersManagement() {
                     </p>
                 </div>
             ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                     {filteredOrders.map((order) => (
                         <div
                             key={order.id}
-                            className="bg-white rounded-lg shadow-md p-6 border-2 border-gray-100 hover:border-rose-200 transition-colors"
+                            className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-200"
                         >
-                            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                                {/* Order Info */}
-                                <div className="flex-1">
-                                    <div className="flex flex-wrap items-center gap-3 mb-3">
-                                        <h3 className="text-lg font-bold text-gray-900">
-                                            Order #{order.id}
-                                        </h3>
+                            {/* Header Section */}
+                            <div className="bg-gradient-to-r from-rose-50 to-pink-50 px-6 py-4 border-b border-gray-200">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-white p-2 rounded-lg shadow-sm">
+                                            <ShoppingBag className="w-5 h-5 text-rose-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-gray-900">
+                                                Order #{order.id}
+                                            </h3>
+                                            <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                                                <Clock className="w-4 h-4" />
+                                                <span>
+                                                    {new Date(
+                                                        order.createdAt,
+                                                    ).toLocaleDateString(
+                                                        "en-US",
+                                                        {
+                                                            year: "numeric",
+                                                            month: "short",
+                                                            day: "numeric",
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        },
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
                                         <span
-                                            className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}
+                                            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide ${getStatusColor(order.status)}`}
                                         >
                                             {order.status}
                                         </span>
                                         {order.paymentStatus && (
                                             <span
-                                                className={`px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusColor(order.paymentStatus)}`}
+                                                className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide ${getPaymentStatusColor(order.paymentStatus)}`}
                                             >
-                                                Payment: {order.paymentStatus}
+                                                {order.paymentStatus}
                                             </span>
                                         )}
                                     </div>
+                                </div>
+                            </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                        {/* Customer Email */}
-                                        {order.userEmail && (
-                                            <div className="md:col-span-2">
-                                                <span className="font-medium text-gray-700">
-                                                    Customer:
-                                                </span>{" "}
-                                                <span className="text-gray-600">
-                                                    {order.userEmail}
-                                                </span>
+                            <div className="p-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    {/* Main Information */}
+                                    <div className="lg:col-span-2 space-y-6">
+                                        {/* Customer & Shipping Info */}
+                                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                                            <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                                <Mail className="w-4 h-4 text-blue-600" />
+                                                Customer Information
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {order.userEmail && (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-medium text-gray-600 min-w-[60px]">
+                                                            Email:
+                                                        </span>
+                                                        <span className="text-sm text-gray-900">
+                                                            {order.userEmail}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {order.shippingAddress && (
+                                                    <div className="flex items-start gap-2 pt-2 border-t border-blue-100">
+                                                        <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                                                        <div>
+                                                            <span className="text-sm font-medium text-gray-600 block">
+                                                                Shipping
+                                                                Address:
+                                                            </span>
+                                                            <span className="text-sm text-gray-900">
+                                                                {
+                                                                    order.shippingAddress
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-
-                                        {/* Total Amount */}
-                                        <div>
-                                            <span className="font-medium text-gray-700">
-                                                Total:
-                                            </span>{" "}
-                                            <span className="text-rose-600 font-semibold">
-                                                ${order.totalAmount.toFixed(2)}
-                                            </span>
                                         </div>
 
-                                        {/* Date */}
-                                        <div className="flex items-center gap-1 text-gray-600">
-                                            <Clock className="w-4 h-4" />
-                                            <span>
-                                                {new Date(
-                                                    order.createdAt,
-                                                ).toLocaleString()}
-                                            </span>
+                                        {/* Payment Information */}
+                                        <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+                                            <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                                <CreditCard className="w-4 h-4 text-green-600" />
+                                                Payment Details
+                                            </h4>
+                                            <div className="space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <DollarSign className="w-4 h-4 text-green-600" />
+                                                        <span className="text-sm font-medium text-gray-600">
+                                                            Total Amount:
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-lg font-bold text-gray-900">
+                                                        $
+                                                        {order.totalAmount.toFixed(
+                                                            2,
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                {order.transactionId && (
+                                                    <div className="pt-3 border-t-2 border-green-200 bg-white rounded-lg p-3 shadow-sm">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <div className="bg-green-100 p-1.5 rounded">
+                                                                <Hash className="w-4 h-4 text-green-700" />
+                                                            </div>
+                                                            <span className="text-sm font-bold text-gray-900">
+                                                                Mobile Money
+                                                                Transaction
+                                                                Number
+                                                            </span>
+                                                        </div>
+                                                        <div className="bg-green-50 px-3 py-2 rounded border-2 border-green-200">
+                                                            <span className="text-base font-mono font-bold text-green-900 block text-center">
+                                                                {
+                                                                    order.transactionId
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-xs text-green-700 mt-2 text-center font-medium">
+                                                            ✓ Payment Proof
+                                                            Verified
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
 
-                                        {/* Items */}
+                                        {/* Order Items */}
                                         {order.items &&
                                             order.items.length > 0 && (
-                                                <div className="md:col-span-2">
-                                                    <span className="font-medium text-gray-700">
-                                                        Items:
-                                                    </span>
-                                                    <ul className="mt-1 ml-4 space-y-1">
+                                                <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                                                    <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                                        <Package className="w-4 h-4 text-purple-600" />
+                                                        Order Items (
+                                                        {order.items.length})
+                                                    </h4>
+                                                    <div className="space-y-3">
                                                         {order.items.map(
                                                             (item, idx) => (
-                                                                <li
+                                                                <div
                                                                     key={idx}
-                                                                    className="text-gray-600"
+                                                                    className="bg-white rounded-md p-3 flex items-start justify-between gap-3 border border-purple-100"
                                                                 >
-                                                                    •{" "}
-                                                                    {item.title ||
-                                                                        `Book #${item.bookId}`}
-                                                                    {item.author && (
-                                                                        <span className="text-gray-500">
-                                                                            {" "}
-                                                                            by{" "}
-                                                                            {
-                                                                                item.author
-                                                                            }
-                                                                        </span>
-                                                                    )}{" "}
-                                                                    <span className="font-medium">
-                                                                        x
-                                                                        {
-                                                                            item.quantity
-                                                                        }
-                                                                    </span>
-                                                                    {item.price && (
-                                                                        <span className="text-gray-500">
-                                                                            {" "}
-                                                                            - $
-                                                                            {item.price.toFixed(
-                                                                                2,
-                                                                            )}
-                                                                        </span>
-                                                                    )}
-                                                                </li>
+                                                                    <div className="flex-1">
+                                                                        <p className="font-semibold text-gray-900">
+                                                                            {item.title ||
+                                                                                `Book #${item.bookId}`}
+                                                                        </p>
+                                                                        {item.author && (
+                                                                            <p className="text-sm text-gray-600 mt-0.5">
+                                                                                by{" "}
+                                                                                {
+                                                                                    item.author
+                                                                                }
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="text-right flex-shrink-0">
+                                                                        <p className="text-sm text-gray-600">
+                                                                            Qty:{" "}
+                                                                            <span className="font-semibold text-gray-900">
+                                                                                {
+                                                                                    item.quantity
+                                                                                }
+                                                                            </span>
+                                                                        </p>
+                                                                        {item.price && (
+                                                                            <p className="font-bold text-gray-900 mt-1">
+                                                                                $
+                                                                                {item.price.toFixed(
+                                                                                    2,
+                                                                                )}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
                                                             ),
                                                         )}
-                                                    </ul>
+                                                    </div>
                                                 </div>
                                             )}
 
-                                        {/* Shipping Address */}
-                                        {order.shippingAddress && (
-                                            <div className="md:col-span-2">
-                                                <span className="font-medium text-gray-700">
-                                                    Shipping:
-                                                </span>{" "}
-                                                <span className="text-gray-600">
-                                                    {order.shippingAddress}
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {/* Tracking Number */}
+                                        {/* Tracking Information */}
                                         {order.trackingNumber && (
-                                            <div>
-                                                <span className="font-medium text-gray-700">
-                                                    Tracking:
-                                                </span>{" "}
-                                                <span className="text-gray-600">
+                                            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+                                                <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                                    <Package className="w-4 h-4 text-indigo-600" />
+                                                    Tracking Information
+                                                </h4>
+                                                <p className="text-sm font-mono text-gray-900 bg-white px-3 py-2 rounded">
                                                     {order.trackingNumber}
-                                                </span>
+                                                </p>
                                             </div>
                                         )}
+                                    </div>
 
-                                        {/* Transaction ID */}
-                                        {order.transactionId && (
-                                            <div className="md:col-span-2">
-                                                <span className="font-medium text-gray-700">
-                                                    Transaction:
-                                                </span>{" "}
-                                                <span className="text-gray-600 font-mono text-xs">
-                                                    {order.transactionId}
-                                                </span>
+                                    {/* Action Section */}
+                                    <div className="lg:col-span-1">
+                                        {order.status === "PENDING" ? (
+                                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 sticky top-4">
+                                                <h4 className="font-bold text-gray-900 mb-4">
+                                                    Actions Required
+                                                </h4>
+                                                <div className="space-y-3">
+                                                    <button
+                                                        onClick={() =>
+                                                            handleApproveOrder(
+                                                                order.id,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            processingOrderId ===
+                                                            String(order.id)
+                                                        }
+                                                        className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                                    >
+                                                        {processingOrderId ===
+                                                        String(order.id) ? (
+                                                            <>
+                                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                                <span>
+                                                                    Processing...
+                                                                </span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <CheckCircle className="w-5 h-5" />
+                                                                <span>
+                                                                    Approve
+                                                                    Order
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() =>
+                                                            handleRejectOrder(
+                                                                order.id,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            processingOrderId ===
+                                                            String(order.id)
+                                                        }
+                                                        className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                                    >
+                                                        {processingOrderId ===
+                                                        String(order.id) ? (
+                                                            <>
+                                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                                <span>
+                                                                    Processing...
+                                                                </span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <XCircle className="w-5 h-5" />
+                                                                <span>
+                                                                    Reject Order
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                    </button>
+
+                                                    <div className="mt-4 pt-4 border-t border-gray-200">
+                                                        <p className="text-xs text-gray-600 text-center leading-relaxed">
+                                                            Review the order
+                                                            details carefully
+                                                            before taking
+                                                            action.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                                <h4 className="font-bold text-gray-900 mb-3">
+                                                    Order Status
+                                                </h4>
+                                                <div className="text-center py-4">
+                                                    <span
+                                                        className={`inline-flex px-4 py-2 rounded-full text-sm font-bold ${getStatusColor(order.status)}`}
+                                                    >
+                                                        {order.status}
+                                                    </span>
+                                                    <p className="text-xs text-gray-600 mt-3">
+                                                        {order.status ===
+                                                            "CONFIRMED" &&
+                                                            "Order has been confirmed"}
+                                                        {order.status ===
+                                                            "SHIPPED" &&
+                                                            "Order is on its way"}
+                                                        {order.status ===
+                                                            "DELIVERED" &&
+                                                            "Order has been delivered"}
+                                                        {order.status ===
+                                                            "CANCELLED" &&
+                                                            "Order was cancelled"}
+                                                    </p>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
                                 </div>
-
-                                {/* Action Buttons */}
-                                {order.status === "PENDING" && (
-                                    <div className="flex flex-col gap-2 min-w-[180px]">
-                                        <button
-                                            onClick={() =>
-                                                handleApproveOrder(order.id)
-                                            }
-                                            disabled={
-                                                processingOrderId ===
-                                                String(order.id)
-                                            }
-                                            className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors"
-                                        >
-                                            {processingOrderId ===
-                                            String(order.id) ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                            ) : (
-                                                <CheckCircle className="w-4 h-4" />
-                                            )}
-                                            Approve
-                                        </button>
-
-                                        <button
-                                            onClick={() =>
-                                                handleRejectOrder(order.id)
-                                            }
-                                            disabled={
-                                                processingOrderId ===
-                                                String(order.id)
-                                            }
-                                            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors"
-                                        >
-                                            {processingOrderId ===
-                                            String(order.id) ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                            ) : (
-                                                <XCircle className="w-4 h-4" />
-                                            )}
-                                            Reject
-                                        </button>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     ))}

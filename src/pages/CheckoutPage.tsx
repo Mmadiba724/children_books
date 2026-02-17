@@ -14,6 +14,7 @@ export default function CheckoutPage() {
     const [shippingAddress, setShippingAddress] = useState("");
     const [showAddressForm, setShowAddressForm] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
+    const [transactionNumber, setTransactionNumber] = useState("");
 
     const subtotal = subtotalCents();
     const shipping = 0; // Free shipping
@@ -342,11 +343,56 @@ export default function CheckoutPage() {
                                 </span>
                             </div>
 
+                            {/* Mobile Money Payment Instructions */}
+                            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <h3 className="font-bold text-sm text-gray-900 mb-2">
+                                    Mobile Money Payment
+                                </h3>
+                                <p className="text-xs text-gray-700 mb-2">
+                                    Please send UGX {(total / 100).toFixed(2)}{" "}
+                                    by dialing *185# and follow the prompts to
+                                    pay to:
+                                </p>
+                                <div className="text-sm font-semibold text-gray-900 mb-1">
+                                    MTN: 0772 123 456
+                                </div>
+                                <div>OR</div>
+                                <div className="text-sm font-semibold text-gray-900 mb-3">
+                                    Airtel: 0752 123 456
+                                </div>
+                                <p className="text-xs text-gray-600">
+                                    After completing the payment, enter your
+                                    transaction number below.
+                                </p>
+                            </div>
+
+                            {/* Transaction Number Input */}
+                            <div className="mb-4">
+                                <label
+                                    htmlFor="transactionNumber"
+                                    className="block text-sm font-semibold text-gray-700 mb-2"
+                                >
+                                    Transaction Number *
+                                </label>
+                                <input
+                                    id="transactionNumber"
+                                    type="text"
+                                    value={transactionNumber}
+                                    onChange={(e) =>
+                                        setTransactionNumber(e.target.value)
+                                    }
+                                    placeholder="Enter mobile money transaction number"
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-300"
+                                    required
+                                />
+                            </div>
+
                             <button
                                 onClick={handleSubmitOrder}
                                 disabled={
                                     loading ||
-                                    (hasPhysicalBooks && !shippingAddress)
+                                    (hasPhysicalBooks && !shippingAddress) ||
+                                    !transactionNumber.trim()
                                 }
                                 className="w-full bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 text-white font-bold py-3 rounded transition-colors mb-4"
                             >

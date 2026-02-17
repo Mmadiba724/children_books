@@ -8,6 +8,7 @@ import {
 } from "react";
 import type { User, AuthContextType } from "../types/user";
 import authService from "../services/authService";
+import tokenStorage from "../utils/tokenStorage";
 
 type State = {
     user: User | null;
@@ -58,15 +59,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [state, dispatch] = useReducer(authReducer, initialState);
 
     const login = useCallback((userData: User) => {
-        // Store user data in localStorage
-        localStorage.setItem("userData", JSON.stringify(userData));
+        // Store user data in secure storage
+        tokenStorage.setUserData(userData);
         dispatch({ type: "SET_USER", user: userData });
     }, []);
 
     const logout = useCallback(() => {
         // Clear tokens and user data
         authService.logout();
-        localStorage.removeItem("userData");
+        tokenStorage.clearAll();
         dispatch({ type: "CLEAR_USER" });
     }, []);
 
@@ -79,10 +80,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (isAuth) {
                 // Try to retrieve stored user data
-                const storedUserData = localStorage.getItem("userData");
+                const storedUserData = tokenStorage.getUserData();
 
                 if (storedUserData) {
-                    const userData = JSON.parse(storedUserData) as User;
+                    const userData = storedUserData as User;
                     dispatch({ type: "SET_USER", user: userData });
                 } else {
                     // Token exists but no user data - this shouldn't normally happen

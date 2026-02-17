@@ -8,6 +8,7 @@ import bookService, {
 import categoryService from "../services/categoryService";
 import fileService from "../services/fileService";
 import authService from "../services/authService";
+import tokenStorage from "../utils/tokenStorage";
 import type { Book } from "../types/book";
 import { getImageUrl } from "../utils/imageUtils";
 
@@ -369,8 +370,7 @@ const AddBookModal = ({
                     errorMessage =
                         "Authentication failed. Please log in again and try.";
                     // Clear auth token if it's invalid
-                    localStorage.removeItem("authToken");
-                    localStorage.removeItem("refreshToken");
+                    tokenStorage.clearAll();
                 } else if (axiosError.response?.data) {
                     const errorData = axiosError.response.data;
                     if (typeof errorData === "string") {
