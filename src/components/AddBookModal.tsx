@@ -70,7 +70,8 @@ const AddBookModal = ({
                     author: editBook.author,
                     description: editBook.description || "",
                     price: String(editBook.price),
-                    format: editBook.format as "DIGITAL" | "PHYSICAL",
+                    format:
+                        editBook.format === "PHYSICAL" ? "PHYSICAL" : "DIGITAL",
                     stockQuantity: String(editBook.stockQuantity || 0),
                     categoryIds: [], // Will be populated after categories load
                 });
@@ -198,11 +199,11 @@ const AddBookModal = ({
             newErrors.categories = "Please select at least one category";
         }
 
-        if (!coverImage && !editBook) {
+        if (!coverImage && !editBook?.coverImageUrl) {
             newErrors.coverImage = "Cover image is required";
         }
 
-        if (formData.format === "DIGITAL" && !bookFile) {
+        if (formData.format === "DIGITAL" && !bookFile && !editBook?.fileId) {
             newErrors.bookFile = "Book file is required for digital format";
         }
 
