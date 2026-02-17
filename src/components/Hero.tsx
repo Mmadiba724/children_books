@@ -1,6 +1,7 @@
 import baby from "../assets/baby_reading.png";
 import displaybook from "../assets/15frt.jpg";
 import { Info, Star } from "lucide-react";
+import { getImageUrl } from "../utils/imageUtils";
 // import SearchBar from "./SearchBar";
 import type { Book } from "../types/book";
 import { Link } from "react-router-dom";
@@ -123,7 +124,7 @@ const Hero = ({ query, books = [] }: HeroProps) => {
                             {books.slice(3, 6).map((b) => (
                                 <img
                                     key={b.id}
-                                    src={b.coverImageUrl || ""}
+                                    src={getImageUrl(b.coverImageUrl)}
                                     alt={b.title}
                                     className="w-16 h-22 md:w-20 md:h-28 object-cover rounded-md shadow"
                                 />

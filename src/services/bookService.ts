@@ -25,9 +25,13 @@ interface CreateBookPayload {
     description?: string;
     isbn?: string;
     categoryId?: string;
+    categoryIds?: number[];
     price?: number;
+    format?: string;
     coverImageId?: string;
-    fileId?: string;
+    coverImageUrl?: string;
+    fileId?: string | null;
+    stockQuantity?: number;
     publishedDate?: string;
 }
 
@@ -112,9 +116,12 @@ const bookService = {
     // Create a new book (requires authentication)
     createBook: async (payload: CreateBookPayload): Promise<Book> => {
         try {
+            console.log("BookService - Sending create book request with payload:", payload);
             const response = await apiClient.post('/api/v1/books', payload);
+            console.log("BookService - Create book response:", response.data);
             return response.data;
         } catch (error) {
+            console.error("BookService - Create book error:", error);
             throw handleError(error as Error, { serviceName: 'BookService' });
         }
     },

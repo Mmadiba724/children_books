@@ -53,12 +53,29 @@ const authService = {
                 url: '/api/v1/auth/login',
                 data: payload,
             });
-            const { accessToken, refreshToken } = response.data;
+            console.log("Login API response:", response.data);
+
+            // Handle different response structures
+            let accessToken, refreshToken;
+
+            // Check if tokens are in data.data or directly in data
+            if (response.data.data) {
+                accessToken = response.data.data.accessToken;
+                refreshToken = response.data.data.refreshToken;
+            } else {
+                accessToken = response.data.accessToken;
+                refreshToken = response.data.refreshToken;
+            }
+
+            console.log("Extracted tokens:", { hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken });
+
             if (accessToken) {
                 localStorage.setItem('authToken', accessToken);
+                console.log("Stored authToken in localStorage");
             }
             if (refreshToken) {
                 localStorage.setItem('refreshToken', refreshToken);
+                console.log("Stored refreshToken in localStorage");
             }
             return response.data;
         } catch (error) {

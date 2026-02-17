@@ -5,6 +5,7 @@ import BookCard from "../components/BookCard";
 import bookService from "../services/bookService";
 import type { Book } from "../types/book";
 import categoryService, { Category } from "../services/categoryService";
+import { getImageUrl } from "../utils/imageUtils";
 
 export default function SearchResultsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -336,7 +337,9 @@ export default function SearchResultsPage() {
                                         <div className="w-24 h-32 shrink-0 bg-gray-200 rounded flex items-center justify-center">
                                             {book.coverImageUrl ? (
                                                 <img
-                                                    src={book.coverImageUrl}
+                                                    src={getImageUrl(
+                                                        book.coverImageUrl,
+                                                    )}
                                                     alt={book.title}
                                                     className="w-full h-full object-cover rounded"
                                                     onError={(e) => {

@@ -1,4 +1,5 @@
 // import React from "react";
+import { getImageUrl } from "../utils/imageUtils";
 import type { CartItem } from "../context/CartContext";
 
 export default function CartItemRow({
@@ -7,13 +8,13 @@ export default function CartItemRow({
     remove,
 }: Readonly<{
     item: CartItem;
-    update: (bookId: string | number, qty: number) => void;
-    remove: (bookId: string | number) => void;
+    update: (bookId: string | number, qty: number) => Promise<void>;
+    remove: (bookId: string | number) => Promise<void>;
 }>) {
     return (
         <div className="flex items-center bg-white p-4 rounded shadow">
             <img
-                src={item.book.coverImageUrl || ""}
+                src={getImageUrl(item.book.coverImageUrl)}
                 alt={item.book.title}
                 className="w-20 h-28 object-cover rounded mr-4"
             />

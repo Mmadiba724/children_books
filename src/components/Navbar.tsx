@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import categoryService from "../services/categoryService";
 import logo from "../assets/logo.png";
 import {
@@ -10,14 +11,21 @@ import {
     ShoppingCart,
     Search,
     ChevronDown,
+    BookPlus,
+    ShieldCheck,
 } from "lucide-react";
+import LoginModal from "./LoginModal";
+import AddBookModal from "./AddBookModal";
+import CartSidebar from "./CartSidebar";
 
 const AccountMenu = ({
     isOpen,
     onToggle,
+    onSignInClick,
 }: {
     isOpen: boolean;
     onToggle: () => void;
+    onSignInClick?: () => void;
 }) => (
     <div className="relative">
         <button
@@ -30,12 +38,15 @@ const AccountMenu = ({
         </button>
         {isOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg border border-gray-200 py-2 z-50">
-                <Link
-                    to="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                <button
+                    onClick={() => {
+                        onSignInClick?.();
+                        onToggle();
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 >
                     Sign In
-                </Link>
+                </button>
                 <Link
                     to="#"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -56,7 +67,11 @@ const AccountMenu = ({
 const Navbar = () => {
     const navigate = useNavigate();
     const { state } = useCart();
+    const { isAuthenticated } = useAuth();
     const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
+    const [isCartOpen, setIsCartOpen] = useState(false);
     const [searchCategory, setSearchCategory] = useState("All");
     const [searchInput, setSearchInput] = useState("");
     const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
@@ -150,7 +165,30 @@ const Navbar = () => {
                                 onToggle={() =>
                                     setAccountMenuOpen(!accountMenuOpen)
                                 }
+                                onSignInClick={() => setIsLoginModalOpen(true)}
                             />
+                            {isAuthenticated && (
+                                <>
+                                    <span className="text-gray-300">|</span>
+                                    <button
+                                        onClick={() =>
+                                            setIsAddBookModalOpen(true)
+                                        }
+                                        className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
+                                    >
+                                        <BookPlus size={14} />
+                                        ADD BOOK
+                                    </button>
+                                    <span className="text-gray-300">|</span>
+                                    <Link
+                                        to="/admin"
+                                        className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
+                                    >
+                                        <ShieldCheck size={14} />
+                                        ADMIN
+                                    </Link>
+                                </>
+                            )}
                             <span className="text-gray-300">|</span>
                             <Link
                                 to="#"
@@ -232,8 +270,8 @@ const Navbar = () => {
                     </div>
 
                     {/* Cart */}
-                    <Link
-                        to="/cart"
+                    <button
+                        onClick={() => setIsCartOpen(true)}
                         className="relative flex items-center justify-center"
                     >
                         <ShoppingCart size={28} className="text-gray-700" />
@@ -242,7 +280,7 @@ const Navbar = () => {
                                 {count}
                             </span>
                         )}
-                    </Link>
+                    </button>
                 </div>
             </div>
 
@@ -268,6 +306,34 @@ const Navbar = () => {
                     </nav>
                 </div>
             </div>
+
+            <LoginModal
+                isOpen={isLoginModalOpen}
+                onClose={() => setIsLoginModalOpen(false)}
+                onSignIn={(email, password) => {
+                    // Handle sign in logic here
+                    console.log("Sign in with:", email, password);
+                    setIsLoginModalOpen(false);
+                }}
+                onCreateAccount={() => {
+                    // Handle create account logic here
+                    console.log("Create account clicked");
+                }}
+            />
+
+            <AddBookModal
+                isOpen={isAddBookModalOpen}
+                onClose={() => setIsAddBookModalOpen(false)}
+                onSuccess={() => {
+                    // Optionally refresh the book list or show a success message
+                    console.log("Book added successfully!");
+                }}
+            />
+
+            <CartSidebar
+                isOpen={isCartOpen}
+                onClose={() => setIsCartOpen(false)}
+            />
         </header>
     );
 };

@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import type { Book } from "../types/book";
+import { getImageUrl } from "../utils/imageUtils";
 // import { useCart } from "../context/CartContext";
 
 export default function BookCard({ book }: { readonly book: Book }) {
     // const { add } = useCart();
     const [imageError, setImageError] = useState(false);
 
-    const coverImage = book.coverImageUrl || null;
+    const coverImage = getImageUrl(book.coverImageUrl);
     const price = book.price || 0;
 
     return (

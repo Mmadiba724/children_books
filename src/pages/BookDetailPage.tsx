@@ -4,6 +4,7 @@ import BookDetailsColumn from "../components/BookDetailsColumn";
 import ReviewsList from "../components/ReviewsList";
 import AddReviewForm from "../components/AddReviewForm";
 import bookService from "../services/bookService";
+import { getImageUrl } from "../utils/imageUtils";
 import type { Book } from "../types/book";
 // import { useCart } from "../context/CartContext";
 import { useBookReviews } from "../hooks/useBookReviews";
@@ -82,7 +83,7 @@ export default function BookDetailPage() {
 
     const rating = MOCK_RATINGS[String(book.id)] ?? 4.4;
     const bookReviews = getReviewsForBook(String(book.id));
-    const coverImage = book.coverImageUrl || null;
+    const coverImage = getImageUrl(book.coverImageUrl);
 
     return (
         <div className="max-w-8xl mx-auto p-4 sm:p-6 px-4 sm:px-6 lg:px-12">

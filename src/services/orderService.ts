@@ -4,18 +4,21 @@ import { handleError } from '../utils/errorHandler';
 
 interface OrderItem {
     bookId: string;
+    title?: string;
+    author?: string;
     quantity: number;
     price?: number;
     subtotal?: number;
 }
 
 interface Order {
-    id: string;
-    userId: string;
+    id: string | number;
+    userId: string | number;
+    userEmail?: string;
     items: OrderItem[];
     status: 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-    paymentStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
-    transactionId?: string;
+    paymentStatus?: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+    transactionId?: string | null;
     totalAmount: number;
     currency?: string;
     shippingAddress?: string;
@@ -46,10 +49,9 @@ interface UpdateOrderPayload {
 }
 
 interface OrdersListResponse {
-    orders: Order[];
-    total: number;
-    limit?: number;
-    offset?: number;
+    success: boolean;
+    data: Order[];
+    timestamp?: string;
 }
 
 interface OrderStatusUpdate {
@@ -149,6 +151,39 @@ const orderService = {
     }> => {
         try {
             const response = await apiClient.get(`/api/v1/orders/${orderId}/tracking`);
+            return response.data;
+        } catch (error) {
+            throw handleError(error as Error, { serviceName: 'OrderService' });
+        }
+    },
+
+    // ===== ADMIN ENDPOINTS =====
+
+    // Get pending orders (requires admin authentication)
+    getPendingOrders: async (): Promise<Order[]> => {
+        try {
+            const response = await apiClient.get('/api/v1/admin/orders/pending');
+            // API returns { success, data: Order[], timestamp }
+            return response.data.data || response.data || [];
+        } catch (error) {
+            throw handleError(error as Error, { serviceName: 'OrderService' });
+        }
+    },
+
+    // Approve order (requires admin authentication)
+    approveOrder: async (orderId: string): Promise<Order> => {
+        try {
+            const response = await apiClient.post(`/api/v1/admin/orders/${orderId}/approve`);
+            return response.data;
+        } catch (error) {
+            throw handleError(error as Error, { serviceName: 'OrderService' });
+        }
+    },
+
+    // Reject order (requires admin authentication)
+    rejectOrder: async (orderId: string): Promise<Order> => {
+        try {
+            const response = await apiClient.post(`/api/v1/admin/orders/${orderId}/reject`);
             return response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'OrderService' });

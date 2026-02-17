@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
+import { getImageUrl } from "../utils/imageUtils";
 import bookService from "../services/bookService";
 import { Star } from "lucide-react";
 import type { Book } from "../types/book";
@@ -10,6 +11,7 @@ type CarouselBook = {
     author: string;
     rating: number;
     price: number;
+    realBook: Book; // Store the actual book object with real ID
 };
 
 const Carousel = () => {
@@ -28,13 +30,12 @@ const Carousel = () => {
                 if (books && Array.isArray(books)) {
                     // Transform API books to carousel format
                     const carouselData = books.map((b: Book) => ({
-                        img:
-                            b.coverImageUrl ||
-                            "",
+                        img: getImageUrl(b.coverImageUrl),
                         title: b.title,
                         author: b.author,
                         rating: 4.5, // Default rating - could be replaced with real data
                         price: (b.price || 0) * 100, // Convert to cents to match existing logic
+                        realBook: b, // Store the actual book object
                     }));
 
                     setCarouselBooks(carouselData);
@@ -51,25 +52,6 @@ const Carousel = () => {
 
         fetchBooks();
     }, []);
-
-    const asBook = (b: CarouselBook, idx: number): Book => {
-        const timestamp = new Date().toISOString();
-        return {
-            id: `carousel-${idx}`,
-            title: b.title,
-            author: b.author,
-            description: b.title,
-            price: b.price / 100,
-            format: "PHYSICAL",
-            coverImageUrl: b.img,
-            fileId: null,
-            stockQuantity: 0,
-            categoryNames: [],
-            previewSnippetUrls: [b.title],
-            createdAt: timestamp,
-            updatedAt: timestamp,
-        };
-    };
 
     const scroll = (direction: "left" | "right") => {
         if (!carouselRef.current) return;
@@ -228,13 +210,14 @@ const Carousel = () => {
                                                 {book.title}
                                             </h4>
                                             <h4 className="text-md font-bold text-indigo-600">
-                                                ugx {(book.price / 100).toFixed(2)}
+                                                ugx{" "}
+                                                {(book.price / 100).toFixed(2)}
                                             </h4>
                                         </div>
                                         <button
-                                            onClick={() =>
-                                                add(asBook(book, idx), 1)
-                                            }
+                                            onClick={async () => {
+                                                await add(book.realBook, 1);
+                                            }}
                                             className="mt-3 bg-linear-to-r from-rose-400 to-amber-400 text-black font-semibold py-2 px-3 rounded-full transition-colors w-full"
                                         >
                                             Add to Cart

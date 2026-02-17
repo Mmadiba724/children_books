@@ -2,19 +2,14 @@
 import apiClient, { publicRequest } from '../config/api';
 import { handleError } from '../utils/errorHandler';
 
-interface FileUploadResponse {
-    fileId: string;
-    filename: string;
-    size: number;
-    uploadedAt: string;
-}
-
-interface ImageUploadResponse {
-    imageId: string;
-    filename: string;
-    size: number;
-    url: string;
-    uploadedAt: string;
+// API Response Wrapper
+interface ApiResponse<T> {
+    success: boolean;
+    message: string;
+    data: T;
+    error?: string;
+    traceId?: string;
+    timestamp: string;
 }
 
 interface SnippetExtractionResponse {
@@ -37,27 +32,41 @@ interface PreSignedUrl {
 
 const fileService = {
     // Upload book file (requires authentication)
-    uploadBookFile: async (file: File): Promise<FileUploadResponse> => {
+    // Returns the file path string (e.g., "75a385a2-6c9d-4f5f-a5bd-cf1b60fe346f_filename.pdf")
+    uploadBookFile: async (file: File): Promise<string> => {
         try {
             const formData = new FormData();
             formData.append('file', file);
-            const response = await apiClient.post('/api/v1/files/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-            return response.data;
+            const response = await apiClient.post<ApiResponse<string>>(
+                '/api/v1/files/upload',
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+            console.log("Book file upload raw response:", response.data);
+
+            // Extract file path from API response wrapper
+            if (response.data.success && response.data.data) {
+                return response.data.data;
+            }
+
+            // Fallback if response format is different
+            throw new Error(response.data.error || response.data.message || 'Failed to upload book file');
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'FileService' });
         }
     },
 
     // Upload image (requires authentication)
-    uploadImage: async (file: File): Promise<ImageUploadResponse> => {
+    // Returns the image path string (e.g., "images/b5fe3f56-d625-41c7-8bcd-b306949feead_image.jpg")
+    uploadImage: async (file: File): Promise<string> => {
         try {
             const formData = new FormData();
             formData.append('file', file);
-            const response = await apiClient.post(
+            const response = await apiClient.post<ApiResponse<string>>(
                 '/api/v1/files/images/upload',
                 formData,
                 {
@@ -66,7 +75,15 @@ const fileService = {
                     },
                 }
             );
-            return response.data;
+            console.log("Image upload raw response:", response.data);
+
+            // Extract image path from API response wrapper
+            if (response.data.success && response.data.data) {
+                return response.data.data;
+            }
+
+            // Fallback if response format is different
+            throw new Error(response.data.error || response.data.message || 'Failed to upload image');
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'FileService' });
         }

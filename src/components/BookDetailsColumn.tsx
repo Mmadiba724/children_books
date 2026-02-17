@@ -9,32 +9,6 @@ type BookDetailsColumnProps = {
     rating: number;
 };
 
-// const QuantitySelector = () => {
-//     const [qty, setQty] = useState(1);
-
-//     return (
-//         <div className="flex items-center border border-gray-300 rounded w-32">
-//             <button
-//                 aria-label="decrease"
-//                 onClick={() => setQty(Math.max(1, qty - 1))}
-//                 className="px-4 py-2 text-lg font-semibold hover:bg-gray-50 transition"
-//             >
-//                 −
-//             </button>
-//             <div className="flex-1 text-center font-bold text-base border-x border-gray-300 py-2">
-//                 {qty}
-//             </div>
-//             <button
-//                 aria-label="increase"
-//                 onClick={() => setQty(qty + 1)}
-//                 className="px-4 py-2 text-lg font-semibold hover:bg-gray-50 transition"
-//             >
-//                 +
-//             </button>
-//         </div>
-//     );
-// };
-
 export default function BookDetailsColumn({
     book,
     rating,
@@ -42,17 +16,43 @@ export default function BookDetailsColumn({
     const { add } = useCart();
     const [qty, setQty] = useState(1);
 
-    const handleAddToCart = () => {
-        add(book);
+    const handleAddToCart = async () => {
+        await add(book);
     };
 
-    const inStock = (book.stockQuantity ?? 0) > 0;
+    // Digital books are always available, only check stock for physical books
+    const isDigital = book.format === "DIGITAL";
+    const inStock = isDigital || (book.stockQuantity ?? 0) > 0;
+
+    const getAvailabilityBadge = () => {
+        if (isDigital) {
+            return (
+                <span className="inline-block bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded">
+                    ✓ Digital - Available
+                </span>
+            );
+        }
+        if (inStock) {
+            return (
+                <span className="inline-block bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded">
+                    ✓ In Stock ({book.stockQuantity} available)
+                </span>
+            );
+        }
+        return (
+            <span className="inline-block bg-red-100 text-red-800 text-sm font-semibold px-3 py-1 rounded">
+                Out of Stock
+            </span>
+        );
+    };
+
+    const availabilityBadge = getAvailabilityBadge();
 
     return (
         <div className="space-y-6 w-160 text-left">
             {/* Title and Author */}
             <div className="border-b border-gray-200 pb-4">
-                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight uppercase">
                     {book.title}
                 </h1>
                 <p className="text-base text-gray-600 mt-2">
@@ -66,7 +66,7 @@ export default function BookDetailsColumn({
                 </p>
                 <div className="flex items-center gap-2 mt-2">
                     <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
+                        {Array.from({ length: 5 }).map((_, i) => (
                             <span
                                 key={i}
                                 className={`text-xl ${
@@ -93,17 +93,7 @@ export default function BookDetailsColumn({
                 </div>
 
                 {/* Availability Badge */}
-                <div className="mb-4">
-                    {inStock ? (
-                        <span className="inline-block bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded">
-                            ✓ In Stock ({book.stockQuantity} available)
-                        </span>
-                    ) : (
-                        <span className="inline-block bg-red-100 text-red-800 text-sm font-semibold px-3 py-1 rounded">
-                            Out of Stock
-                        </span>
-                    )}
-                </div>
+                <div className="mb-4">{availabilityBadge}</div>
             </div>
 
             {/* Book Details */}
@@ -191,9 +181,11 @@ export default function BookDetailsColumn({
                     {inStock ? "ADD TO CART" : "OUT OF STOCK"}
                 </button>
 
-                <p className="text-sm text-gray-600 text-center">
-                    Free shipping on orders over $25
-                </p>
+                {!isDigital && (
+                    <p className="text-sm text-gray-600 text-center">
+                        Free shipping on orders over $25
+                    </p>
+                )}
             </div>
 
             {/* Pick Up in Store */}
