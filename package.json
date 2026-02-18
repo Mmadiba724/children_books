@@ -2,7 +2,7 @@
   "name": "children_books",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://USERNAME.github.io/children_books",
+  "homepage": "https://mmadiba724.github.io/children_books",
   "type": "module",
   "scripts": {
     "dev": "vite",
