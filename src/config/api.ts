@@ -59,8 +59,15 @@ apiClient.interceptors.response.use(
     async (error: AxiosError) => {
         const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-        // Check if it's a 401 error and we haven't tried to refresh yet
-        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.skipAuth) {
+        // Check if it's a 401 or 403 error and we haven't tried to refresh yet
+        // 403 can also indicate an expired/missing token in some API implementations
+        const shouldRetryWithRefresh =
+            (error.response?.status === 401 || error.response?.status === 403) &&
+            !originalRequest._retry &&
+            !originalRequest.skipAuth &&
+            tokenStorage.getRefreshToken(); // Only retry if we have a refresh token
+
+        if (shouldRetryWithRefresh) {
             if (isRefreshing) {
                 // If a refresh is already in progress, queue this request
                 return new Promise((resolve, reject) => {

@@ -19,8 +19,8 @@ export default function CatalogPage() {
     useEffect(() => {
         const qParam = searchParams.get("q");
         const categoryParam = searchParams.get("category");
-        if (qParam) setQuery(qParam);
-        if (categoryParam) setSelectedCategory(categoryParam);
+        setQuery(qParam || "");
+        setSelectedCategory(categoryParam || "");
     }, [searchParams]);
 
     // Handle search input change - update both state and URL
@@ -71,9 +71,7 @@ export default function CatalogPage() {
                 return (
                     normalized(b.title).includes(q) ||
                     normalized(b.author).includes(q) ||
-                    b.categoryNames?.some((cat) =>
-                        normalized(cat).includes(q),
-                    )
+                    b.categoryNames?.some((cat) => normalized(cat).includes(q))
                 );
             });
         }
@@ -99,7 +97,7 @@ export default function CatalogPage() {
             <main className="mt-10 px-30 max-w-8xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
-                        All Books
+                        {selectedCategory ? `${selectedCategory} Books` : "All Books"}
                     </h2>
                     {query && (
                         <div className="text-sm text-gray-600">

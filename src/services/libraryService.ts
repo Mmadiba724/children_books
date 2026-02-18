@@ -38,6 +38,10 @@ const libraryService = {
                     ...(offset && { offset }),
                 },
             });
+            // Handle nested response structure
+            if (response.data.data) {
+                return response.data.data;
+            }
             return response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'LibraryService' });
@@ -49,6 +53,10 @@ const libraryService = {
     getBookReadUrl: async (bookId: string): Promise<BookAccessUrl> => {
         try {
             const response = await apiClient.get(`/api/v1/library/${bookId}/read`);
+            // Handle nested response structure
+            if (response.data.data) {
+                return response.data.data;
+            }
             return response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'LibraryService' });
@@ -60,6 +68,10 @@ const libraryService = {
     getBookDownloadUrl: async (bookId: string): Promise<BookAccessUrl> => {
         try {
             const response = await apiClient.get(`/api/v1/library/${bookId}/download`);
+            // Handle nested response structure
+            if (response.data.data) {
+                return response.data.data;
+            }
             return response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'LibraryService' });

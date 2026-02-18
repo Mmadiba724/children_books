@@ -12,6 +12,7 @@ import AboutPage from "./pages/AboutPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import LibraryPage from "./pages/LibraryPage";
+import MyOrdersPage from "./pages/MyOrdersPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -36,6 +37,14 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <LibraryPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/orders"
+                            element={
+                                <ProtectedRoute>
+                                    <MyOrdersPage />
                                 </ProtectedRoute>
                             }
                         />

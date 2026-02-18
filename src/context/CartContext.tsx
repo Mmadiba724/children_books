@@ -5,14 +5,13 @@ import {
     useEffect,
     useMemo,
     useCallback,
-    useState,
 } from "react";
 import type { ReactNode } from "react";
 import toast from "react-hot-toast";
 import type { Book } from "../types/book";
 import cartService from "../services/cartService";
-import authService from "../services/authService";
 import bookService from "../services/bookService";
+import { useAuth } from "./AuthContext";
 
 export type CartItem = {
     id?: string | number;
@@ -102,17 +101,17 @@ const CartContext = createContext<{
 
 export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
     const [state, dispatch] = useReducer(cartReducer, initialState);
-    const [isAuthenticated, setIsAuthenticated] = useState(
-        authService.isAuthenticated(),
-    );
+    const { isAuthenticated, isLoading: authLoading } = useAuth();
 
     // Load cart from backend or localStorage on mount
     useEffect(() => {
-        const loadCart = async () => {
-            const authenticated = authService.isAuthenticated();
-            setIsAuthenticated(authenticated);
+        // Wait for auth to finish loading before loading cart
+        if (authLoading) {
+            return;
+        }
 
-            if (authenticated) {
+        const loadCart = async () => {
+            if (isAuthenticated) {
                 try {
                     dispatch({ type: "setLoading", isLoading: true });
                     const cart = await cartService.getCart();
@@ -170,7 +169,7 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
         };
 
         loadCart();
-    }, []);
+    }, [isAuthenticated, authLoading]);
 
     // Persist to localStorage for unauthenticated users
     useEffect(() => {
@@ -185,7 +184,7 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
 
     // Refresh cart from backend
     const refreshCart = useCallback(async () => {
-        if (!authService.isAuthenticated()) {
+        if (!isAuthenticated) {
             return;
         }
 
@@ -225,11 +224,11 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
         } finally {
             dispatch({ type: "setLoading", isLoading: false });
         }
-    }, []);
+    }, [isAuthenticated]);
 
     const add = useCallback(
         async (book: Book, qty = 1) => {
-            if (!authService.isAuthenticated()) {
+            if (!isAuthenticated) {
                 toast.error("Please sign in to add items to cart");
                 return;
             }
@@ -243,12 +242,12 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
                 toast.error("Failed to add item to cart");
             }
         },
-        [refreshCart],
+        [isAuthenticated, refreshCart],
     );
 
     const remove = useCallback(
         async (bookId: string | number) => {
-            if (!authService.isAuthenticated()) {
+            if (!isAuthenticated) {
                 toast.error("Please sign in to manage cart");
                 return;
             }
@@ -268,12 +267,12 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
                 toast.error("Failed to remove item from cart");
             }
         },
-        [state.items, refreshCart],
+        [isAuthenticated, state.items, refreshCart],
     );
 
     const update = useCallback(
         async (bookId: string | number, qty: number) => {
-            if (!authService.isAuthenticated()) {
+            if (!isAuthenticated) {
                 toast.error("Please sign in to manage cart");
                 return;
             }
@@ -292,11 +291,11 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
                 toast.error("Failed to update cart item");
             }
         },
-        [state.items, refreshCart],
+        [isAuthenticated, state.items, refreshCart],
     );
 
     const clear = useCallback(async () => {
-        if (!authService.isAuthenticated()) {
+        if (!isAuthenticated) {
             toast.error("Please sign in to manage cart");
             return;
         }
@@ -310,7 +309,7 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
             console.error("Failed to clear cart:", error);
             toast.error("Failed to clear cart");
         }
-    }, []);
+    }, [isAuthenticated]);
 
     const subtotalCents = useCallback(
         () =>

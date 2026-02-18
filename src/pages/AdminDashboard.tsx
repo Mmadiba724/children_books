@@ -6,7 +6,7 @@ import OrdersManagement from "../components/OrdersManagement";
 type TabType = "categories" | "books" | "orders";
 
 export default function AdminDashboard() {
-    const [activeTab, setActiveTab] = useState<TabType>("categories");
+    const [activeTab, setActiveTab] = useState<TabType>("orders");
 
     return (
         <div className="min-h-screen bg-rose-50 py-8">

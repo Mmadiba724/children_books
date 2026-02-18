@@ -36,7 +36,7 @@ const LibraryPage = () => {
         try {
             setIsLoading(true);
             const response = await libraryService.getMyLibrary();
-            setBooks(response.books);
+            setBooks(response.books || []);
         } catch (error) {
             console.error("Failed to load library:", error);
             toast.error("Failed to load your library");

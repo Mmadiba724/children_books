@@ -4,6 +4,7 @@ import {
     useReducer,
     useEffect,
     useCallback,
+    useRef,
     type ReactNode,
 } from "react";
 import type { User, AuthContextType } from "../types/user";
@@ -57,6 +58,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [state, dispatch] = useReducer(authReducer, initialState);
+    const refreshPromiseRef = useRef<Promise<void> | null>(null);
 
     const login = useCallback((userData: User) => {
         // Store user data in secure storage
@@ -75,6 +77,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "SET_LOADING", isLoading: true });
 
         try {
+            // Check if we have a refresh token but no access token
+            // This happens after page refresh since access token is in memory
+            const hasRefreshToken = !!tokenStorage.getRefreshToken();
+            const hasAccessToken = !!tokenStorage.getAccessToken();
+
+            if (hasRefreshToken && !hasAccessToken) {
+                // Prevent concurrent refresh attempts (React StrictMode causes double renders)
+                if (refreshPromiseRef.current) {
+                    console.log(
+                        "Refresh already in progress, waiting for it to complete...",
+                    );
+                    try {
+                        await refreshPromiseRef.current;
+                    } catch (error) {
+                        // The first call already handled the error
+                        console.log(
+                            "Refresh failed, skipping duplicate error handling",
+                        );
+                    }
+                } else {
+                    // Proactively refresh the access token before any API calls
+                    console.log(
+                        "Refreshing access token on app initialization...",
+                    );
+
+                    const refreshPromise = (async () => {
+                        try {
+                            await authService.refreshToken();
+                        } catch (error) {
+                            console.error(
+                                "Failed to refresh token on initialization:",
+                                error,
+                            );
+                            // If refresh fails, clear everything and log out
+                            tokenStorage.clearAll();
+                            dispatch({ type: "CLEAR_USER" });
+                            throw error;
+                        } finally {
+                            refreshPromiseRef.current = null;
+                        }
+                    })();
+
+                    refreshPromiseRef.current = refreshPromise;
+                    await refreshPromise;
+                }
+            }
+
             // Check if auth token exists
             const isAuth = authService.isAuthenticated();
 

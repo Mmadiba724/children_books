@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -14,6 +14,7 @@ import {
     ChevronDown,
     ShieldCheck,
     BookOpen,
+    Package,
 } from "lucide-react";
 import LoginModal from "./LoginModal";
 import AddBookModal from "./AddBookModal";
@@ -25,93 +26,126 @@ const AccountMenu = ({
     onSignInClick,
     isAuthenticated,
     onLogout,
+    userName,
+    onClose,
 }: {
     isOpen: boolean;
     onToggle: () => void;
     onSignInClick?: () => void;
     isAuthenticated: boolean;
     onLogout?: () => void;
-}) => (
-    <div className="relative">
-        <button
-            onClick={onToggle}
-            className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
-        >
-            <User size={14} />
-            <span>MY ACCOUNT</span>
-            <ChevronDown size={12} />
-        </button>
-        {isOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg border border-gray-200 py-2 z-50">
-                {isAuthenticated ? (
-                    <>
-                        <Link
-                            to="/library"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                            onClick={onToggle}
-                        >
-                            <BookOpen size={14} />
-                            My Library
-                        </Link>
-                        <Link
-                            to="/admin"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                            onClick={onToggle}
-                        >
-                            <ShieldCheck size={14} />
-                            Admin Dashboard
-                        </Link>
-                        <Link
-                            to="#"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                            Order Status
-                        </Link>
-                        <hr className="my-2 border-gray-200" />
-                        <button
-                            onClick={() => {
-                                onLogout?.();
-                                onToggle();
-                            }}
-                            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
-                        >
-                            Sign Out
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        <button
-                            onClick={() => {
-                                onSignInClick?.();
-                                onToggle();
-                            }}
-                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                            Sign In
-                        </button>
-                        <Link
-                            to="#"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                            Create Account
-                        </Link>
-                        <Link
-                            to="#"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                            Order Status
-                        </Link>
-                    </>
-                )}
-            </div>
-        )}
-    </div>
-);
+    userName?: string;
+    onClose: () => void;
+}) => {
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                menuRef.current &&
+                !menuRef.current.contains(event.target as Node)
+            ) {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isOpen, onClose]);
+
+    return (
+        <div className="relative" ref={menuRef}>
+            <button
+                onClick={onToggle}
+                className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
+            >
+                
+                <span>
+                    {isAuthenticated && userName
+
+                        ? 
+                        <div className="flex items-center gap-1">
+                        <User size={14} /> 
+                        {userName.toUpperCase()}
+                        </div>
+                        : "CREATE ACCOUNT | LOGIN"}
+                </span>
+                <ChevronDown size={12} />
+            </button>
+            {isOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg border border-gray-200 py-2 z-50">
+                    {isAuthenticated ? (
+                        <>
+                            <Link
+                                to="/library"
+                                className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                onClick={onToggle}
+                            >
+                                <BookOpen size={14} />
+                                My Library
+                            </Link>
+                            <Link
+                                to="/orders"
+                                className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                onClick={onToggle}
+                            >
+                                <Package size={14} />
+                                My Orders
+                            </Link>
+                            <Link
+                                to="/admin"
+                                className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                onClick={onToggle}
+                            >
+                                <ShieldCheck size={14} />
+                                Admin Dashboard
+                            </Link>
+                            <hr className="my-2 border-gray-200" />
+                            <button
+                                onClick={() => {
+                                    onLogout?.();
+                                    onToggle();
+                                }}
+                                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                            >
+                                Sign Out
+                            </button>
+                        </>
+                    ) : (
+                        <div className="flex flex-col">
+                            <button
+                                onClick={() => {
+                                    onSignInClick?.();
+                                    onToggle();
+                                }}
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                                Sign In
+                            </button>
+                            <Link
+                                to="#"
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                onClick={onToggle}
+                            >
+                                Create Account
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
 
 const Navbar = () => {
     const navigate = useNavigate();
     const { state } = useCart();
-    const { isAuthenticated, logout } = useAuth();
+    const { isAuthenticated, logout, user } = useAuth();
     const [accountMenuOpen, setAccountMenuOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
@@ -121,10 +155,11 @@ const Navbar = () => {
     const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
     const [categories, setCategories] = useState<string[]>([]);
     const count = state.items.reduce((s, i) => s + i.quantity, 0);
+    const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
     const handleLogout = async () => {
         try {
-            await logout();
+            logout();
             toast.success("Successfully logged out");
             navigate("/");
         } catch (error) {
@@ -132,6 +167,25 @@ const Navbar = () => {
             toast.error("Logout failed. Please try again.");
         }
     };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                categoryDropdownRef.current &&
+                !categoryDropdownRef.current.contains(event.target as Node)
+            ) {
+                setCategoryDropdownOpen(false);
+            }
+        };
+
+        if (categoryDropdownOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [categoryDropdownOpen]);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -223,6 +277,8 @@ const Navbar = () => {
                                 onSignInClick={() => setIsLoginModalOpen(true)}
                                 isAuthenticated={isAuthenticated}
                                 onLogout={handleLogout}
+                                userName={user?.name || user?.email}
+                                onClose={() => setAccountMenuOpen(false)}
                             />
                             {isAuthenticated && (
                                 <>
@@ -236,14 +292,14 @@ const Navbar = () => {
                                         <BookPlus size={14} />
                                         ADD BOOK
                                     </button> */}
-                                    <span className="text-gray-300">|</span>
-                                    <Link
+                                    {/* <span className="text-gray-300">|</span> */}
+                                    {/* <Link
                                         to="/admin"
                                         className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
                                     >
                                         <ShieldCheck size={14} />
                                         ADMIN
-                                    </Link>
+                                    </Link> */}
                                 </>
                             )}
                             <span className="text-gray-300">|</span>
@@ -277,7 +333,7 @@ const Navbar = () => {
                             onSubmit={handleSearch}
                             className="flex items-stretch border border-gray-300 rounded"
                         >
-                            <div className="relative">
+                            <div className="relative" ref={categoryDropdownRef}>
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -345,6 +401,17 @@ const Navbar = () => {
             <div className="border-t border-gray-200">
                 <div className="max-w-8xl mx-auto px-4">
                     <nav className="flex items-center justify-center gap-8 py-3 text-sm font-medium overflow-x-auto">
+                        <Link
+                            to="/catalog"
+                            className="text-gray-700 hover:text-rose-600 whitespace-nowrap"
+                        >
+                            All
+                        </Link>
+
+                        {categories.length > 0 && (
+                            <span className="text-gray-300">|</span>
+                        )}
+
                         {categories.map((category, index) => (
                             <div key={category} className="flex items-center">
                                 <Link
