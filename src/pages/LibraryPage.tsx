@@ -1,27 +1,7 @@
 import { useState, useEffect } from "react";
-import {
-    Book,
-    Loader2,
-    Download,
-    Eye,
-    Calendar,
-    AlertCircle,
-} from "lucide-react";
+import { Book, Loader2, Download, Eye, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
-import libraryService from "../services/libraryService";
-import { getImageUrl } from "../utils/imageUtils";
-
-interface LibraryBook {
-    id: string;
-    bookId: string;
-    title: string;
-    author: string;
-    coverImageId?: string;
-    purchaseDate: string;
-    accessedDate?: string;
-    status: "ACTIVE" | "ARCHIVED" | "EXPIRED";
-    expiryDate?: string;
-}
+import libraryService, { type LibraryBook } from "../services/libraryService";
 
 const LibraryPage = () => {
     const [books, setBooks] = useState<LibraryBook[]>([]);
@@ -35,8 +15,8 @@ const LibraryPage = () => {
     const loadLibrary = async () => {
         try {
             setIsLoading(true);
-            const response = await libraryService.getMyLibrary();
-            setBooks(response.books || []);
+            const books = await libraryService.getMyLibrary();
+            setBooks(books);
         } catch (error) {
             console.error("Failed to load library:", error);
             toast.error("Failed to load your library");
@@ -45,10 +25,10 @@ const LibraryPage = () => {
         }
     };
 
-    const handleReadBook = async (bookId: string, title: string) => {
+    const handleReadBook = async (bookId: number, title: string) => {
         try {
-            setLoadingBookId(bookId);
-            const { url } = await libraryService.getBookReadUrl(bookId);
+            setLoadingBookId(String(bookId));
+            const { url } = await libraryService.getBookReadUrl(String(bookId));
             if (url) {
                 window.open(url, "_blank");
             } else {
@@ -62,10 +42,12 @@ const LibraryPage = () => {
         }
     };
 
-    const handleDownloadBook = async (bookId: string, title: string) => {
+    const handleDownloadBook = async (bookId: number, title: string) => {
         try {
-            setLoadingBookId(bookId);
-            const { url } = await libraryService.getBookDownloadUrl(bookId);
+            setLoadingBookId(String(bookId));
+            const { url } = await libraryService.getBookDownloadUrl(
+                String(bookId),
+            );
             if (url) {
                 window.open(url, "_blank");
                 toast.success(`Downloading ${title}`);
@@ -77,19 +59,6 @@ const LibraryPage = () => {
             toast.error(`Failed to download ${title}`);
         } finally {
             setLoadingBookId(null);
-        }
-    };
-
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case "ACTIVE":
-                return "bg-green-100 text-green-800";
-            case "EXPIRED":
-                return "bg-red-100 text-red-800";
-            case "ARCHIVED":
-                return "bg-gray-100 text-gray-800";
-            default:
-                return "bg-gray-100 text-gray-800";
         }
     };
 
@@ -145,25 +114,13 @@ const LibraryPage = () => {
                 ) : (
                     <>
                         {/* Stats */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
                                 <p className="text-sm text-gray-600 mb-1">
                                     Total Books
                                 </p>
                                 <p className="text-2xl font-bold text-gray-900">
                                     {books.length}
-                                </p>
-                            </div>
-                            <div className="bg-green-50 rounded-lg shadow-sm p-4 border border-green-200">
-                                <p className="text-sm text-gray-600 mb-1">
-                                    Active
-                                </p>
-                                <p className="text-2xl font-bold text-green-700">
-                                    {
-                                        books.filter(
-                                            (b) => b.status === "ACTIVE",
-                                        ).length
-                                    }
                                 </p>
                             </div>
                             <div className="bg-blue-50 rounded-lg shadow-sm p-4 border border-blue-200">
@@ -174,7 +131,7 @@ const LibraryPage = () => {
                                     {
                                         books.filter(
                                             (b) =>
-                                                new Date(b.purchaseDate) >
+                                                new Date(b.purchasedAt) >
                                                 new Date(
                                                     Date.now() -
                                                         30 *
@@ -197,34 +154,28 @@ const LibraryPage = () => {
                                     className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-200"
                                 >
                                     {/* Book Cover */}
-                                    <div className="relative aspect-[3/4] bg-gray-100">
+                                    <div className="relative aspect-3/4 bg-gray-100">
                                         <img
-                                            src={getImageUrl(
-                                                book.coverImageId || "",
-                                            )}
-                                            alt={book.title}
+                                            src={
+                                                book.coverImageUrl ||
+                                                "https://via.placeholder.com/300x400?text=No+Cover"
+                                            }
+                                            alt={book.bookTitle}
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
                                                 e.currentTarget.src =
                                                     "https://via.placeholder.com/300x400?text=No+Cover";
                                             }}
                                         />
-                                        <div className="absolute top-2 right-2">
-                                            <span
-                                                className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadge(book.status)}`}
-                                            >
-                                                {book.status}
-                                            </span>
-                                        </div>
                                     </div>
 
                                     {/* Book Info */}
                                     <div className="p-4">
                                         <h3 className="font-bold text-gray-900 mb-1 line-clamp-2">
-                                            {book.title}
+                                            {book.bookTitle}
                                         </h3>
                                         <p className="text-sm text-gray-600 mb-2">
-                                            {book.author}
+                                            {book.bookAuthor}
                                         </p>
 
                                         <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
@@ -232,17 +183,10 @@ const LibraryPage = () => {
                                             <span>
                                                 Purchased:{" "}
                                                 {new Date(
-                                                    book.purchaseDate,
+                                                    book.purchasedAt,
                                                 ).toLocaleDateString()}
                                             </span>
                                         </div>
-
-                                        {book.status === "EXPIRED" && (
-                                            <div className="flex items-center gap-1 text-xs text-red-600 mb-3">
-                                                <AlertCircle className="w-3 h-3" />
-                                                <span>Access expired</span>
-                                            </div>
-                                        )}
 
                                         {/* Action Buttons */}
                                         <div className="space-y-2">
@@ -250,18 +194,17 @@ const LibraryPage = () => {
                                                 onClick={() =>
                                                     handleReadBook(
                                                         book.bookId,
-                                                        book.title,
+                                                        book.bookTitle,
                                                     )
                                                 }
                                                 disabled={
                                                     loadingBookId ===
-                                                        book.bookId ||
-                                                    book.status === "EXPIRED"
+                                                    String(book.bookId)
                                                 }
                                                 className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
                                             >
                                                 {loadingBookId ===
-                                                book.bookId ? (
+                                                String(book.bookId) ? (
                                                     <>
                                                         <Loader2 className="w-4 h-4 animate-spin" />
                                                         <span>Loading...</span>
@@ -278,13 +221,12 @@ const LibraryPage = () => {
                                                 onClick={() =>
                                                     handleDownloadBook(
                                                         book.bookId,
-                                                        book.title,
+                                                        book.bookTitle,
                                                     )
                                                 }
                                                 disabled={
                                                     loadingBookId ===
-                                                        book.bookId ||
-                                                    book.status === "EXPIRED"
+                                                    String(book.bookId)
                                                 }
                                                 className="w-full flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-800 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
                                             >

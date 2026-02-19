@@ -42,6 +42,8 @@ interface UpdateBookPayload {
     isbn?: string;
     categoryId?: string;
     price?: number;
+    format?: string;
+    stockQuantity?: number;
     coverImageId?: string;
     fileId?: string;
     publishedDate?: string;

@@ -52,9 +52,12 @@ export default function CheckoutPage() {
         try {
             // Transform cart items to order items
             const orderItems = state.items.map((item) => ({
-                bookId: String(item.book.id),
+                bookId: Number(item.book.id),
                 quantity: item.quantity,
                 price: item.book.price,
+                transactionId: transactionNumber.trim(),
+                shippingAddress: '' + shippingAddress.trim(),
+                totalAmount: item.book.price * item.quantity,
             }));
 
             // Create order in backend

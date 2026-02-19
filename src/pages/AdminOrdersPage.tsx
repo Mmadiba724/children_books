@@ -1,39 +1,13 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, XCircle, Loader2, Package, Clock } from "lucide-react";
 import toast from "react-hot-toast";
-import orderService from "../services/orderService";
+import orderService, { type Order } from "../services/orderService";
 import authService from "../services/authService";
-
-interface OrderItem {
-    bookId: string | number;
-    title?: string;
-    author?: string;
-    quantity: number;
-    price?: number;
-    subtotal?: number;
-}
-
-interface Order {
-    id: string | number;
-    userId: string | number;
-    userEmail?: string;
-    items: OrderItem[];
-    status: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
-    paymentStatus?: "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED";
-    transactionId?: string | null;
-    totalAmount: number;
-    currency?: string;
-    shippingAddress?: string;
-    trackingNumber?: string;
-    createdAt: string;
-    updatedAt?: string;
-    estimatedDelivery?: string;
-}
 
 const AdminOrdersPage = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
-    const [processingOrderId, setProcessingOrderId] = useState<string | null>(
+    const [processingOrderId, setProcessingOrderId] = useState<number | null>(
         null,
     );
 
@@ -61,11 +35,10 @@ const AdminOrdersPage = () => {
         }
     };
 
-    const handleApproveOrder = async (orderId: string | number) => {
-        const orderIdStr = String(orderId);
-        setProcessingOrderId(orderIdStr);
+    const handleApproveOrder = async (orderId: number) => {
+        setProcessingOrderId(orderId);
         try {
-            await orderService.approveOrder(orderIdStr);
+            await orderService.approveOrder(orderId);
             toast.success("Order approved successfully");
             await loadOrders(); // Refresh the list
         } catch (error) {
@@ -76,11 +49,10 @@ const AdminOrdersPage = () => {
         }
     };
 
-    const handleRejectOrder = async (orderId: string | number) => {
-        const orderIdStr = String(orderId);
-        setProcessingOrderId(orderIdStr);
+    const handleRejectOrder = async (orderId: number) => {
+        setProcessingOrderId(orderId);
         try {
-            await orderService.rejectOrder(orderIdStr);
+            await orderService.rejectOrder(orderId);
             toast.success("Order rejected successfully");
             await loadOrders(); // Refresh the list
         } catch (error) {
@@ -95,13 +67,9 @@ const AdminOrdersPage = () => {
         switch (status) {
             case "PENDING":
                 return "bg-yellow-100 text-yellow-800";
-            case "CONFIRMED":
-                return "bg-blue-100 text-blue-800";
-            case "SHIPPED":
-                return "bg-purple-100 text-purple-800";
-            case "DELIVERED":
+            case "PAID":
                 return "bg-green-100 text-green-800";
-            case "CANCELLED":
+            case "REJECTED":
                 return "bg-red-100 text-red-800";
             default:
                 return "bg-gray-100 text-gray-800";
@@ -258,13 +226,11 @@ const AdminOrdersPage = () => {
                                             handleApproveOrder(order.id)
                                         }
                                         disabled={
-                                            processingOrderId ===
-                                            String(order.id)
+                                            processingOrderId === order.id
                                         }
                                         className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded transition-colors"
                                     >
-                                        {processingOrderId ===
-                                        String(order.id) ? (
+                                        {processingOrderId === order.id ? (
                                             <Loader2 className="w-4 h-4 animate-spin" />
                                         ) : (
                                             <CheckCircle className="w-4 h-4" />
@@ -277,13 +243,11 @@ const AdminOrdersPage = () => {
                                             handleRejectOrder(order.id)
                                         }
                                         disabled={
-                                            processingOrderId ===
-                                            String(order.id)
+                                            processingOrderId === order.id
                                         }
                                         className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded transition-colors"
                                     >
-                                        {processingOrderId ===
-                                        String(order.id) ? (
+                                        {processingOrderId === order.id ? (
                                             <Loader2 className="w-4 h-4 animate-spin" />
                                         ) : (
                                             <XCircle className="w-4 h-4" />

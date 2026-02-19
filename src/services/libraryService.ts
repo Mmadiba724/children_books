@@ -2,23 +2,19 @@
 import apiClient from '../config/api';
 import { handleError } from '../utils/errorHandler';
 
-interface LibraryBook {
-    id: string;
-    bookId: string;
-    title: string;
-    author: string;
-    coverImageId?: string;
-    purchaseDate: string;
-    accessedDate?: string;
-    status: 'ACTIVE' | 'ARCHIVED' | 'EXPIRED';
-    expiryDate?: string;
+export interface LibraryBook {
+    id: number;
+    bookId: number;
+    bookTitle: string;
+    bookAuthor: string;
+    coverImageUrl: string | null;
+    purchasedAt: string;
 }
 
 interface LibraryResponse {
-    books: LibraryBook[];
-    total: number;
-    limit?: number;
-    offset?: number;
+    success: boolean;
+    data: LibraryBook[];
+    timestamp: string;
 }
 
 interface BookAccessUrl {
@@ -30,19 +26,10 @@ interface BookAccessUrl {
 const libraryService = {
     // Get user's library (requires authentication)
     // Returns all purchased books accessible to the user
-    getMyLibrary: async (limit?: number, offset?: number): Promise<LibraryResponse> => {
+    getMyLibrary: async (): Promise<LibraryBook[]> => {
         try {
-            const response = await apiClient.get('/api/v1/library', {
-                params: {
-                    ...(limit && { limit }),
-                    ...(offset && { offset }),
-                },
-            });
-            // Handle nested response structure
-            if (response.data.data) {
-                return response.data.data;
-            }
-            return response.data;
+            const response = await apiClient.get<LibraryResponse>('/api/v1/library');
+            return response.data.data || [];
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'LibraryService' });
         }
@@ -79,10 +66,10 @@ const libraryService = {
     },
 
     // Check if book is in library (requires authentication)
-    isBookInLibrary: async (bookId: string): Promise<boolean> => {
+    isBookInLibrary: async (bookId: number): Promise<boolean> => {
         try {
             const library = await libraryService.getMyLibrary();
-            return library.books.some(book => book.bookId === bookId);
+            return library.some(book => book.bookId === bookId);
         } catch (error) {
             handleError(error as Error, { serviceName: 'LibraryService' });
             return false;
@@ -90,10 +77,10 @@ const libraryService = {
     },
 
     // Get library book by ID (requires authentication)
-    getLibraryBook: async (bookId: string): Promise<LibraryBook | null> => {
+    getLibraryBook: async (bookId: number): Promise<LibraryBook | null> => {
         try {
             const library = await libraryService.getMyLibrary();
-            return library.books.find(book => book.bookId === bookId) || null;
+            return library.find(book => book.bookId === bookId) || null;
         } catch (error) {
             handleError(error as Error, { serviceName: 'LibraryService' });
             return null;

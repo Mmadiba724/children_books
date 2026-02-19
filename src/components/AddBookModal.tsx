@@ -266,6 +266,11 @@ const AddBookModal = ({
                     author: formData.author,
                     description: formData.description,
                     price: Number.parseFloat(formData.price),
+                    format: formData.format,
+                    stockQuantity:
+                        formData.format === "PHYSICAL"
+                            ? Number.parseInt(formData.stockQuantity)
+                            : 0,
                     coverImageId: coverImageId,
                     fileId: formData.format === "DIGITAL" ? fileId : undefined,
                     categoryId: formData.categoryIds[0]?.toString(),

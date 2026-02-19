@@ -2,44 +2,49 @@
 import apiClient from '../config/api';
 import { handleError } from '../utils/errorHandler';
 
-interface OrderItem {
-    bookId: string;
+export interface OrderItem {
+    id?: number;
+    bookId: number;
+    quantity: number;
+    price: number;
     title?: string;
     author?: string;
-    quantity: number;
-    price?: number;
     subtotal?: number;
 }
 
-interface Order {
-    id: string | number;
-    userId: string | number;
-    userEmail?: string;
+export interface Order {
+    id: number;
+    userId: number;
     items: OrderItem[];
-    status: 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-    paymentStatus?: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
-    transactionId?: string | null;
+    status: 'PENDING' | 'PAID' | 'REJECTED';
     totalAmount: number;
-    currency?: string;
-    shippingAddress?: string;
-    trackingNumber?: string;
+    paymentId?: string | null;
+    transactionId?: string | null;
+    verifiedAt?: string | null;
+    verifiedBy?: number | null;
+    rejectionReason?: string | null;
+    transactionIdMatched?: boolean;
+    shippingAddress?: string | null;
     createdAt: string;
-    updatedAt?: string;
+    updatedAt: string;
+    // Optional fields for admin/extended views
+    userEmail?: string;
+    paymentStatus?: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+    trackingNumber?: string;
     estimatedDelivery?: string;
+    currency?: string;
 }
 
 interface CreateOrderPayload {
-    items: OrderItem[];
+    items: Omit<OrderItem, 'id'>[];
     shippingAddress?: string;
 }
 
 interface CreateOrderResponse {
     success: boolean;
-    status: string;
+    message: string;
     data: Order;
-    paymentStatus: string;
-    transactionId?: string;
-    lineItems: OrderItem[];
+    timestamp: string;
 }
 
 interface UpdateOrderPayload {
@@ -50,7 +55,15 @@ interface UpdateOrderPayload {
 
 interface OrdersListResponse {
     success: boolean;
-    data: Order[];
+    data?: {
+        content: Order[];
+        pageable?: {
+            pageNumber: number;
+            pageSize: number;
+        };
+        totalPages?: number;
+        totalElements?: number;
+    };
     timestamp?: string;
 }
 
@@ -73,10 +86,10 @@ const orderService = {
     },
 
     // Get order by ID (requires authentication)
-    getOrderById: async (orderId: string): Promise<Order> => {
+    getOrderById: async (orderId: number): Promise<Order> => {
         try {
             const response = await apiClient.get(`/api/v1/orders/${orderId}`);
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'OrderService' });
         }
@@ -99,19 +112,19 @@ const orderService = {
 
     // Update order (requires authentication)
     updateOrder: async (
-        orderId: string,
+        orderId: number,
         payload: UpdateOrderPayload
     ): Promise<Order> => {
         try {
             const response = await apiClient.put(`/api/v1/orders/${orderId}`, payload);
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'OrderService' });
         }
     },
 
     // Cancel order (requires authentication)
-    cancelOrder: async (orderId: string): Promise<OrderStatusUpdate> => {
+    cancelOrder: async (orderId: number): Promise<OrderStatusUpdate> => {
         try {
             const response = await apiClient.post(`/api/v1/orders/${orderId}/cancel`);
             return response.data;
@@ -121,7 +134,7 @@ const orderService = {
     },
 
     // Get order status (requires authentication)
-    getOrderStatus: async (orderId: string): Promise<OrderStatusUpdate> => {
+    getOrderStatus: async (orderId: number): Promise<OrderStatusUpdate> => {
         try {
             const response = await apiClient.get(`/api/v1/orders/${orderId}/status`);
             return response.data;
@@ -131,19 +144,19 @@ const orderService = {
     },
 
     // Confirm order payment (requires authentication)
-    confirmPayment: async (orderId: string, transactionId: string): Promise<Order> => {
+    confirmPayment: async (orderId: number, transactionId: string): Promise<Order> => {
         try {
             const response = await apiClient.post(`/api/v1/orders/${orderId}/confirm-payment`, {
                 transactionId,
             });
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'OrderService' });
         }
     },
 
     // Get order tracking (requires authentication)
-    getOrderTracking: async (orderId: string): Promise<{
+    getOrderTracking: async (orderId: number): Promise<{
         status: string;
         trackingNumber?: string;
         estimatedDelivery?: string;
@@ -171,20 +184,20 @@ const orderService = {
     },
 
     // Approve order (requires admin authentication)
-    approveOrder: async (orderId: string): Promise<Order> => {
+    approveOrder: async (orderId: number): Promise<Order> => {
         try {
             const response = await apiClient.post(`/api/v1/admin/orders/${orderId}/approve`);
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'OrderService' });
         }
     },
 
     // Reject order (requires admin authentication)
-    rejectOrder: async (orderId: string): Promise<Order> => {
+    rejectOrder: async (orderId: number): Promise<Order> => {
         try {
             const response = await apiClient.post(`/api/v1/admin/orders/${orderId}/reject`);
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'OrderService' });
         }
