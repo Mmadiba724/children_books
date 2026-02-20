@@ -28,7 +28,6 @@ interface CreateBookPayload {
     categoryIds?: number[];
     price?: number;
     format?: string;
-    coverImageId?: string;
     coverImageUrl?: string;
     fileId?: string | null;
     stockQuantity?: number;
@@ -41,11 +40,12 @@ interface UpdateBookPayload {
     description?: string;
     isbn?: string;
     categoryId?: string;
+    categoryIds?: number[];
     price?: number;
     format?: string;
     stockQuantity?: number;
-    coverImageId?: string;
-    fileId?: string;
+    coverImageUrl?: string;
+    fileId?: string | null;
     publishedDate?: string;
 }
 

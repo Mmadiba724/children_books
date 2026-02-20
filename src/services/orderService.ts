@@ -38,6 +38,7 @@ export interface Order {
 interface CreateOrderPayload {
     items: Omit<OrderItem, 'id'>[];
     shippingAddress?: string;
+    transactionId?: string;
 }
 
 interface CreateOrderResponse {

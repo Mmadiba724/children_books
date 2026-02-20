@@ -6,7 +6,6 @@ import Navbar from "./components/Navbar";
 import ScrollToTop from "./components/ScrollToTop";
 import CatalogPage from "./pages/CatalogPage";
 import BookDetailPage from "./pages/BookDetailPage";
-// import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import AboutPage from "./pages/AboutPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
@@ -29,7 +28,6 @@ function App() {
                         <Route path="/" element={<CatalogPage />} />
                         <Route path="/search" element={<SearchResultsPage />} />
                         <Route path="/book/:id" element={<BookDetailPage />} />
-                        {/* <Route path="/cart" element={<CartPage />} /> */}
                         <Route path="/checkout" element={<CheckoutPage />} />
                         <Route path="/about" element={<AboutPage />} />
                         <Route

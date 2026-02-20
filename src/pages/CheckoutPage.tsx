@@ -50,21 +50,21 @@ export default function CheckoutPage() {
         setLoading(true);
 
         try {
-            // Transform cart items to order items
-            const orderItems = state.items.map((item) => ({
-                bookId: Number(item.book.id),
-                quantity: item.quantity,
-                price: item.book.price,
+            // Create order payload
+            const orderPayload = {
+                items: state.items.map((item) => ({
+                    bookId: Number(item.book.id),
+                    quantity: item.quantity,
+                    price: item.book.price,
+                })),
                 transactionId: transactionNumber.trim(),
-                shippingAddress: '' + shippingAddress.trim(),
-                totalAmount: item.book.price * item.quantity,
-            }));
+                ...(shippingAddress && { shippingAddress: shippingAddress.trim() }),
+            };
+
+            console.log("Order payload being sent:", orderPayload);
 
             // Create order in backend
-            const orderResponse = await orderService.createOrder({
-                items: orderItems,
-                ...(shippingAddress && { shippingAddress }),
-            });
+            const orderResponse = await orderService.createOrder(orderPayload);
 
             // Clear cart after successful order creation
             await clear();
@@ -139,7 +139,7 @@ export default function CheckoutPage() {
                                 ) : (
                                     <div className="flex items-start justify-between">
                                         <div>
-                                            <p className="text-gray-700">
+                                            <p className={shippingAddress ? "text-gray-700" : "text-red-600 font-semibold"}>
                                                 {shippingAddress ||
                                                     "No address provided"}
                                             </p>
@@ -203,28 +203,28 @@ export default function CheckoutPage() {
                         </div>
 
                         {/* Step 3: Payment Details */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <div className="flex items-center gap-3 mb-4">
-                                <CheckCircle
-                                    className="text-green-600"
-                                    size={24}
-                                />
-                                <h2 className="text-lg font-bold">
-                                    3. PAYMENT DETAILS
-                                </h2>
-                                {currentStep > 3 && (
-                                    <button className="ml-auto text-blue-600 hover:underline text-sm font-semibold">
-                                        Edit
-                                    </button>
-                                )}
-                            </div>
-                            <div className="text-gray-700">
-                                <p className="text-sm">
-                                    Payment will be processed upon order
-                                    approval
-                                </p>
-                            </div>
-                        </div>
+                        {/*<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">*/}
+                        {/*    <div className="flex items-center gap-3 mb-4">*/}
+                        {/*        <CheckCircle*/}
+                        {/*            className="text-green-600"*/}
+                        {/*            size={24}*/}
+                        {/*        />*/}
+                        {/*        <h2 className="text-lg font-bold">*/}
+                        {/*            3. PAYMENT DETAILS*/}
+                        {/*        </h2>*/}
+                        {/*        {currentStep > 3 && (*/}
+                        {/*            <button className="ml-auto text-blue-600 hover:underline text-sm font-semibold">*/}
+                        {/*                Edit*/}
+                        {/*            </button>*/}
+                        {/*        )}*/}
+                        {/*    </div>*/}
+                        {/*    <div className="text-gray-700">*/}
+                        {/*        <p className="text-sm">*/}
+                        {/*            Payment will be processed upon order*/}
+                        {/*            approval*/}
+                        {/*        </p>*/}
+                        {/*    </div>*/}
+                        {/*</div>*/}
 
                         {/* Step 4: Review Order */}
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Book, Loader2, Download, Eye, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
 import libraryService, { type LibraryBook } from "../services/libraryService";
+import { getImageUrl } from "../utils/imageUtils";
 
 const LibraryPage = () => {
     const [books, setBooks] = useState<LibraryBook[]>([]);
@@ -157,7 +158,7 @@ const LibraryPage = () => {
                                     <div className="relative aspect-3/4 bg-gray-100">
                                         <img
                                             src={
-                                                book.coverImageUrl ||
+                                                getImageUrl(book.coverImageUrl) ||
                                                 "https://via.placeholder.com/300x400?text=No+Cover"
                                             }
                                             alt={book.bookTitle}

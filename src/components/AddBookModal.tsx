@@ -53,6 +53,7 @@ const AddBookModal = ({
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [bookFile, setBookFile] = useState<File | null>(null);
     const [coverImagePreview, setCoverImagePreview] = useState<string>("");
+    const [existingFileId, setExistingFileId] = useState<string | null>(null);
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -78,6 +79,9 @@ const AddBookModal = ({
                 });
                 if (editBook.coverImageUrl) {
                     setCoverImagePreview(getImageUrl(editBook.coverImageUrl));
+                }
+                if (editBook.fileId) {
+                    setExistingFileId(editBook.fileId);
                 }
             } else {
                 // Reset form for adding new book
@@ -110,10 +114,15 @@ const AddBookModal = ({
             setCategories(fetchedCategories);
 
             // Populate category IDs when editing
-            if (editBook?.categoryNames) {
+            if (editBook?.categoryNames && editBook.categoryNames.length > 0) {
                 const categoryIds = fetchedCategories
                     .filter((cat) => editBook.categoryNames?.includes(cat.name))
                     .map((cat) => Number.parseInt(cat.id));
+                console.log("Loaded categories for editing book:", {
+                    categoryNames: editBook.categoryNames,
+                    fetchedCategoryIds: categoryIds,
+                    fetchedCategories: fetchedCategories,
+                });
                 setFormData((prev) => ({ ...prev, categoryIds }));
             }
         } catch (error) {
@@ -144,6 +153,7 @@ const AddBookModal = ({
             const categoryIds = prev.categoryIds.includes(categoryId)
                 ? prev.categoryIds.filter((id) => id !== categoryId)
                 : [...prev.categoryIds, categoryId];
+            console.log("Category changed:", { categoryId, newCategoryIds: categoryIds });
             return { ...prev, categoryIds };
         });
     };
@@ -238,8 +248,8 @@ const AddBookModal = ({
         setIsUploadingFiles(true);
 
         try {
-            let coverImageId = editBook?.coverImageUrl || "";
-            let fileId = editBook?.fileId || "";
+            let coverImageId: string | undefined;
+            let fileId: string | undefined;
 
             // Upload cover image if provided
             if (coverImage) {
@@ -261,6 +271,12 @@ const AddBookModal = ({
 
             if (editBook) {
                 // Update existing book
+                console.log("=== EDIT BOOK DEBUG START ===");
+                console.log("Editing book ID:", editBook.id);
+                console.log("Initial editBook.categoryNames:", editBook.categoryNames);
+                console.log("formData.categoryIds selected by user:", formData.categoryIds);
+                console.log("Available categories:", categories);
+
                 const updatePayload: UpdateBookPayload = {
                     title: formData.title,
                     author: formData.author,
@@ -271,10 +287,39 @@ const AddBookModal = ({
                         formData.format === "PHYSICAL"
                             ? Number.parseInt(formData.stockQuantity)
                             : 0,
-                    coverImageId: coverImageId,
-                    fileId: formData.format === "DIGITAL" ? fileId : undefined,
-                    categoryId: formData.categoryIds[0]?.toString(),
                 };
+
+                // Always include categoryIds - send all selected categories
+                if (formData.categoryIds.length > 0) {
+                    updatePayload.categoryIds = formData.categoryIds;
+                    console.log("Sending categoryIds:", formData.categoryIds);
+                } else {
+                    console.warn("No categories selected in form");
+                }
+
+                // Always preserve coverImageUrl
+                if (coverImageId) {
+                    updatePayload.coverImageUrl = coverImageId;
+                } else if (editBook.coverImageUrl) {
+                    updatePayload.coverImageUrl = editBook.coverImageUrl;
+                }
+
+                // Handle fileId based on format
+                if (formData.format === "DIGITAL") {
+                    // For DIGITAL books: preserve or update fileId
+                    if (fileId) {
+                        updatePayload.fileId = fileId;
+                    } else if (editBook.fileId) {
+                        updatePayload.fileId = editBook.fileId;
+                    }
+                } else {
+                    // For PHYSICAL books: always set fileId to null
+                    updatePayload.fileId = null;
+                }
+
+                console.log("=== FINAL UPDATE PAYLOAD ===");
+                console.log(JSON.stringify(updatePayload, null, 2));
+                console.log("=== END DEBUG ===");
 
                 await bookService.updateBook(
                     String(editBook.id),
@@ -413,6 +458,7 @@ const AddBookModal = ({
         setCoverImage(null);
         setBookFile(null);
         setCoverImagePreview("");
+        setExistingFileId(null);
         setErrors({});
     };
 
@@ -690,20 +736,28 @@ const AddBookModal = ({
                                     Book File (PDF/EPUB){" "}
                                     <span className="text-red-500">*</span>
                                 </label>
-                                <label className="flex items-center justify-center px-4 py-2 border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-green-700 transition">
-                                    <Upload size={20} className="mr-2" />
-                                    <span className="text-sm">
-                                        {bookFile
-                                            ? bookFile.name
-                                            : "Choose book file"}
-                                    </span>
-                                    <input
-                                        type="file"
-                                        accept=".pdf,.epub,application/pdf,application/epub+zip"
-                                        onChange={handleBookFileChange}
-                                        className="hidden"
-                                    />
-                                </label>
+                                <div className="flex items-center gap-4">
+                                    <label className="flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-green-700 transition">
+                                        <Upload size={20} className="mr-2" />
+                                        <span className="text-sm">
+                                            {bookFile
+                                                ? bookFile.name
+                                                : "Choose book file"}
+                                        </span>
+                                        <input
+                                            type="file"
+                                            accept=".pdf,.epub,application/pdf,application/epub+zip"
+                                            onChange={handleBookFileChange}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                    {existingFileId && !bookFile && (
+                                        <div className="text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded border border-gray-200">
+                                            <p className="font-medium">Existing file:</p>
+                                            <p className="text-gray-500 truncate max-w-xs">{existingFileId}</p>
+                                        </div>
+                                    )}
+                                </div>
                                 {errors.bookFile && (
                                     <p className="text-red-500 text-sm mt-1">
                                         {errors.bookFile}

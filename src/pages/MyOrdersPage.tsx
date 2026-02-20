@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { Package, Clock, Loader2, ChevronRight, Filter, X } from "lucide-react";
 import toast from "react-hot-toast";
 import orderService from "../services/orderService";
+import bookService from "../services/bookService";
+import { getImageUrl } from "../utils/imageUtils";
+import type { Book } from "../types/book";
 
 interface OrderItem {
     id: number;
@@ -28,6 +31,7 @@ interface Order {
 
 const MyOrdersPage = () => {
     const [orders, setOrders] = useState<Order[]>([]);
+    const [books, setBooks] = useState<{ [key: number]: Book }>({});
     const [loading, setLoading] = useState(true);
     const [startDate, setStartDate] = useState<string>("");
     const [endDate, setEndDate] = useState<string>("");
@@ -88,6 +92,25 @@ const MyOrdersPage = () => {
 
             console.log("Processed orders data:", ordersData);
             setOrders(ordersData);
+
+            // Fetch book details for all books in orders
+            const bookIds = new Set<number>();
+            ordersData.forEach((order) => {
+                order.items?.forEach((item) => {
+                    bookIds.add(item.bookId);
+                });
+            });
+
+            const booksData: { [key: number]: Book } = {};
+            for (const bookId of bookIds) {
+                try {
+                    const book = await bookService.getBookById(bookId);
+                    booksData[bookId] = book;
+                } catch (error) {
+                    console.error(`Failed to load book ${bookId}:`, error);
+                }
+            }
+            setBooks(booksData);
         } catch (error) {
             console.error("Failed to load orders:", error);
             toast.error("Failed to load orders");
@@ -264,47 +287,148 @@ const MyOrdersPage = () => {
 
                             {/* Order Details */}
                             <div className="p-6">
-                                {/* Order Items */}
-                                {order.items && order.items.length > 0 && (
-                                    <div className="mb-4">
-                                        <h4 className="font-semibold text-gray-900 mb-3">
-                                            Items ({order.items.length})
-                                        </h4>
-                                        <div className="space-y-2">
-                                            {order.items.map((item) => (
+                            {/* Order Items */}
+                            {order.items && order.items.length > 0 && (
+                                <div className="mb-6">
+                                    <h4 className="font-semibold text-gray-900 mb-4">
+                                        Items ({order.items.length})
+                                    </h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                                        {order.items.map((item) => {
+                                            const book = books[item.bookId];
+                                            return (
                                                 <div
                                                     key={`${order.id}-${item.bookId}`}
-                                                    className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+                                                    className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow max-w-xs"
                                                 >
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-gray-900">
-                                                            Book #{item.bookId}
-                                                        </p>
-                                                        <p className="text-sm text-gray-600">
-                                                            UGX{" "}
-                                                            {item.price.toFixed(
-                                                                2,
-                                                            )}{" "}
-                                                            each
-                                                        </p>
+                                                    {/* Book Cover */}
+                                                    <div className="relative aspect-[1/1.5] bg-gray-100 flex items-center justify-center w-full">
+                                                        {book && book.coverImageUrl ? (
+                                                            <img
+                                                                src={getImageUrl(
+                                                                    book.coverImageUrl,
+                                                                )}
+                                                                alt={book.title}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => {
+                                                                    e.currentTarget.style.display =
+                                                                        "none";
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <svg
+                                                                className="w-8 h-8 text-gray-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={1.5}
+                                                                    d="M12 6.253v13m0-13C6.5 6.253 2 10.753 2 16.5S6.5 26.747 12 26.747s10-4.5 10-10.247S17.5 6.253 12 6.253z"
+                                                                />
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={1.5}
+                                                                    d="M9 12h6M9 16h6"
+                                                                />
+                                                            </svg>
+                                                        )}
                                                     </div>
-                                                    <div className="text-right ml-4">
-                                                        <p className="text-sm text-gray-600">
-                                                            Qty: {item.quantity}
-                                                        </p>
-                                                        <p className="font-medium text-gray-900">
-                                                            UGX{" "}
-                                                            {(
-                                                                item.price *
-                                                                item.quantity
-                                                            ).toFixed(2)}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            ))}
+
+                                    {/* Book Details */}
+                                    <div className="p-1.5 bg-white">
+                                        {book ? (
+                                            <>
+                                                <h5 className="font-semibold text-gray-900 text-xs mb-0.5 line-clamp-1">
+                                                    {book.title}
+                                                </h5>
+                                                <p className="text-xs text-gray-600 mb-0.5 line-clamp-1">
+                                                    by{" "}
+                                                    {
+                                                        book.author
+                                                    }
+                                                </p>
+                                                {book.categoryNames &&
+                                                    book
+                                                        .categoryNames
+                                                        .length >
+                                                        0 && (
+                                                        <div className="mb-0.5">
+                                                            <div className="flex flex-wrap gap-0.5">
+                                                                {book.categoryNames.slice(
+                                                                    0,
+                                                                    1,
+                                                                ).map(
+                                                                    (
+                                                                        cat,
+                                                                    ) => (
+                                                                        <span
+                                                                            key={
+                                                                                cat
+                                                                            }
+                                                                            className="inline-block bg-blue-50 text-blue-700 text-xs px-1 py-0.5 rounded"
+                                                                        >
+                                                                            {cat}
+                                                                        </span>
+                                                                    ),
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <p className="text-xs text-gray-500">
+                                                    Book #
+                                                    {item.bookId}
+                                                </p>
+                                            </>
+                                        )}
+
+                                        {/* Price and Quantity */}
+                                        <div className="border-t border-gray-100 pt-0.5 mt-0.5">
+                                            <div className="flex justify-between items-center mb-0.5 text-xs">
+                                                <span className="text-gray-600">
+                                                    Price
+                                                </span>
+                                                <span className="font-semibold text-gray-900 text-xs">
+                                                    {item.price.toFixed(
+                                                        0,
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between items-center mb-0.5 text-xs">
+                                                <span className="text-gray-600">
+                                                    Qty
+                                                </span>
+                                                <span className="font-semibold text-gray-900 text-xs">
+                                                    {
+                                                        item.quantity
+                                                    }
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between items-center border-t border-gray-100 pt-0.5">
+                                                <span className="text-xs font-medium text-gray-700">
+                                                    Total
+                                                </span>
+                                                <span className="text-xs font-bold text-rose-600">
+                                                    {(
+                                                        item.price *
+                                                        item.quantity
+                                                    ).toFixed(0)}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
 
                                 {/* Order Summary */}
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-200">
