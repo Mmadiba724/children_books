@@ -17,6 +17,7 @@ import {
     Package,
 } from "lucide-react";
 import LoginModal from "./LoginModal";
+import RegisterModal from "./RegisterModal";
 import AddBookModal from "./AddBookModal";
 import CartSidebar from "./CartSidebar";
 
@@ -24,6 +25,7 @@ const AccountMenu = ({
     isOpen,
     onToggle,
     onSignInClick,
+    onCreateAccountClick,
     isAuthenticated,
     onLogout,
     userName,
@@ -32,6 +34,7 @@ const AccountMenu = ({
     isOpen: boolean;
     onToggle: () => void;
     onSignInClick?: () => void;
+    onCreateAccountClick?: () => void;
     isAuthenticated: boolean;
     onLogout?: () => void;
     userName?: string;
@@ -127,13 +130,15 @@ const AccountMenu = ({
                             >
                                 Sign In
                             </button>
-                            <Link
-                                to="#"
+                            <button
+                                onClick={() => {
+                                    onCreateAccountClick?.();
+                                    onToggle();
+                                }}
                                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                onClick={onToggle}
                             >
                                 Create Account
-                            </Link>
+                            </button>
                         </div>
                     )}
                 </div>
@@ -148,6 +153,7 @@ const Navbar = () => {
     const { isAuthenticated, logout, user } = useAuth();
     const [accountMenuOpen, setAccountMenuOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [searchCategory, setSearchCategory] = useState("All");
@@ -275,6 +281,7 @@ const Navbar = () => {
                                     setAccountMenuOpen(!accountMenuOpen)
                                 }
                                 onSignInClick={() => setIsLoginModalOpen(true)}
+                                onCreateAccountClick={() => setIsRegisterModalOpen(true)}
                                 isAuthenticated={isAuthenticated}
                                 onLogout={handleLogout}
                                 userName={user?.name || user?.email}
@@ -440,8 +447,19 @@ const Navbar = () => {
                     setIsLoginModalOpen(false);
                 }}
                 onCreateAccount={() => {
-                    // Handle create account logic here
-                    console.log("Create account clicked");
+                    // Open register modal and close login modal
+                    setIsLoginModalOpen(false);
+                    setIsRegisterModalOpen(true);
+                }}
+            />
+
+            <RegisterModal
+                isOpen={isRegisterModalOpen}
+                onClose={() => setIsRegisterModalOpen(false)}
+                onSignInClick={() => {
+                    // Open login modal and close register modal
+                    setIsRegisterModalOpen(false);
+                    setIsLoginModalOpen(true);
                 }}
             />
 
