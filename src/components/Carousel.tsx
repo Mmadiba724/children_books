@@ -147,7 +147,7 @@ const Carousel = () => {
                             return (
                                 <div
                                     key={String(img) + idx}
-                                    className="snap-center shrink-0 w-full md:w-[calc(50%-12px)]"
+                                    className="snap-center shrink-0 w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-10px)] xl:w-[calc(25%-12px)] 2xl:w-[calc(20%-12px)]"
                                 >
                                     <CarouselCard
                                         book={book.realBook}
