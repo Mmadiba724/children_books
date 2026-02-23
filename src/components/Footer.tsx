@@ -95,8 +95,8 @@ const Footer = () => {
     }
 
     return (
-        <footer className="mt-12 bg-white border-t border-gray-200">
-            <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        <footer className="mt-12 bg-white border-t border-gray-200 px-20">
+            <div className="max-w-8xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
                 {/* Main Footer Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-10">
                     {/* Services Column */}

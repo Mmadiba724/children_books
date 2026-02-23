@@ -3,6 +3,7 @@ import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import categoryService, { type Category } from "../services/categoryService";
 import CategoryModal from "./CategoryModal";
+import { getCategoryColor } from "../utils/categoryColors";
 
 export default function CategoryManagement() {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -97,9 +98,16 @@ export default function CategoryManagement() {
                             className="bg-white rounded-lg shadow-md p-4 border-2 border-gray-100 hover:border-rose-200 transition-colors"
                         >
                             <div className="flex justify-between items-start mb-2">
-                                <h3 className="text-lg font-semibold text-gray-800">
-                                    {category.name}
-                                </h3>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <h3 className="text-lg font-semibold text-gray-800">
+                                            {category.name}
+                                        </h3>
+                                        <span className={`text-xs font-medium px-2 py-1 rounded-full border ${getCategoryColor(category.name)}`}>
+                                            {category.name}
+                                        </span>
+                                    </div>
+                                </div>
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => handleEdit(category)}

@@ -6,7 +6,8 @@ export interface OrderItem {
     id?: number;
     bookId: number;
     quantity: number;
-    price: number;
+    price?: number; // Optional - calculated server-side
+    transactionId?: string;
     title?: string;
     author?: string;
     subtotal?: number;
@@ -35,10 +36,15 @@ export interface Order {
     currency?: string;
 }
 
+// Payload for creating an order - matches new API format
 interface CreateOrderPayload {
-    items: Omit<OrderItem, 'id'>[];
-    shippingAddress?: string;
-    transactionId?: string;
+    items: Array<{
+        bookId: number;
+        quantity: number;
+    }>;
+    totalAmount: number;
+    transactionId: string;
+    shippingAddress: string;
 }
 
 interface CreateOrderResponse {
@@ -79,7 +85,7 @@ const orderService = {
     // Creates order with PENDING status and PENDING payment status
     createOrder: async (payload: CreateOrderPayload): Promise<CreateOrderResponse> => {
         try {
-            const response = await apiClient.post('/api/v1/orders', payload);
+            const response = await apiClient.post('/api/v1/checkout/place-order', payload);
             return response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'OrderService' });

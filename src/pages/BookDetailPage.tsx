@@ -4,11 +4,12 @@ import BookDetailsColumn from "../components/BookDetailsColumn";
 import ReviewsList from "../components/ReviewsList";
 import AddReviewForm from "../components/AddReviewForm";
 import bookService from "../services/bookService";
+import categoryService from "../services/categoryService";
 import { getImageUrl } from "../utils/imageUtils";
 import type { Book } from "../types/book";
 // import { useCart } from "../context/CartContext";
 import { useBookReviews } from "../hooks/useBookReviews";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 
 // Mock ratings for display — can be replaced with real data later
 const MOCK_RATINGS: Record<string, number> = {
@@ -26,6 +27,8 @@ export default function BookDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [imageError, setImageError] = useState(false);
+    const [similarBooks, setSimilarBooks] = useState<Book[]>([]);
+    const [loadingSimilar, setLoadingSimilar] = useState(false);
     // const { add } = useCart();
     const { addReview, getReviewsForBook } = useBookReviews();
     // const [qty, setQty] = useState(1);
@@ -55,11 +58,73 @@ export default function BookDetailPage() {
         fetchBook();
     }, [id]);
 
-    // Compute similar books by category
-    const similarBooks: Book[] = useMemo(() => {
-        // For now, return empty array - we can implement similar books API call later
-        return [];
+    // Fetch similar books based on shared categories
+    useEffect(() => {
+        const fetchSimilarBooks = async () => {
+            if (!book || !book.categoryNames || book.categoryNames.length === 0) {
+                setSimilarBooks([]);
+                return;
+            }
+
+            try {
+                setLoadingSimilar(true);
+
+                // Fetch all available categories to validate book categories
+                const categories = await categoryService.getAllCategories();
+                const categoryNames = categories.map(c => c.name);
+
+                // Get valid categories from the current book
+                const bookCategories = book.categoryNames.filter(cat =>
+                    categoryNames.includes(cat)
+                );
+
+                if (bookCategories.length === 0) {
+                    setSimilarBooks([]);
+                    return;
+                }
+
+                // Fetch all books
+                const allBooks = await bookService.getAllBooks();
+
+                // Filter books that share at least one category with the current book
+                const similar = allBooks.filter((b) => {
+                    // Exclude the current book
+                    if (b.id === book.id) return false;
+
+                    // Check if this book has categories
+                    if (!b.categoryNames || b.categoryNames.length === 0) return false;
+
+                    // Check if this book shares any category with the current book
+                    return b.categoryNames.some((category) =>
+                        bookCategories.includes(category)
+                    );
+                });
+
+                // Sort by number of matching categories (more matches = more similar)
+                similar.sort((a, b) => {
+                    const aMatches = a.categoryNames?.filter(cat =>
+                        bookCategories.includes(cat)
+                    ).length || 0;
+                    const bMatches = b.categoryNames?.filter(cat =>
+                        bookCategories.includes(cat)
+                    ).length || 0;
+                    return bMatches - aMatches;
+                });
+
+                // Limit to 8 similar books
+                setSimilarBooks(similar.slice(0, 8));
+            } catch (err) {
+                console.error("Error fetching similar books:", err);
+                setSimilarBooks([]);
+            } finally {
+                setLoadingSimilar(false);
+            }
+        };
+
+        fetchSimilarBooks();
     }, [book]);
+
+    // ...existing code...
 
     if (loading) {
         return (
@@ -276,18 +341,33 @@ export default function BookDetailPage() {
             <div className="mt-8 sm:mt-12">
                 <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
                     Similar Books
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-                    {similarBooks.length === 0 && (
-                        <div className="text-sm text-gray-500">
-                            We couldn't find similar books — try browsing the
-                            catalog.
-                        </div>
+                    {book?.categoryNames && book.categoryNames.length > 0 && (
+                        <span className="text-base font-normal text-gray-500 ml-2">
+                            in {book.categoryNames.join(", ")}
+                        </span>
                     )}
-                    {similarBooks.map((b) => (
-                        <BookCard book={b} key={b.id} />
-                    ))}
-                </div>
+                </h2>
+
+                {loadingSimilar ? (
+                    <div className="flex items-center justify-center py-12">
+                        <p className="text-gray-500">Loading similar books...</p>
+                    </div>
+                ) : similarBooks.length === 0 ? (
+                    <div className="bg-gray-50 rounded-lg p-8 text-center">
+                        <p className="text-gray-600 text-lg mb-2">
+                            No similar books found
+                        </p>
+                        <p className="text-gray-500 text-sm">
+                            Try browsing our catalog to discover more books
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                        {similarBooks.map((b) => (
+                            <BookCard book={b} key={b.id} />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

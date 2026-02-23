@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
 import authService from "../services/authService";
-import { useAuth } from "../context/AuthContext";
-import { useCart } from "../context/CartContext";
 import toast from "react-hot-toast";
-import { logTokenStatus } from "../utils/tokenDebugger";
 
 interface RegisterModalProps {
     isOpen: boolean;
@@ -26,8 +23,6 @@ const RegisterModal = ({
     const [agreeToTerms, setAgreeToTerms] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const { login } = useAuth();
-    const { refreshCart } = useCart();
 
     const validateEmail = (email: string) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -74,45 +69,29 @@ const RegisterModal = ({
         if (Object.keys(newErrors).length === 0) {
             setIsLoading(true);
             try {
-                const response = await authService.register({
+                await authService.register({
                     email,
                     password,
                     name: name || undefined,
                 });
-                console.log("Registration successful, response:", response);
-
-                // Log complete token status for debugging
-                logTokenStatus();
-
-                // Extract user data from response
-                let userData = response.user;
-
-                // If no user data in response, create a minimal user object
-                if (!userData) {
-                    userData = {
-                        id: "unknown",
-                        email: email,
-                        name: name || undefined,
-                    };
-                }
-
-                // Update AuthContext with user data
-                login(userData);
-
-                // Refresh cart from backend after registration
-                await refreshCart();
+                console.log("Registration successful");
 
                 // Show success message
-                toast.success("Account created successfully! Welcome!");
+                toast.success("Account created successfully! Please sign in to continue.");
 
-                // Reset form and close modal on success
+                // Reset form
                 setEmail("");
                 setPassword("");
                 setConfirmPassword("");
                 setName("");
                 setAgreeToTerms(false);
                 setErrors({});
+
+                // Close register modal and open login modal
                 onClose();
+                if (onSignInClick) {
+                    onSignInClick();
+                }
             } catch (error) {
                 // Handle registration errors
                 const errorMessage =

@@ -50,15 +50,17 @@ export default function CheckoutPage() {
         setLoading(true);
 
         try {
-            // Create order payload
+            // Create order payload matching new API format
+            // Note: totalAmount should be the subtotal (sum of item prices) without tax/shipping
+            // The server will validate this against the calculated total from book prices
             const orderPayload = {
                 items: state.items.map((item) => ({
                     bookId: Number(item.book.id),
                     quantity: item.quantity,
-                    price: item.book.price,
                 })),
+                totalAmount: subtotal / 100, // Send subtotal only (converted from cents to dollars)
                 transactionId: transactionNumber.trim(),
-                ...(shippingAddress && { shippingAddress: shippingAddress.trim() }),
+                shippingAddress: shippingAddress.trim() || "No shipping address provided",
             };
 
             console.log("Order payload being sent:", orderPayload);

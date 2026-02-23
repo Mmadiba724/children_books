@@ -12,9 +12,11 @@ import {
     Hash,
     ShoppingBag,
     DollarSign,
+    Plus,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import orderService, { type Order } from "../services/orderService";
+import paymentService from "../services/paymentService";
 
 type StatusFilter = "ALL" | "PENDING" | "PAID" | "REJECTED";
 
@@ -26,6 +28,9 @@ export default function OrdersManagement() {
         null,
     );
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+    const [showTransactionForm, setShowTransactionForm] = useState(false);
+    const [transactionId, setTransactionId] = useState("");
+    const [isSubmittingTransaction, setIsSubmittingTransaction] = useState(false);
 
     // Fetch orders
     const fetchOrders = async () => {
@@ -100,6 +105,39 @@ export default function OrdersManagement() {
             console.error("Error rejecting order:", error);
         } finally {
             setProcessingOrderId(null);
+        }
+    };
+
+    // Handle add transaction ID
+    const handleAddTransactionId = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!transactionId.trim()) {
+            toast.error("Please enter a transaction ID");
+            return;
+        }
+
+        setIsSubmittingTransaction(true);
+
+        try {
+            const response = await paymentService.addTransactionId({
+                transactionId: transactionId.trim(),
+            });
+
+            if (response.success) {
+                toast.success(response.message || "Transaction ID added successfully! It will be auto-matched with orders.");
+                setTransactionId("");
+                setShowTransactionForm(false);
+                // Refresh orders to see if any got matched
+                fetchOrders();
+            } else {
+                toast.error(response.error || "Failed to add transaction ID");
+            }
+        } catch (error) {
+            toast.error("Failed to add transaction ID");
+            console.error("Error adding transaction ID:", error);
+        } finally {
+            setIsSubmittingTransaction(false);
         }
     };
 
@@ -363,82 +401,100 @@ export default function OrdersManagement() {
 
                                 {/* Action Section */}
                                 <div className="lg:col-span-1">
-                                    {order.status === "PENDING" ? (
-                                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 sticky top-4">
-                                            <h4 className="font-bold text-gray-900 mb-4">
-                                                Actions Required
-                                            </h4>
-                                            <div className="space-y-3">
-                                                <button
-                                                    onClick={() =>
-                                                        handleApproveOrder(
-                                                            order.id,
-                                                        )
-                                                    }
-                                                    disabled={
-                                                        processingOrderId ===
-                                                        order.id
-                                                    }
-                                                    className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                                                >
-                                                    {processingOrderId ===
-                                                    order.id ? (
-                                                        <>
-                                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                                            <span>
-                                                                Processing...
-                                                            </span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <CheckCircle className="w-5 h-5" />
-                                                            <span>
-                                                                Approve Order
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                </button>
-
-                                                <button
-                                                    onClick={() =>
-                                                        handleRejectOrder(
-                                                            order.id,
-                                                        )
-                                                    }
-                                                    disabled={
-                                                        processingOrderId ===
-                                                        order.id
-                                                    }
-                                                    className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                                                >
-                                                    {processingOrderId ===
-                                                    order.id ? (
-                                                        <>
-                                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                                            <span>
-                                                                Processing...
-                                                            </span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <XCircle className="w-5 h-5" />
-                                                            <span>
-                                                                Reject Order
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                </button>
-
-                                                <div className="mt-4 pt-4 border-t border-gray-200">
-                                                    <p className="text-xs text-gray-600 text-center leading-relaxed">
-                                                        Review the order details
-                                                        carefully before taking
-                                                        action.
+                                {order.status === "PENDING" ? (
+                                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 sticky top-4">
+                                        <h4 className="font-bold text-gray-900 mb-4">
+                                            Actions Required
+                                        </h4>
+                                        <div className="space-y-3">
+                                            {!order.transactionId ? (
+                                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                                    <p className="text-sm font-medium text-yellow-800 mb-2">
+                                                        ⏳ Waiting for Payment
+                                                    </p>
+                                                    <p className="text-xs text-yellow-700">
+                                                        Transaction ID must be added before approving this order.
                                                     </p>
                                                 </div>
+                                            ) : null}
+                                            <button
+                                                onClick={() =>
+                                                    handleApproveOrder(
+                                                        order.id,
+                                                    )
+                                                }
+                                                disabled={
+                                                    processingOrderId ===
+                                                        order.id ||
+                                                    !order.transactionId
+                                                }
+                                                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none"
+                                                title={
+                                                    !order.transactionId
+                                                        ? "Transaction ID must be added first"
+                                                        : "Approve this order"
+                                                }
+                                            >
+                                                {processingOrderId ===
+                                                order.id ? (
+                                                    <>
+                                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                                        <span>
+                                                            Processing...
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <CheckCircle className="w-5 h-5" />
+                                                        <span>
+                                                            {!order.transactionId
+                                                                ? "Waiting for Payment"
+                                                                : "Approve Order"}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </button>
+
+                                            <button
+                                                onClick={() =>
+                                                    handleRejectOrder(
+                                                        order.id,
+                                                    )
+                                                }
+                                                disabled={
+                                                    processingOrderId ===
+                                                    order.id
+                                                }
+                                                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                            >
+                                                {processingOrderId ===
+                                                order.id ? (
+                                                    <>
+                                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                                        <span>
+                                                            Processing...
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <XCircle className="w-5 h-5" />
+                                                        <span>
+                                                            Reject Order
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </button>
+
+                                            <div className="mt-4 pt-4 border-t border-gray-200">
+                                                <p className="text-xs text-gray-600 text-center leading-relaxed">
+                                                    Review the order details
+                                                    carefully before taking
+                                                    action.
+                                                </p>
                                             </div>
                                         </div>
-                                    ) : (
+                                    </div>
+                                ) : (
                                         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                             <h4 className="font-bold text-gray-900 mb-3">
                                                 Order Status
@@ -481,23 +537,93 @@ export default function OrdersManagement() {
                     </p>
                 </div>
 
-                {/* Status Filter */}
-                <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-gray-600" />
-                    <select
-                        value={statusFilter}
-                        onChange={(e) =>
-                            setStatusFilter(e.target.value as StatusFilter)
-                        }
-                        className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-rose-500 focus:outline-none"
+                <div className="flex items-center gap-3">
+                    {/* Add Transaction ID Button */}
+                    <button
+                        onClick={() => setShowTransactionForm(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
                     >
-                        <option value="ALL">All Orders</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="PAID">Paid</option>
-                        <option value="REJECTED">Rejected</option>
-                    </select>
+                        <Plus className="w-4 h-4" />
+                        Add Transaction ID
+                    </button>
+
+                    {/* Status Filter */}
+                    <div className="flex items-center gap-2">
+                        <Filter className="w-4 h-4 text-gray-600" />
+                        <select
+                            value={statusFilter}
+                            onChange={(e) =>
+                                setStatusFilter(e.target.value as StatusFilter)
+                            }
+                            className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-rose-500 focus:outline-none"
+                        >
+                            <option value="ALL">All Orders</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="PAID">Paid</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
                 </div>
             </div>
+
+            {/* Transaction ID Form Modal */}
+            {showTransactionForm && (
+                <div className="fixed inset-0 bg-transparent backdrop-blur-xs bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">
+                            Add Transaction ID
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Enter a mobile money transaction ID. It will be automatically matched with orders that have the same transaction ID.
+                        </p>
+
+                        <form onSubmit={handleAddTransactionId}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Transaction ID
+                                </label>
+                                <input
+                                    type="text"
+                                    value={transactionId}
+                                    onChange={(e) => setTransactionId(e.target.value)}
+                                    placeholder="Enter transaction ID"
+                                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+                                    disabled={isSubmittingTransaction}
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    type="submit"
+                                    disabled={isSubmittingTransaction}
+                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {isSubmittingTransaction ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            Adding...
+                                        </>
+                                    ) : (
+                                        "Add Transaction ID"
+                                    )}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowTransactionForm(false);
+                                        setTransactionId("");
+                                    }}
+                                    disabled={isSubmittingTransaction}
+                                    className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Orders Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

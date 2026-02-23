@@ -41,6 +41,19 @@ interface WebhookResponse {
     message: string;
 }
 
+interface AddTransactionIdPayload {
+    transactionId: string;
+}
+
+interface AddTransactionIdResponse {
+    success: boolean;
+    message: string;
+    data?: unknown;
+    error?: string;
+    traceId?: string;
+    timestamp?: string;
+}
+
 const paymentService = {
     // Initiate a payment (requires authentication)
     initiatePayment: async (
@@ -146,6 +159,18 @@ const paymentService = {
             throw handleError(error as Error, { serviceName: 'PaymentService' });
         }
     },
+
+    // Add transaction ID (requires admin authentication)
+    // Stores a transaction ID received from mobile money for auto-matching with orders
+    addTransactionId: async (payload: AddTransactionIdPayload): Promise<AddTransactionIdResponse> => {
+        try {
+            const response = await apiClient.post('/api/v1/admin/transaction-ids', payload);
+            return response.data;
+        } catch (error) {
+            throw handleError(error as Error, { serviceName: 'PaymentService' });
+        }
+    },
 };
 
 export default paymentService;
+export type { AddTransactionIdPayload, AddTransactionIdResponse };
