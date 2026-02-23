@@ -28,8 +28,7 @@ export default function CarouselCard({
 
     return (
         <article
-            className="group w-[280px] bg-white shadow-xl hover:shadow-2xl shrink-0 transition-all duration-300 cursor-pointer flex flex-col"
-
+            className="group w-full bg-white shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col"
         >
             {/* Book Cover with Overlay */}
             <div className="relative mb-4 overflow-hidden">

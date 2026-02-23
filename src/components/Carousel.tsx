@@ -94,9 +94,9 @@ const Carousel = () => {
 
     return (
         <div className="w-full py-6">
-            <div className="flex flex-col gap-4 max-w-8xl px-25 mx-auto">
-                <div className="flex items-center justify-between px-4 gap-4 mb-2">
-                    <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
+            <div className="flex flex-col gap-4 max-w-8xl px-4 md:px-8 mx-auto">
+                <div className="flex items-center justify-between gap-4 mb-2">
+                    <h2 className="text-2xl md:text-3xl font-serif italic text-gray-700">
                         New books
                     </h2>
 
@@ -134,7 +134,7 @@ const Carousel = () => {
                 {!loading && carouselBooks.length > 0 && (
                     <div
                         ref={carouselRef}
-                        className="flex overflow-x-auto scroll-smooth gap-6 py-2 px-4"
+                        className="flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-4 md:gap-6 py-2 hide-scrollbar"
                         style={{ scrollbarWidth: "none" }}
                     >
                         {images.map((img, idx) => {
@@ -145,18 +145,22 @@ const Carousel = () => {
                             const hasError = imageErrors.has(img);
 
                             return (
-                                <CarouselCard
+                                <div
                                     key={String(img) + idx}
-                                    book={book.realBook}
-                                    coverImage={book.img}
-                                    price={book.price / 100}
-                                    hasError={hasError}
-                                    onImageError={() => {
-                                        setImageErrors((prev) =>
-                                            new Set(prev).add(img)
-                                        );
-                                    }}
-                                />
+                                    className="snap-center shrink-0 w-full md:w-[calc(50%-12px)]"
+                                >
+                                    <CarouselCard
+                                        book={book.realBook}
+                                        coverImage={book.img}
+                                        price={book.price / 100}
+                                        hasError={hasError}
+                                        onImageError={() => {
+                                            setImageErrors((prev) =>
+                                                new Set(prev).add(img)
+                                            );
+                                        }}
+                                    />
+                                </div>
                             );
                         })}
                     </div>

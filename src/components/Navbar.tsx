@@ -6,7 +6,6 @@ import categoryService from "../services/categoryService";
 import toast from "react-hot-toast";
 import logo from "../assets/logo.png";
 import {
-    // MapPin,
     User,
     Heart,
     ShoppingCart,
@@ -15,6 +14,8 @@ import {
     ShieldCheck,
     BookOpen,
     Package,
+    Menu,
+    X,
 } from "lucide-react";
 import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
@@ -160,6 +161,8 @@ const Navbar = () => {
     const [searchInput, setSearchInput] = useState("");
     const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
     const [categories, setCategories] = useState<string[]>([]);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
     const count = state.items.reduce((s, i) => s + i.quantity, 0);
     const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -226,54 +229,10 @@ const Navbar = () => {
 
     return (
         <header className="w-full bg-rose-50 sticky mx-auto top-0 z-30 shadow-sm">
-            {/* Top Bar */}
-            <div className=" border-b border-gray-200">
+            {/* Top Bar - Hidden on Mobile */}
+            <div className="hidden md:block border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 py-2">
                     <div className="flex justify-end items-center text-xs">
-                        {/* <div className="flex items-center gap-4">
-                            <Link
-                                to="#"
-                                className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
-                            >
-                                <MapPin size={14} />
-                                STORES & EVENTS
-                            </Link>
-                            <span className="text-gray-300">|</span>
-                            <Link
-                                to="#"
-                                className="text-gray-700 hover:text-gray-900"
-                            >
-                                MEMBERSHIP
-                            </Link>
-                            <span className="text-gray-300">|</span>
-                            <Link
-                                to="#"
-                                className="text-gray-700 hover:text-gray-900"
-                            >
-                                KIDS READS BLOG
-                            </Link>
-                            <span className="text-gray-300">|</span>
-                            <Link
-                                to="#"
-                                className="text-gray-700 hover:text-gray-900"
-                            >
-                                PODCAST
-                            </Link>
-                            <span className="text-gray-300">|</span>
-                            <Link
-                                to="#"
-                                className="text-gray-700 hover:text-gray-900"
-                            >
-                                SWEEPSTAKES
-                            </Link>
-                            <span className="text-gray-300">|</span>
-                            <Link
-                                to="#"
-                                className="text-gray-700 hover:text-gray-900"
-                            >
-                                GIFT CARDS
-                            </Link>
-                        </div> */}
                         <div className="flex items-center gap-4">
                             <AccountMenu
                                 isOpen={accountMenuOpen}
@@ -287,28 +246,6 @@ const Navbar = () => {
                                 userName={user?.name || user?.email}
                                 onClose={() => setAccountMenuOpen(false)}
                             />
-                            {isAuthenticated && (
-                                <>
-                                    {/* <span className="text-gray-300">|</span> */}
-                                    {/* <button
-                                        onClick={() =>
-                                            setIsAddBookModalOpen(true)
-                                        }
-                                        className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
-                                    >
-                                        <BookPlus size={14} />
-                                        ADD BOOK
-                                    </button> */}
-                                    {/* <span className="text-gray-300">|</span> */}
-                                    {/* <Link
-                                        to="/admin"
-                                        className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
-                                    >
-                                        <ShieldCheck size={14} />
-                                        ADMIN
-                                    </Link> */}
-                                </>
-                            )}
                             <span className="text-gray-300">|</span>
                             <Link
                                 to="#"
@@ -323,89 +260,151 @@ const Navbar = () => {
             </div>
 
             {/* Main Header */}
-            <div className="max-w-7xl mx-auto px-4 py-4">
-                <div className="flex items-center justify-between gap-6">
-                    {/* Logo */}
-                    <Link to="/" className="flex items-center gap-2">
-                        <img src={logo} alt="KidsBooks" className="h-12" />
-                        <div className="text-2xl font-bold">
-                            <span className="text-rose-600">KIDS</span>
-                            <span className="text-gray-700">BOOKS</span>
-                        </div>
-                    </Link>
+            <div className="px-4 py-3 md:px-4 md:py-4">
+                <div className="max-w-7xl mx-auto">
+                    {/* Mobile Layout */}
+                    <div className="md:hidden flex items-center justify-between gap-3">
+                        {/* Hamburger Menu */}
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="flex items-center justify-center p-2 text-gray-700 hover:text-gray-900"
+                        >
+                            {mobileMenuOpen ? (
+                                <X size={24} />
+                            ) : (
+                                <Menu size={24} />
+                            )}
+                        </button>
 
-                    {/* Search Bar */}
-                    <div className="flex-1 max-w-250">
+                        {/* Logo - Small */}
+                        <Link to="/" className="flex items-center gap-1 flex-1">
+                            <img src={logo} alt="KidsBooks" className="h-8" />
+                            <div className="text-lg font-bold">
+                                <span className="text-rose-600">KIDS</span>
+                                <span className="text-gray-700">BOOKS</span>
+                            </div>
+                        </Link>
+
+                        {/* Cart Icon */}
+                        <button
+                            onClick={() => setIsCartOpen(true)}
+                            className="relative flex items-center justify-center p-2"
+                        >
+                            <ShoppingCart size={24} className="text-gray-700" />
+                            {count > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                    {count}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Mobile Search Bar */}
+                    <div className="md:hidden mt-3">
                         <form
                             onSubmit={handleSearch}
                             className="flex items-stretch border border-gray-300 rounded"
                         >
-                            <div className="relative" ref={categoryDropdownRef}>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setCategoryDropdownOpen(
-                                            !categoryDropdownOpen,
-                                        )
-                                    }
-                                    className="flex items-center gap-2 px-4 h-full bg-gray-50 hover:bg-gray-100 border-r border-gray-300 text-sm font-medium"
-                                >
-                                    {searchCategory}
-                                    <ChevronDown size={16} />
-                                </button>
-                                {categoryDropdownOpen && (
-                                    <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded shadow-lg border border-gray-200 py-1 z-50">
-                                        {["All", ...categories].map((cat) => (
-                                            <button
-                                                key={cat}
-                                                type="button"
-                                                onClick={() => {
-                                                    setSearchCategory(cat);
-                                                    setCategoryDropdownOpen(
-                                                        false,
-                                                    );
-                                                }}
-                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                            >
-                                                {cat}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
                             <input
                                 type="text"
-                                placeholder="Search by Title, Author, Keyword or ISBN"
+                                placeholder="Search..."
                                 value={searchInput}
                                 onChange={(e) => setSearchInput(e.target.value)}
-                                className="flex-1 px-4 py-2 text-sm focus:outline-none"
+                                className="flex-1 px-3 py-2 text-sm focus:outline-none"
                             />
                             <button
                                 type="submit"
-                                className="px-6 bg-gray-800 hover:bg-gray-900 text-white"
+                                className="px-3 bg-gray-800 hover:bg-gray-900 text-white"
                             >
-                                <Search size={20} />
+                                <Search size={18} />
                             </button>
                         </form>
                     </div>
 
-                    {/* Cart */}
-                    <button
-                        onClick={() => setIsCartOpen(true)}
-                        className="relative flex items-center justify-center"
-                    >
-                        <ShoppingCart size={28} className="text-gray-700" />
-                        {count > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                                {count}
-                            </span>
-                        )}
-                    </button>
+                    {/* Desktop Layout */}
+                    <div className="hidden md:flex items-center justify-between gap-6">
+                        {/* Logo */}
+                        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+                            <img src={logo} alt="KidsBooks" className="h-12" />
+                            <div className="text-2xl font-bold">
+                                <span className="text-rose-600">KIDS</span>
+                                <span className="text-gray-700">BOOKS</span>
+                            </div>
+                        </Link>
+
+                        {/* Search Bar */}
+                        <div className="flex-1 max-w-250">
+                            <form
+                                onSubmit={handleSearch}
+                                className="flex items-stretch border border-gray-300 rounded"
+                            >
+                                <div className="relative" ref={categoryDropdownRef}>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setCategoryDropdownOpen(
+                                                !categoryDropdownOpen,
+                                            )
+                                        }
+                                        className="flex items-center gap-2 px-4 h-full bg-gray-50 hover:bg-gray-100 border-r border-gray-300 text-sm font-medium"
+                                    >
+                                        {searchCategory}
+                                        <ChevronDown size={16} />
+                                    </button>
+                                    {categoryDropdownOpen && (
+                                        <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded shadow-lg border border-gray-200 py-1 z-50">
+                                            {["All", ...categories].map((cat) => (
+                                                <button
+                                                    key={cat}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSearchCategory(cat);
+                                                        setCategoryDropdownOpen(
+                                                            false,
+                                                        );
+                                                    }}
+                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                                >
+                                                    {cat}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Search by Title, Author, Keyword or ISBN"
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    className="flex-1 px-4 py-2 text-sm focus:outline-none"
+                                />
+                                <button
+                                    type="submit"
+                                    className="px-6 bg-gray-800 hover:bg-gray-900 text-white"
+                                >
+                                    <Search size={20} />
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* Cart */}
+                        <button
+                            onClick={() => setIsCartOpen(true)}
+                            className="relative flex items-center justify-center flex-shrink-0"
+                        >
+                            <ShoppingCart size={28} className="text-gray-700" />
+                            {count > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                    {count}
+                                </span>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* Category Navigation */}
-            <div className="border-t border-gray-200">
+            {/* Category Navigation - Desktop Only */}
+            <div className="hidden md:block border-t border-gray-200">
                 <div className="max-w-8xl mx-auto px-4">
                     <nav className="flex items-center justify-center gap-8 py-3 text-sm font-medium overflow-x-auto">
                         <Link
@@ -437,6 +436,126 @@ const Navbar = () => {
                     </nav>
                 </div>
             </div>
+
+            {/* Mobile Menu */}
+            {mobileMenuOpen && (
+                <div className="md:hidden border-t border-gray-200 bg-white">
+                    <div className="px-4 py-4 space-y-4">
+                        {/* Authentication Menu */}
+                        <div className="border-b border-gray-200 pb-4">
+                            {isAuthenticated ? (
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 px-2 py-2 text-sm font-medium text-gray-700">
+                                        <User size={16} />
+                                        {user?.name || user?.email}
+                                    </div>
+                                    <Link
+                                        to="/library"
+                                        className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        <BookOpen size={16} />
+                                        My Library
+                                    </Link>
+                                    <Link
+                                        to="/orders"
+                                        className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        <Package size={16} />
+                                        My Orders
+                                    </Link>
+                                    <Link
+                                        to="/admin"
+                                        className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        <ShieldCheck size={16} />
+                                        Admin Dashboard
+                                    </Link>
+                                    <button
+                                        onClick={() => {
+                                            handleLogout();
+                                            setMobileMenuOpen(false);
+                                        }}
+                                        className="block w-full text-left px-2 py-2 text-sm text-red-600 hover:bg-red-50 rounded font-medium"
+                                    >
+                                        Sign Out
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <button
+                                        onClick={() => {
+                                            setIsLoginModalOpen(true);
+                                            setMobileMenuOpen(false);
+                                        }}
+                                        className="block w-full text-left px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                                    >
+                                        Sign In
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setIsRegisterModalOpen(true);
+                                            setMobileMenuOpen(false);
+                                        }}
+                                        className="block w-full text-left px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                                    >
+                                        Create Account
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Categories */}
+                        <div className="border-b border-gray-200 pb-4">
+                            <button
+                                onClick={() => setMobileCategoryOpen(!mobileCategoryOpen)}
+                                className="flex items-center justify-between w-full px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded"
+                            >
+                                Categories
+                                <ChevronDown
+                                    size={16}
+                                    className={`transform transition-transform ${
+                                        mobileCategoryOpen ? "rotate-180" : ""
+                                    }`}
+                                />
+                            </button>
+                            {mobileCategoryOpen && (
+                                <div className="mt-2 space-y-1">
+                                    <Link
+                                        to="/catalog"
+                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        All Books
+                                    </Link>
+                                    {categories.map((category) => (
+                                        <Link
+                                            key={category}
+                                            to={`/catalog?category=${category}`}
+                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            {category}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Wishlist */}
+                        <Link
+                            to="#"
+                            className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            <Heart size={16} />
+                            Wishlist
+                        </Link>
+                    </div>
+                </div>
+            )}
 
             <LoginModal
                 isOpen={isLoginModalOpen}

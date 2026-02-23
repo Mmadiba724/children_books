@@ -87,16 +87,16 @@ export default function CatalogPage() {
     }, [query, selectedCategory, books]);
 
     return (
-        <div className="max-w-8xl mx-auto p-6">
+        <div className="max-w-8xl mx-auto px-4 md:px-6">
             <Hero
                 onSearch={handleSearch}
                 query={query}
                 searchResults={filtered}
             />
 
-            <main className="mt-10 px-30 max-w-8xl mx-auto">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
+            <main className="mt-10 px-4 md:px-8 max-w-8xl mx-auto">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+                    <h2 className="text-3xl md:text-3xl font-serif italic text-gray-700">
                         {selectedCategory ? `${selectedCategory} Books` : "All Books"}
                     </h2>
                     {query && (
@@ -137,10 +137,10 @@ export default function CatalogPage() {
                 {!loading && !error && (
                     <div
                         id="catalog-grid"
-                        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"
+                        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
                     >
                         {filtered.map((b) => (
-                            <BookCard key={b.id} book={b} />
+                            <BookCard key={b.id} book={b}/>
                         ))}
                     </div>
                 )}

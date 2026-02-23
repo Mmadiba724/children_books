@@ -22,7 +22,7 @@ const Hero = ({ query, books = [] }: HeroProps) => {
     const heading = query ? `Results for "${query}"` : "Featured picks";
 
     return (
-        <section className="relative overflow-hidden rounded-2xl h-[750px]  md:rounded-3xl p-6 sm:p-8 md:p-10 lg:p-12 bg-gradient-to-br from-rose-50 via-white to-pink-50 shadow-xl">
+        <section className="relative overflow-hidden rounded-2xl md:h-[750px]  md:rounded-3xl p-6 sm:p-8 md:p-10 lg:p-12 bg-gradient-to-br from-rose-50 via-white to-pink-50 shadow-xl">
             {/* Decorative background blobs */}
             <div className="pointer-events-none absolute -left-20 -top-16 w-48 h-48 md:w-64 md:h-64 bg-rose-200 rounded-full opacity-40 blur-3xl transform rotate-12" />
             <div className="pointer-events-none absolute -right-24 -bottom-12 w-60 h-60 md:w-80 md:h-80 bg-pink-100 rounded-full opacity-40 blur-3xl transform -rotate-6" />
@@ -46,7 +46,7 @@ const Hero = ({ query, books = [] }: HeroProps) => {
                         special.
                     </p>
 
-                    <div className="mt-8 flex flex-wrap gap-4 items-center">
+                    <div className="mt-8 flex md:flex-wrap gap-4 w-full items-center">
                         <button
                             onClick={scrollToCatalog}
                             aria-label="Browse books"
@@ -65,7 +65,7 @@ const Hero = ({ query, books = [] }: HeroProps) => {
                     </div>
                 </div>
 
-                <div className="relative flex justify-center items-center order-1  lg:order-2 z-10">
+                <div className="relative md:flex justify-center items-center order-1 hidden lg:order-2 z-10">
                     <div className="relative w-full max-w-sm md:max-w-md">
                         <img
                             src={baby}

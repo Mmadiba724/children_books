@@ -7,7 +7,6 @@ import bookService from "../services/bookService";
 import categoryService from "../services/categoryService";
 import { getImageUrl } from "../utils/imageUtils";
 import type { Book } from "../types/book";
-// import { useCart } from "../context/CartContext";
 import { useBookReviews } from "../hooks/useBookReviews";
 import { useState, useEffect } from "react";
 
@@ -151,31 +150,31 @@ export default function BookDetailPage() {
     const coverImage = getImageUrl(book.coverImageUrl);
 
     return (
-        <div className="max-w-8xl mx-auto p-4 sm:p-6 px-4 sm:px-6 lg:px-12">
+        <div className="max-w-8xl mx-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-12">
             {/* top section */}
-            <div className="flex flex-col items-start mx-auto justify-center lg:grid lg:grid-cols-2 lg:gap-6 w-400 ">
+            <div className="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-6 lg:gap-8">
                 {/* Left column: cover + preview */}
-                <div className="lg:col-span-1 justify-self-end pr-12">
+                <div className="w-full lg:col-span-1">
                     {/* here we can fetch/show other covers if they exist */}
 
-                    <div className="mt-4 sm:mt-6 flex flex-col items-center justify-end w-full  ">
+                    <div className="flex flex-col items-center w-full">
                         {/* cover image of the book */}
                         {!imageError && coverImage ? (
                             <img
                                 src={coverImage}
                                 alt={book.title}
-                                className="w-72 h-102 shadow-xl mb-4 sm:mb-6 object-cover max-w-md mx-auto "
+                                className="w-full max-w-sm lg:max-w-md h-auto shadow-xl mb-4 object-cover"
                                 style={{ aspectRatio: "3 / 4" }}
                                 onError={() => setImageError(true)}
                             />
                         ) : (
                             <div
-                                className="w-72 h-102 shadow-xl mb-4 sm:mb-6 max-w-md mx-aut bg-gray-200 flex items-center justify-center"
+                                className="w-full max-w-sm lg:max-w-md h-auto shadow-xl mb-4 bg-gray-200 flex items-center justify-center"
                                 style={{ aspectRatio: "3 / 4" }}
                             >
-                                <div className="text-center p-8">
+                                <div className="text-center p-4 sm:p-8">
                                     <svg
-                                        className="w-48 h-24 mx-auto mb-4 text-gray-400"
+                                        className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 text-gray-400"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -187,14 +186,14 @@ export default function BookDetailPage() {
                                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                                         />
                                     </svg>
-                                    <p className="text-gray-500 font-medium">
+                                    <p className="text-sm sm:text-base text-gray-500 font-medium">
                                         No Cover Available
                                     </p>
                                 </div>
                             </div>
                         )}
                         {/* Add to Wishlist button */}
-                        <button className="flex items-center justify-center gap-2 w-full max-w-md mx-auto text-teal-600 hover:text-teal-700 py-2 transition-colors">
+                        <button className="flex items-center justify-center gap-2 w-full max-w-sm lg:max-w-md text-teal-600 hover:text-teal-700 py-2 transition-colors">
                             <svg
                                 className="w-5 h-5"
                                 fill="none"
@@ -208,17 +207,17 @@ export default function BookDetailPage() {
                                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                                 />
                             </svg>
-                            <span className="font-medium">Add to Wishlist</span>
+                            <span className="font-medium text-sm sm:text-base">Add to Wishlist</span>
                         </button>
                     </div>
 
                     {/* book overview */}
-                    <div className="mt-8 sm:mt-12 max-w-7xl mx-auto">
-                        <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
+                    <div className="mt-8 sm:mt-12 w-full">
+                        <h2 className="text-2xl sm:text-3xl font-serif italic text-gray-700 mb-4 sm:mb-6">
                             Overview
                         </h2>
-                        <div className="bg-white border border-gray-300 p-8 sm:p-10">
-                            <p className="text-gray-900 leading-relaxed text-base">
+                        <div className="bg-white border border-gray-300 p-4 sm:p-6 lg:p-8">
+                            <p className="text-gray-900 leading-relaxed text-sm sm:text-base">
                                 {book.description ||
                                     "No description available for this book."}
                             </p>
@@ -227,8 +226,8 @@ export default function BookDetailPage() {
                 </div>
 
                 {/* Right column: order summary */}
-                <aside className="lg:col-span-1 lg:sticky lg:top-24 ">
-                    <div className="px-4">
+                <aside className="w-full lg:col-span-1 lg:sticky lg:top-24 lg:self-start">
+                    <div className="w-full">
                         {/* Middle column: details, description, author, reviews */}
                         <BookDetailsColumn
                             book={book}
@@ -240,14 +239,14 @@ export default function BookDetailPage() {
             </div>
 
             {/* Reviews Section */}
-            <div className="mt-8 sm:mt-12 max-w-7xl mx-auto">
-                <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
+            <div className="mt-8 sm:mt-12 w-full">
+                <h2 className="text-2xl sm:text-3xl font-serif italic text-gray-700 mb-4 sm:mb-6">
                     Testimonials
                 </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
                     {/* Left column: Rating summary */}
                     <div className="lg:col-span-1">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
                             Customer reviews
                         </h3>
 
@@ -256,7 +255,7 @@ export default function BookDetailPage() {
                             {[...Array(5)].map((_, i) => (
                                 <span
                                     key={i}
-                                    className={`text-2xl ${
+                                    className={`text-xl sm:text-2xl ${
                                         i < Math.floor(rating)
                                             ? "text-orange-400"
                                             : "text-gray-300"
@@ -265,7 +264,7 @@ export default function BookDetailPage() {
                                     ★
                                 </span>
                             ))}
-                            <span className="text-lg font-normal text-gray-900 ml-2">
+                            <span className="text-base sm:text-lg font-normal text-gray-900 ml-2">
                                 {rating.toFixed(1)} out of 5
                             </span>
                         </div>
@@ -311,8 +310,8 @@ export default function BookDetailPage() {
                         </div>
 
                         {/* Review this product */}
-                        <div className="mt-8 pt-6 border-t border-gray-300">
-                            <h4 className="text-lg font-bold text-gray-900 mb-2">
+                        <div className="mt-6 sm:mt-8 pt-6 border-t border-gray-300">
+                            <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
                                 Review this product
                             </h4>
                             <p className="text-sm text-gray-700 mb-4">
@@ -326,7 +325,7 @@ export default function BookDetailPage() {
 
                     {/* Right column: Reviews list */}
                     <div className="lg:col-span-2">
-                        <h3 className="text-xl font-bold text-gray-900 mb-6">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">
                             Top reviews
                         </h3>
                         <ReviewsList bookReviews={bookReviews} />
@@ -338,11 +337,11 @@ export default function BookDetailPage() {
             <div className=""></div>
 
             {/* Similar books */}
-            <div className="mt-8 sm:mt-12">
-                <h2 className="text-3xl font-serif italic text-gray-700 mb-6">
+            <div className="mt-8 sm:mt-12 w-full">
+                <h2 className="text-2xl sm:text-3xl font-serif italic text-gray-700 mb-4 sm:mb-6">
                     Similar Books
                     {book?.categoryNames && book.categoryNames.length > 0 && (
-                        <span className="text-base font-normal text-gray-500 ml-2">
+                        <span className="block sm:inline text-sm sm:text-base font-normal text-gray-500 sm:ml-2 mt-1 sm:mt-0">
                             in {book.categoryNames.join(", ")}
                         </span>
                     )}
@@ -353,8 +352,8 @@ export default function BookDetailPage() {
                         <p className="text-gray-500">Loading similar books...</p>
                     </div>
                 ) : similarBooks.length === 0 ? (
-                    <div className="bg-gray-50 rounded-lg p-8 text-center">
-                        <p className="text-gray-600 text-lg mb-2">
+                    <div className="bg-gray-50 rounded-lg p-6 sm:p-8 text-center">
+                        <p className="text-gray-600 text-base sm:text-lg mb-2">
                             No similar books found
                         </p>
                         <p className="text-gray-500 text-sm">
@@ -362,7 +361,7 @@ export default function BookDetailPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                         {similarBooks.map((b) => (
                             <BookCard book={b} key={b.id} />
                         ))}
