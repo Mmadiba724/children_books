@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useState, useMemo } from "react";
-import { Grid, List } from "lucide-react";
+import { Grid, List, ChevronDown, SlidersHorizontal } from "lucide-react";
 import BookCard from "../components/BookCard";
 import bookService from "../services/bookService";
 import type { Book } from "../types/book";
@@ -18,6 +18,7 @@ export default function SearchResultsPage() {
     >("relevance");
     const [itemsPerPage, setItemsPerPage] = useState(20);
     const [currentPage, setCurrentPage] = useState(1);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
 
     const searchQuery = searchParams.get("q") || "";
     const selectedCategory = searchParams.get("category") || "";
@@ -117,16 +118,16 @@ export default function SearchResultsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-20">
+        <div className="min-h-screen bg-gray-50">
             {/* Results Header */}
             <div className="bg-white border-b">
-                <div className="max-w-7xl mx-auto px-4 py-6">
-                    <h1 className="text-3xl font-bold text-gray-900">
+                <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                         {searchQuery
                             ? `Search Results for "${searchQuery}"`
                             : "All Books"}
                     </h1>
-                    <p className="text-gray-600 mt-2">
+                    <p className="text-sm sm:text-base text-gray-600 mt-2">
                         {filteredAndSortedBooks.length === 0
                             ? "No results found"
                             : `${startResult} - ${endResult} of ${filteredAndSortedBooks.length} results`}
@@ -134,38 +135,73 @@ export default function SearchResultsPage() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
+                {/* Mobile Filter and Sort Buttons */}
+                <div className="lg:hidden grid grid-cols-2 gap-3 mb-4">
+                    <button
+                        onClick={() => setShowMobileFilters(!showMobileFilters)}
+                        className="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-3 font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                        <SlidersHorizontal size={18} />
+                        <span>Filter ({selectedCategory ? "1" : "0"})</span>
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            const sortOptions: Array<"relevance" | "price-low" | "price-high" | "newest"> = ["relevance", "newest", "price-low", "price-high"];
+                            const currentIndex = sortOptions.indexOf(sortBy);
+                            const nextIndex = (currentIndex + 1) % sortOptions.length;
+                            setSortBy(sortOptions[nextIndex]);
+                        }}
+                        className="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-3 font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                        <ChevronDown size={18} />
+                        <span>Sort: {sortBy === "relevance" ? "Top Matches" : sortBy === "newest" ? "Newest" : sortBy === "price-low" ? "Price Low" : "Price High"}</span>
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
                     {/* Sidebar Filters */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-white rounded-lg p-6 sticky top-24">
+                    <div className={`lg:col-span-1 ${showMobileFilters ? "block" : "hidden lg:block"}`}>
+                        <div className="bg-white rounded-lg p-4 sm:p-6 lg:sticky lg:top-24 shadow-sm border border-gray-200">
+                            {/* Mobile Filter Header */}
+                            <div className="lg:hidden flex items-center justify-between mb-4 pb-4 border-b">
+                                <h2 className="text-lg font-bold text-gray-900">Filters</h2>
+                                <button
+                                    onClick={() => setShowMobileFilters(false)}
+                                    className="text-gray-500 hover:text-gray-700 text-xl"
+                                >
+                                    ✕
+                                </button>
+                            </div>
                             {/* Category Filter */}
-                            <div className="mb-8">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                            <div className="mb-6 sm:mb-8">
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
                                     Categories
                                 </h3>
-                                <div className="space-y-3">
-                                    <label className="flex items-center">
+                                <div className="space-y-2 sm:space-y-3">
+                                    <label className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                                         <input
                                             type="radio"
                                             name="category"
                                             value=""
                                             checked={selectedCategory === ""}
-                                            onChange={() =>
+                                            onChange={() => {
                                                 setSearchParams({
                                                     q: searchQuery,
-                                                })
-                                            }
+                                                });
+                                                setShowMobileFilters(false);
+                                            }}
                                             className="h-4 w-4 text-blue-600"
                                         />
-                                        <span className="ml-3 text-gray-700">
+                                        <span className="ml-3 text-sm sm:text-base text-gray-700">
                                             All Categories
                                         </span>
                                     </label>
                                     {categories.map((category) => (
                                         <label
                                             key={category.id}
-                                            className="flex items-center"
+                                            className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
                                         >
                                             <input
                                                 type="radio"
@@ -175,15 +211,16 @@ export default function SearchResultsPage() {
                                                     selectedCategory ===
                                                     category.name
                                                 }
-                                                onChange={() =>
+                                                onChange={() => {
                                                     setSearchParams({
                                                         q: searchQuery,
                                                         category: category.name,
-                                                    })
-                                                }
+                                                    });
+                                                    setShowMobileFilters(false);
+                                                }}
                                                 className="h-4 w-4 text-blue-600"
                                             />
-                                            <span className="ml-3 text-gray-700">
+                                            <span className="ml-3 text-sm sm:text-base text-gray-700">
                                                 {category.name}
                                             </span>
                                         </label>
@@ -192,56 +229,69 @@ export default function SearchResultsPage() {
                             </div>
 
                             {/* Price Range Filter (placeholder) */}
-                            <div className="mb-8 pb-8 border-b">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                            <div className="mb-6 sm:mb-8 pb-6 sm:pb-8 border-b">
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
                                     Price Range
                                 </h3>
-                                <div className="space-y-3">
-                                    <label className="flex items-center">
+                                <div className="space-y-2 sm:space-y-3">
+                                    <label className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                                         <input
                                             type="checkbox"
                                             className="h-4 w-4 text-blue-600"
                                         />
-                                        <span className="ml-3 text-gray-700">
+                                        <span className="ml-3 text-sm sm:text-base text-gray-700">
                                             Under $10
                                         </span>
                                     </label>
-                                    <label className="flex items-center">
+                                    <label className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                                         <input
                                             type="checkbox"
                                             className="h-4 w-4 text-blue-600"
                                         />
-                                        <span className="ml-3 text-gray-700">
+                                        <span className="ml-3 text-sm sm:text-base text-gray-700">
                                             $10 - $25
                                         </span>
                                     </label>
-                                    <label className="flex items-center">
+                                    <label className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                                         <input
                                             type="checkbox"
                                             className="h-4 w-4 text-blue-600"
                                         />
-                                        <span className="ml-3 text-gray-700">
+                                        <span className="ml-3 text-sm sm:text-base text-gray-700">
                                             $25 - $50
                                         </span>
                                     </label>
-                                    <label className="flex items-center">
+                                    <label className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                                         <input
                                             type="checkbox"
                                             className="h-4 w-4 text-blue-600"
                                         />
-                                        <span className="ml-3 text-gray-700">
+                                        <span className="ml-3 text-sm sm:text-base text-gray-700">
                                             Over $50
                                         </span>
                                     </label>
                                 </div>
                             </div>
+                            
+                            {/* Clear Filters Button */}
+                            {selectedCategory && (
+                                <button
+                                    onClick={() => {
+                                        setSearchParams({ q: searchQuery });
+                                        setShowMobileFilters(false);
+                                    }}
+                                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded transition-colors text-sm"
+                                >
+                                    Clear All Filters
+                                </button>
+                            )}
                         </div>
                     </div>
 
                     {/* Main Results */}
                     <div className="lg:col-span-3">
-                        {/* Toolbar */}
-                        <div className="bg-white rounded-lg p-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        {/* Toolbar - Hidden on mobile */}
+                        <div className="hidden lg:flex bg-white rounded-lg p-4 mb-6 justify-between items-center gap-4 shadow-sm border border-gray-200">
                             <div className="flex items-center gap-4">
                                 <label className="text-gray-700 text-sm">
                                     Show:
