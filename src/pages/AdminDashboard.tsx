@@ -3,6 +3,7 @@ import CategoryManagement from "../components/CategoryManagement";
 import BookManagement from "../components/BookManagement";
 import OrdersManagement from "../components/OrdersManagement";
 import UserManagement from "../components/UserManagement";
+import {  GaugeCircle } from "lucide-react";
 
 type TabType = "categories" | "books" | "orders" | "users";
 
@@ -13,12 +14,16 @@ export default function AdminDashboard() {
         <div className="min-h-screen bg-rose-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                        Admin Dashboard
-                    </h1>
+                <div className="mb-8 flex flex-col items-center justify-center gap-2 w-full">
+                    <div className="flex items-center gap-3 mb-2">
+                        <GaugeCircle className="w-8 h-8 text-rose-600" />
+                        <h1 className="text-3xl font-bold text-gray-900">
+                            Admin Dashboard
+                        </h1>
+                    </div>
                     <p className="text-gray-600">
-                        Manage your bookstore's categories, books, and orders
+                        Manage your bookstore's categories, books, orders, and
+                        users
                     </p>
                 </div>
 

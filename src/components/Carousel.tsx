@@ -14,10 +14,10 @@ type CarouselBook = {
 
 const Carousel = () => {
     const carouselRef = useRef<HTMLDivElement>(null);
-    const [images, setImages] = useState<string[]>([]);
     const [carouselBooks, setCarouselBooks] = useState<CarouselBook[]>([]);
     const [loading, setLoading] = useState(true);
     const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+    const [isTransitioning, setIsTransitioning] = useState(false);
 
     useEffect(() => {
         const fetchBooks = async () => {
@@ -35,12 +35,10 @@ const Carousel = () => {
                     }));
 
                     setCarouselBooks(carouselData);
-                    setImages(carouselData.map((b) => b.img));
                 }
             } catch (err) {
                 console.error("Error fetching books for carousel:", err);
                 setCarouselBooks([]);
-                setImages([]);
             } finally {
                 setLoading(false);
             }
@@ -50,74 +48,79 @@ const Carousel = () => {
     }, []);
 
     const scroll = (direction: "left" | "right") => {
-        if (!carouselRef.current) return;
-        const { scrollLeft, clientWidth, scrollWidth } = carouselRef.current;
+        if (!carouselRef.current || isTransitioning) return;
+
+        const carousel = carouselRef.current;
+        const cardWidth = carousel.querySelector("div")?.offsetWidth || 0;
+        const gap = 24; // gap-6 = 24px
+        const scrollAmount = cardWidth + gap;
+
+        setIsTransitioning(true);
 
         if (direction === "left") {
-            if (scrollLeft <= 0) {
-                // Move last image to the front
-                setImages((prev) => [
-                    prev[prev.length - 1],
-                    ...prev.slice(0, -1),
-                ]);
-                // Wait for state update, then scroll to the new first image
-                setTimeout(() => {
-                    if (carouselRef.current) {
-                        carouselRef.current.scrollLeft = clientWidth;
-                    }
-                }, 50);
-            } else {
-                carouselRef.current.scrollTo({
-                    left: scrollLeft - clientWidth,
-                    behavior: "smooth",
-                });
-            }
+            carousel.scrollBy({
+                left: -scrollAmount,
+                behavior: "smooth",
+            });
+        } else {
+            carousel.scrollBy({
+                left: scrollAmount,
+                behavior: "smooth",
+            });
         }
-        // handle right scroll
-        if (direction === "right") {
-            if (scrollLeft + clientWidth >= scrollWidth - 1) {
-                // Move first image to the end
-                setImages((prev) => [...prev.slice(1), prev[0]]);
-                setTimeout(() => {
-                    if (carouselRef.current) {
-                        carouselRef.current.scrollLeft = 0;
-                    }
-                }, 50);
-            } else {
-                carouselRef.current.scrollTo({
-                    left: scrollLeft + clientWidth,
-                    behavior: "smooth",
-                });
-            }
-        }
+
+        // Reset transition lock after animation
+        setTimeout(() => setIsTransitioning(false), 500);
     };
+
+    // Handle infinite loop by checking scroll position
+    useEffect(() => {
+        const carousel = carouselRef.current;
+        if (!carousel || carouselBooks.length === 0) return;
+
+        const handleScroll = () => {
+            const { scrollLeft, scrollWidth, clientWidth } = carousel;
+            const itemWidth = carousel.querySelector("div")?.offsetWidth || 0;
+            const gap = 24;
+            const totalItemWidth = itemWidth + gap;
+
+            // If scrolled to or past the cloned section at the end
+            if (scrollLeft + clientWidth >= scrollWidth - totalItemWidth) {
+                // Jump back to the start of real items (after first clone set)
+                carousel.style.scrollBehavior = "auto";
+                carousel.scrollLeft = totalItemWidth * carouselBooks.length;
+                setTimeout(() => {
+                    carousel.style.scrollBehavior = "smooth";
+                }, 50);
+            }
+
+            // If scrolled to or before the cloned section at the start
+            if (scrollLeft <= totalItemWidth) {
+                // Jump to the end of real items (before last clone set)
+                carousel.style.scrollBehavior = "auto";
+                carousel.scrollLeft = totalItemWidth * carouselBooks.length;
+                setTimeout(() => {
+                    carousel.style.scrollBehavior = "smooth";
+                }, 50);
+            }
+        };
+
+        carousel.addEventListener("scroll", handleScroll);
+
+        // Initialize scroll position to start of real items
+        carousel.scrollLeft =
+            (carousel.querySelector("div")?.offsetWidth || 0) *
+            carouselBooks.length;
+
+        return () => carousel.removeEventListener("scroll", handleScroll);
+    }, [carouselBooks]);
 
     return (
         <div className="w-full py-6">
-            <div className="flex flex-col gap-4 max-w-8xl px-4 md:px-8 mx-auto">
-                <div className="flex items-center justify-between gap-4 mb-2">
-                    <h2 className="text-2xl md:text-3xl font-serif italic text-gray-700">
-                        New books
-                    </h2>
-
-                    {/* Scroll buttons */}
-                    <div className="flex gap-2">
-                        <button
-                            aria-label="Scroll Left"
-                            className="bg-black/10 border-none text-2xl cursor-pointer rounded-full w-10 h-10 flex items-center justify-center hover:bg-black/20 transition-colors"
-                            onClick={() => scroll("left")}
-                        >
-                            &#8249;
-                        </button>
-                        <button
-                            aria-label="Scroll Right"
-                            className="bg-black/10 border-none text-2xl cursor-pointer rounded-full w-10 h-10 flex items-center justify-center hover:bg-black/20 transition-colors"
-                            onClick={() => scroll("right")}
-                        >
-                            &#8250;
-                        </button>
-                    </div>
-                </div>
+            <div className="flex flex-col gap-4 max-w-8xl px-4 mb-8 md:px-8 mx-auto">
+                <h2 className="text-6xl md:text-3xl font-serif italic text-gray-700 capitalize font-bold">
+                    New books
+                </h2>
 
                 {loading && (
                     <div className="flex items-center justify-center py-12">
@@ -132,37 +135,126 @@ const Carousel = () => {
                 )}
 
                 {!loading && carouselBooks.length > 0 && (
-                    <div
-                        ref={carouselRef}
-                        className="flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-4 md:gap-6 py-2 hide-scrollbar"
-                        style={{ scrollbarWidth: "none" }}
-                    >
-                        {images.map((img, idx) => {
-                            // Find the book info for this image
-                            const book =
-                                carouselBooks.find((b) => b.img === img) ||
-                                carouselBooks[idx];
-                            const hasError = imageErrors.has(img);
+                    <div className="relative flex items-center gap-2 h-full">
+                        {/* Left Arrow */}
+                        <button
+                            aria-label="Scroll Left"
+                            className="absolute left-0 top-0 z-10 bg-black/20 hover:bg-black/10 shadow-lg cursor-pointer w-12 h-full flex items-center justify-center hover:shadow-xl transition-all"
+                            onClick={() => scroll("left")}
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={2.5}
+                                stroke="currentColor"
+                                className="w-8 h-8 text-white"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M15.75 19.5L8.25 12l7.5-7.5"
+                                />
+                            </svg>
+                        </button>
 
-                            return (
-                                <div
-                                    key={String(img) + idx}
-                                    className="snap-center shrink-0 w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-10px)] xl:w-[calc(25%-12px)] 2xl:w-[calc(20%-12px)]"
-                                >
-                                    <CarouselCard
-                                        book={book.realBook}
-                                        coverImage={book.img}
-                                        price={book.price / 100}
-                                        hasError={hasError}
-                                        onImageError={() => {
-                                            setImageErrors((prev) =>
-                                                new Set(prev).add(img)
-                                            );
-                                        }}
-                                    />
-                                </div>
-                            );
-                        })}
+                        {/* Carousel Content */}
+                        <div
+                            ref={carouselRef}
+                            className="flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-4 md:gap-6 py-2 hide-scrollbar w-full px-14"
+                            style={{ scrollbarWidth: "none" }}
+                        >
+                            {/* Clone last items at the start for infinite loop */}
+                            {carouselBooks.map((book, idx) => {
+                                const hasError = imageErrors.has(book.img);
+                                return (
+                                    <div
+                                        key={`clone-start-${idx}`}
+                                        className="snap-center shrink-0 w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-10px)] xl:w-[calc(25%-12px)] 2xl:w-[calc(20%-12px)]"
+                                    >
+                                        <CarouselCard
+                                            book={book.realBook}
+                                            coverImage={book.img}
+                                            price={book.price / 100}
+                                            hasError={hasError}
+                                            onImageError={() => {
+                                                setImageErrors((prev) =>
+                                                    new Set(prev).add(book.img),
+                                                );
+                                            }}
+                                        />
+                                    </div>
+                                );
+                            })}
+
+                            {/* Real items */}
+                            {carouselBooks.map((book, idx) => {
+                                const hasError = imageErrors.has(book.img);
+                                return (
+                                    <div
+                                        key={`real-${idx}`}
+                                        className="snap-center shrink-0 w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-10px)] xl:w-[calc(25%-12px)] 2xl:w-[calc(20%-12px)]"
+                                    >
+                                        <CarouselCard
+                                            book={book.realBook}
+                                            coverImage={book.img}
+                                            price={book.price / 100}
+                                            hasError={hasError}
+                                            onImageError={() => {
+                                                setImageErrors((prev) =>
+                                                    new Set(prev).add(book.img),
+                                                );
+                                            }}
+                                        />
+                                    </div>
+                                );
+                            })}
+
+                            {/* Clone first items at the end for infinite loop */}
+                            {carouselBooks.map((book, idx) => {
+                                const hasError = imageErrors.has(book.img);
+                                return (
+                                    <div
+                                        key={`clone-end-${idx}`}
+                                        className="snap-center shrink-0 w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-10px)] xl:w-[calc(25%-12px)] 2xl:w-[calc(20%-12px)]"
+                                    >
+                                        <CarouselCard
+                                            book={book.realBook}
+                                            coverImage={book.img}
+                                            price={book.price / 100}
+                                            hasError={hasError}
+                                            onImageError={() => {
+                                                setImageErrors((prev) =>
+                                                    new Set(prev).add(book.img),
+                                                );
+                                            }}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Right Arrow */}
+                        <button
+                            aria-label="Scroll Right"
+                            className="absolute right-0 top-0 z-10 bg-black/20 hover:bg-black/10 shadow-lg cursor-pointer w-12 h-full flex items-center justify-center hover:shadow-xl transition-all"
+                            onClick={() => scroll("right")}
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={2.5}
+                                stroke="currentColor"
+                                className="w-8 h-8 text-white"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                                />
+                            </svg>
+                        </button>
                     </div>
                 )}
             </div>

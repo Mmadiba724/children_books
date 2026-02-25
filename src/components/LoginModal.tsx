@@ -58,16 +58,13 @@ const LoginModal = ({
                 logTokenStatus();
 
                 // Extract user data from response
-                // Response structure may vary: response.user
-                let userData = response.user;
-
-                // If no user data in response, create a minimal user object
-                if (!userData) {
-                    userData = {
-                        id: "unknown",
-                        email: email,
-                    };
-                }
+                // Response structure: { success, message, data: { userId, email, role, ... }, timestamp }
+                const userData = {
+                    id: response.data.userId?.toString() || "unknown",
+                    email: response.data.email || email,
+                    role: response.data.role,
+                    name: response.data.name,
+                };
 
                 // Update AuthContext with user data
                 login(userData);

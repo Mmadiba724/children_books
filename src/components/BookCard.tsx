@@ -22,12 +22,12 @@ export default function BookCard({ book }: { readonly book: Book }) {
     return (
         <Link to={`/book/${book.id}`}>
             <article
-                className="group flex flex-col bg-white transition-all duration-300 shadow-xl hover:shadow-2xl w-"
+                className="group flex flex-col bg-white transition-all duration-300 shadow-xl hover:shadow-2xl rounded-lg h-full"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
                 {/* Book Cover with Overlay */}
-                <div className="relative mb-4 overflow-hidden">
+                <div className="relative mb-4 overflow-hidden rounded-t-lg">
                     {!imageError && coverImage ? (
                         <img
                             src={coverImage}
@@ -36,7 +36,7 @@ export default function BookCard({ book }: { readonly book: Book }) {
                             onError={() => setImageError(true)}
                         />
                     ) : (
-                        <div className="w-full h-80 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <div className="w-full h-80 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                             <div className="text-center p-4">
                                 <svg
                                     className="w-16 h-16 mx-auto mb-2 text-gray-300"
@@ -61,37 +61,38 @@ export default function BookCard({ book }: { readonly book: Book }) {
                     {/* Quick Add Button Overlay */}
                     <div
                         className={`absolute inset-0 bg-black/50 bg-opacity-40 flex items-center justify-center transition-opacity duration-300 ${
-                            isHovered ? 'opacity-100' : 'opacity-0'
+                            isHovered ? "opacity-100" : "opacity-0"
                         }`}
                     >
                         <button
                             onClick={handleQuickAdd}
                             className="bg-white text-gray-800 font-bold py-3 px-8 hover:bg-gray-100 transition-colors duration-200 uppercase tracking-wide text-sm shadow-lg"
                         >
-                            Quick Add
+                            Add To Cart
                         </button>
                     </div>
                 </div>
 
                 {/* Book Info */}
                 <div className="text-center px-3 pb-4">
-                    <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3rem] capitalize">
+                    <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 min-h-12 capitalize">
                         {book.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-1">
-                        {book.author}
-                    </p>
+                    <p className="text-sm text-gray-600 mb-1">{book.author}</p>
 
                     {/* Price and Category */}
                     <div className="flex flex-col items-center gap-2 mt-2">
                         <span className="text-base font-bold text-gray-900">
                             UGX {price.toFixed(2)}
                         </span>
-                        {book.categoryNames && book.categoryNames.length > 0 && (
-                            <span className={`text-xs font-medium px-3 py-1 border ${getCategoryColor(book.categoryNames[0])}`}>
-                                {book.categoryNames[0]}
-                            </span>
-                        )}
+                        {book.categoryNames &&
+                            book.categoryNames.length > 0 && (
+                                <span
+                                    className={`text-xs font-medium px-3 py-1 border ${getCategoryColor(book.categoryNames[0])}`}
+                                >
+                                    {book.categoryNames[0]}
+                                </span>
+                            )}
                     </div>
                 </div>
             </article>

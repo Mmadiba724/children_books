@@ -268,7 +268,7 @@ export default function OrdersManagement() {
                                             )}
                                             {order.shippingAddress && (
                                                 <div className="flex items-start gap-2 pt-2 border-t border-blue-100">
-                                                    <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                                                    <MapPin className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                                                     <div>
                                                         <span className="text-sm font-medium text-gray-600 block">
                                                             Shipping Address:

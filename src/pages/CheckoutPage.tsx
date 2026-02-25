@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import orderService from "../services/orderService";
@@ -10,6 +11,7 @@ import { getImageUrl } from "../utils/imageUtils";
 
 export default function CheckoutPage() {
     const { state, subtotalCents, clear } = useCart();
+    const { user } = useAuth();
     const nav = useNavigate();
     const [loading, setLoading] = useState(false);
     const [shippingAddress, setShippingAddress] = useState("");
@@ -19,18 +21,15 @@ export default function CheckoutPage() {
 
     const subtotal = subtotalCents();
     const shipping = 0; // Free shipping
-    const tax = Math.round(subtotal * 0.07);
-    const total = subtotal + tax + shipping;
+    const total = subtotal + shipping;
 
     // Check if cart contains any physical books
     const hasPhysicalBooks = state.items.some(
         (item) => item.book.format === "PHYSICAL",
     );
 
-    // Get user email from auth service
-    const userEmail = authService.getAuthToken()
-        ? "user@example.com"
-        : "guest@example.com";
+    // Get user email from auth context
+    const userEmail = user?.email || "guest@example.com";
 
     useEffect(() => {
         // Check authentication
@@ -345,14 +344,6 @@ export default function CheckoutPage() {
                                     </span>
                                     <span className="font-semibold text-green-600">
                                         Free
-                                    </span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-700">
-                                        Estimated Tax
-                                    </span>
-                                    <span className="font-semibold">
-                                        UGX {(tax / 100).toFixed(2)}
                                     </span>
                                 </div>
                             </div>

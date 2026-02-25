@@ -1,5 +1,5 @@
 
-import apiClient from '../config/api';
+import apiClient, { API_BASE_URL } from '../config/api';
 import { handleError } from '../utils/errorHandler';
 
 export interface LibraryBook {
@@ -40,11 +40,13 @@ const libraryService = {
     getBookReadUrl: async (bookId: string): Promise<BookAccessUrl> => {
         try {
             const response = await apiClient.get(`/api/v1/library/${bookId}/read`);
-            // Handle nested response structure
-            if (response.data.data) {
-                return response.data.data;
+            // API returns path in data field: { success, data: "/api/v1/files/.../read", timestamp }
+            const path = response.data.data;
+            if (typeof path === 'string') {
+                return { url: `${API_BASE_URL}${path}` };
             }
-            return response.data;
+            // Fallback for different response structure
+            return response.data.data || response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'LibraryService' });
         }
@@ -55,11 +57,13 @@ const libraryService = {
     getBookDownloadUrl: async (bookId: string): Promise<BookAccessUrl> => {
         try {
             const response = await apiClient.get(`/api/v1/library/${bookId}/download`);
-            // Handle nested response structure
-            if (response.data.data) {
-                return response.data.data;
+            // API returns path in data field: { success, data: "/api/v1/files/.../download", timestamp }
+            const path = response.data.data;
+            if (typeof path === 'string') {
+                return { url: `${API_BASE_URL}${path}` };
             }
-            return response.data;
+            // Fallback for different response structure
+            return response.data.data || response.data;
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'LibraryService' });
         }

@@ -82,7 +82,7 @@ const LibraryPage = () => {
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4">
                 {/* Header */}
-                <div className="mb-8">
+                <div className="mb-8 flex flex-col items-center justify-center gap-2 w-full">
                     <div className="flex items-center gap-3 mb-2">
                         <Book className="w-8 h-8 text-rose-600" />
                         <h1 className="text-3xl font-bold text-gray-900">
@@ -115,8 +115,8 @@ const LibraryPage = () => {
                 ) : (
                     <>
                         {/* Stats */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 w-96">
+                            <div className="bg-white rounded-lg shadow-sm p-4 h-20 border border-gray-200">
                                 <p className="text-sm text-gray-600 mb-1">
                                     Total Books
                                 </p>
@@ -124,7 +124,7 @@ const LibraryPage = () => {
                                     {books.length}
                                 </p>
                             </div>
-                            <div className="bg-blue-50 rounded-lg shadow-sm p-4 border border-blue-200">
+                            <div className="bg-blue-50 rounded-lg shadow-sm p-4 border border-blue-200 h-20">
                                 <p className="text-sm text-gray-600 mb-1">
                                     Recently Added
                                 </p>

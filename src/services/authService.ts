@@ -15,13 +15,18 @@ interface LoginPayload {
 }
 
 interface AuthResponse {
-    accessToken: string;
-    refreshToken?: string;
-    user?: {
-        id: string;
+    success: boolean;
+    message: string;
+    data: {
+        accessToken: string;
+        refreshToken: string;
+        tokenType: string;
+        userId: number;
         email: string;
+        role: 'USER' | 'ADMIN';
         name?: string;
     };
+    timestamp: string;
 }
 
 const authService = {
@@ -33,7 +38,10 @@ const authService = {
                 url: '/api/v1/auth/register',
                 data: payload,
             });
-            const { accessToken, refreshToken } = response.data;
+
+            // Response structure: { success, message, data: { accessToken, refreshToken, ... }, timestamp }
+            const { accessToken, refreshToken } = response.data.data;
+
             if (accessToken) {
                 tokenStorage.setAccessToken(accessToken);
             }
@@ -56,17 +64,8 @@ const authService = {
             });
             console.log("Login API response:", response.data);
 
-            // Handle different response structures
-            let accessToken, refreshToken;
-
-            // Check if tokens are in data.data or directly in data
-            if (response.data.data) {
-                accessToken = response.data.data.accessToken;
-                refreshToken = response.data.data.refreshToken;
-            } else {
-                accessToken = response.data.accessToken;
-                refreshToken = response.data.refreshToken;
-            }
+            // Response structure: { success, message, data: { accessToken, refreshToken, userId, email, role }, timestamp }
+            const { accessToken, refreshToken } = response.data.data;
 
             console.log("Extracted tokens:", { hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken });
 
@@ -95,22 +94,13 @@ const authService = {
                 data: { refreshToken },
             });
 
-            // Handle different response structures
-            let accessToken, newRefreshToken;
+            // Response structure: { success, message, data: { accessToken, refreshToken, ... }, timestamp }
+            const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
 
-            // Check if tokens are in data.data or directly in data
-            if (response.data.data) {
-                accessToken = response.data.data.accessToken;
-                newRefreshToken = response.data.data.refreshToken;
-            } else {
-                accessToken = response.data.accessToken;
-                newRefreshToken = response.data.refreshToken;
-            }
+            console.log("Refresh token API response:", { hasAccessToken: !!newAccessToken, hasRefreshToken: !!newRefreshToken });
 
-            console.log("Refresh token API response:", { hasAccessToken: !!accessToken, hasRefreshToken: !!newRefreshToken });
-
-            if (accessToken) {
-                tokenStorage.setAccessToken(accessToken);
+            if (newAccessToken) {
+                tokenStorage.setAccessToken(newAccessToken);
             }
 
             // Update refresh token if a new one is provided

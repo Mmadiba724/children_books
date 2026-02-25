@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Package, Clock, Loader2, ChevronRight, Filter, X } from "lucide-react";
+import { Package, Clock, Loader2, ChevronRight, Filter, X,  ShoppingBag } from "lucide-react";
 import toast from "react-hot-toast";
 import orderService from "../services/orderService";
 import bookService from "../services/bookService";
@@ -35,6 +35,7 @@ const MyOrdersPage = () => {
     const [loading, setLoading] = useState(true);
     const [startDate, setStartDate] = useState<string>("");
     const [endDate, setEndDate] = useState<string>("");
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     useEffect(() => {
         loadOrders();
@@ -155,70 +156,130 @@ const MyOrdersPage = () => {
     }
 
     return (
-        <div className="max-w-7xl mx-auto p-6 py-12">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    My Orders
-                </h1>
+        <div className="max-w-7xl mx-auto p-6 py-8">
+            {/* Header */}
+            <div className="mb-8 flex flex-col items-center justify-center gap-2 w-full">
+                <div className="flex items-center gap-3 mb-2">
+                    <ShoppingBag className="w-8 h-8 text-rose-600" />
+                    <h1 className="text-3xl font-bold text-gray-900">
+                        My Orders
+                    </h1>
+                </div>
                 <p className="text-gray-600">
-                    View and track your order history
+                    View and manage all your orders and purchases
                 </p>
             </div>
 
-            {/* Date Filter */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                    <Filter className="w-5 h-5 text-gray-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">
-                        Filter by Date
-                    </h3>
+            {/* Filter Button */}
+            {(startDate || endDate) && (
+                <div className="mt-3 inline-flex items-center gap-2 bg-rose-50 text-rose-700 px-3 py-1.5 rounded-full text-sm font-medium border border-rose-200">
+                    <Filter className="w-4 h-4" />
+                    Showing {filteredOrders.length} of {orders.length} orders
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-                    <div className="flex-1 w-full">
-                        <label
-                            htmlFor="startDate"
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                            From
-                        </label>
-                        <input
-                            type="date"
-                            id="startDate"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                        />
-                    </div>
-                    <div className="flex-1 w-full">
-                        <label
-                            htmlFor="endDate"
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                            To
-                        </label>
-                        <input
-                            type="date"
-                            id="endDate"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                        />
-                    </div>
+            )}
+            <div className="relative lg:min-w-[380px] flex lg:justify-end mb-4 lg:items-center">
+                <button
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-rose-500 transition-all font-medium shadow-sm"
+                >
+                    <Filter className="w-4 h-4" />
+                    Filter Orders
                     {(startDate || endDate) && (
-                        <button
-                            onClick={clearFilters}
-                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                            <X size={16} />
-                            Clear
-                        </button>
+                        <span className="ml-1 px-2 py-0.5 bg-rose-100 text-rose-700 text-xs font-bold rounded-full">
+                            {[startDate, endDate].filter(Boolean).length}
+                        </span>
                     )}
-                </div>
-                {(startDate || endDate) && (
-                    <div className="mt-4 text-sm text-gray-600">
-                        Showing {filteredOrders.length} of {orders.length}{" "}
-                        orders
-                    </div>
+                </button>
+
+                {/* Filter Panel - Dropdown */}
+                {isFilterOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <button
+                            type="button"
+                            className="fixed inset-0 z-40 bg-transparent cursor-default"
+                            onClick={() => setIsFilterOpen(false)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Escape") {
+                                    setIsFilterOpen(false);
+                                }
+                            }}
+                            aria-label="Close filter panel"
+                        />
+
+                        {/* Filter Panel */}
+                        <div className="absolute right-0 top-full mt-2 z-50 w-full lg:max-w-96 ">
+                            <div className="bg-linear-to-br from-white to-gray-50 rounded-xl shadow-xl border border-gray-200 p-5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-2 bg-rose-100 rounded-lg">
+                                            <Filter className="w-4 h-4 text-rose-600" />
+                                        </div>
+                                        <h3 className="text-base font-semibold text-gray-900">
+                                            Filter Orders
+                                        </h3>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsFilterOpen(false)}
+                                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div>
+                                        <label
+                                            htmlFor="startDate"
+                                            className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide"
+                                        >
+                                            From Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="startDate"
+                                            value={startDate}
+                                            onChange={(e) =>
+                                                setStartDate(e.target.value)
+                                            }
+                                            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-all bg-white"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            htmlFor="endDate"
+                                            className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide"
+                                        >
+                                            To Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="endDate"
+                                            value={endDate}
+                                            onChange={(e) =>
+                                                setEndDate(e.target.value)
+                                            }
+                                            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-all bg-white"
+                                        />
+                                    </div>
+
+                                    {(startDate || endDate) && (
+                                        <button
+                                            onClick={() => {
+                                                clearFilters();
+                                                setIsFilterOpen(false);
+                                            }}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all font-medium text-sm"
+                                        >
+                                            <X size={16} />
+                                            Clear Filters
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </>
                 )}
             </div>
 
@@ -265,9 +326,6 @@ const MyOrdersPage = () => {
                             <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">
-                                            Order #{order.id}
-                                        </h3>
                                         <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
                                             <Clock className="w-4 h-4" />
                                             <span>
@@ -287,148 +345,164 @@ const MyOrdersPage = () => {
 
                             {/* Order Details */}
                             <div className="p-6">
-                            {/* Order Items */}
-                            {order.items && order.items.length > 0 && (
-                                <div className="mb-6">
-                                    <h4 className="font-semibold text-gray-900 mb-4">
-                                        Items ({order.items.length})
-                                    </h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                                        {order.items.map((item) => {
-                                            const book = books[item.bookId];
-                                            return (
-                                                <div
-                                                    key={`${order.id}-${item.bookId}`}
-                                                    className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow max-w-xs"
-                                                >
-                                                    {/* Book Cover */}
-                                                    <div className="relative aspect-[1/1.5] bg-gray-100 flex items-center justify-center w-full">
-                                                        {book && book.coverImageUrl ? (
-                                                            <img
-                                                                src={getImageUrl(
-                                                                    book.coverImageUrl,
-                                                                )}
-                                                                alt={book.title}
-                                                                className="w-full h-full object-cover"
-                                                                onError={(e) => {
-                                                                    e.currentTarget.style.display =
-                                                                        "none";
-                                                                }}
-                                                            />
-                                                        ) : (
-                                                            <svg
-                                                                className="w-8 h-8 text-gray-400"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    strokeWidth={1.5}
-                                                                    d="M12 6.253v13m0-13C6.5 6.253 2 10.753 2 16.5S6.5 26.747 12 26.747s10-4.5 10-10.247S17.5 6.253 12 6.253z"
+                                {/* Order Items */}
+                                {order.items && order.items.length > 0 && (
+                                    <div className="mb-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                                            {order.items.map((item) => {
+                                                const book = books[item.bookId];
+                                                return (
+                                                    <div
+                                                        key={`${order.id}-${item.bookId}`}
+                                                        className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow max-w-xs"
+                                                    >
+                                                        {/* Book Cover */}
+                                                        <div className="relative aspect-[1/1.5] bg-gray-100 flex items-center justify-center w-full">
+                                                            {book &&
+                                                            book.coverImageUrl ? (
+                                                                <img
+                                                                    src={getImageUrl(
+                                                                        book.coverImageUrl,
+                                                                    )}
+                                                                    alt={
+                                                                        book.title
+                                                                    }
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(
+                                                                        e,
+                                                                    ) => {
+                                                                        e.currentTarget.style.display =
+                                                                            "none";
+                                                                    }}
                                                                 />
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    strokeWidth={1.5}
-                                                                    d="M9 12h6M9 16h6"
-                                                                />
-                                                            </svg>
-                                                        )}
-                                                    </div>
+                                                            ) : (
+                                                                <svg
+                                                                    className="w-8 h-8 text-gray-400"
+                                                                    fill="none"
+                                                                    stroke="currentColor"
+                                                                    viewBox="0 0 24 24"
+                                                                >
+                                                                    <path
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                        strokeWidth={
+                                                                            1.5
+                                                                        }
+                                                                        d="M12 6.253v13m0-13C6.5 6.253 2 10.753 2 16.5S6.5 26.747 12 26.747s10-4.5 10-10.247S17.5 6.253 12 6.253z"
+                                                                    />
+                                                                    <path
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                        strokeWidth={
+                                                                            1.5
+                                                                        }
+                                                                        d="M9 12h6M9 16h6"
+                                                                    />
+                                                                </svg>
+                                                            )}
+                                                        </div>
 
-                                    {/* Book Details */}
-                                    <div className="p-1.5 bg-white">
-                                        {book ? (
-                                            <>
-                                                <h5 className="font-semibold text-gray-900 text-xs mb-0.5 line-clamp-1">
-                                                    {book.title}
-                                                </h5>
-                                                <p className="text-xs text-gray-600 mb-0.5 line-clamp-1">
-                                                    by{" "}
-                                                    {
-                                                        book.author
-                                                    }
-                                                </p>
-                                                {book.categoryNames &&
-                                                    book
-                                                        .categoryNames
-                                                        .length >
-                                                        0 && (
-                                                        <div className="mb-0.5">
-                                                            <div className="flex flex-wrap gap-0.5">
-                                                                {book.categoryNames.slice(
-                                                                    0,
-                                                                    1,
-                                                                ).map(
-                                                                    (
-                                                                        cat,
-                                                                    ) => (
-                                                                        <span
-                                                                            key={
-                                                                                cat
-                                                                            }
-                                                                            className="inline-block bg-blue-50 text-blue-700 text-xs px-1 py-0.5 rounded"
-                                                                        >
-                                                                            {cat}
-                                                                        </span>
-                                                                    ),
-                                                                )}
+                                                        {/* Book Details */}
+                                                        <div className="p-1.5 bg-white">
+                                                            {book ? (
+                                                                <>
+                                                                    <h5 className="font-semibold text-gray-900 text-xs mb-0.5 line-clamp-1">
+                                                                        {
+                                                                            book.title
+                                                                        }
+                                                                    </h5>
+                                                                    <p className="text-xs text-gray-600 mb-0.5 line-clamp-1">
+                                                                        by{" "}
+                                                                        {
+                                                                            book.author
+                                                                        }
+                                                                    </p>
+                                                                    {book.categoryNames &&
+                                                                        book
+                                                                            .categoryNames
+                                                                            .length >
+                                                                            0 && (
+                                                                            <div className="mb-0.5">
+                                                                                <div className="flex flex-wrap gap-0.5">
+                                                                                    {book.categoryNames
+                                                                                        .slice(
+                                                                                            0,
+                                                                                            1,
+                                                                                        )
+                                                                                        .map(
+                                                                                            (
+                                                                                                cat,
+                                                                                            ) => (
+                                                                                                <span
+                                                                                                    key={
+                                                                                                        cat
+                                                                                                    }
+                                                                                                    className="inline-block bg-blue-50 text-blue-700 text-xs px-1 py-0.5 rounded"
+                                                                                                >
+                                                                                                    {
+                                                                                                        cat
+                                                                                                    }
+                                                                                                </span>
+                                                                                            ),
+                                                                                        )}
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <p className="text-xs text-gray-500">
+                                                                        Book #
+                                                                        {
+                                                                            item.bookId
+                                                                        }
+                                                                    </p>
+                                                                </>
+                                                            )}
+
+                                                            {/* Price and Quantity */}
+                                                            <div className="border-t border-gray-100 pt-0.5 mt-0.5">
+                                                                <div className="flex justify-between items-center mb-0.5 text-xs">
+                                                                    <span className="text-gray-600">
+                                                                        Price
+                                                                    </span>
+                                                                    <span className="font-semibold text-gray-900 text-xs">
+                                                                        {item.price.toFixed(
+                                                                            0,
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex justify-between items-center mb-0.5 text-xs">
+                                                                    <span className="text-gray-600">
+                                                                        Qty
+                                                                    </span>
+                                                                    <span className="font-semibold text-gray-900 text-xs">
+                                                                        {
+                                                                            item.quantity
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex justify-between items-center border-t border-gray-100 pt-0.5">
+                                                                    <span className="text-xs font-medium text-gray-700">
+                                                                        Total
+                                                                    </span>
+                                                                    <span className="text-xs font-bold text-rose-600">
+                                                                        {(
+                                                                            item.price *
+                                                                            item.quantity
+                                                                        ).toFixed(
+                                                                            0,
+                                                                        )}
+                                                                    </span>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    )}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <p className="text-xs text-gray-500">
-                                                    Book #
-                                                    {item.bookId}
-                                                </p>
-                                            </>
-                                        )}
-
-                                        {/* Price and Quantity */}
-                                        <div className="border-t border-gray-100 pt-0.5 mt-0.5">
-                                            <div className="flex justify-between items-center mb-0.5 text-xs">
-                                                <span className="text-gray-600">
-                                                    Price
-                                                </span>
-                                                <span className="font-semibold text-gray-900 text-xs">
-                                                    {item.price.toFixed(
-                                                        0,
-                                                    )}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center mb-0.5 text-xs">
-                                                <span className="text-gray-600">
-                                                    Qty
-                                                </span>
-                                                <span className="font-semibold text-gray-900 text-xs">
-                                                    {
-                                                        item.quantity
-                                                    }
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center border-t border-gray-100 pt-0.5">
-                                                <span className="text-xs font-medium text-gray-700">
-                                                    Total
-                                                </span>
-                                                <span className="text-xs font-bold text-rose-600">
-                                                    {(
-                                                        item.price *
-                                                        item.quantity
-                                                    ).toFixed(0)}
-                                                </span>
-                                            </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
+                                )}
 
                                 {/* Order Summary */}
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-200">

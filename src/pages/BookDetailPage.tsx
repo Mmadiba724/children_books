@@ -57,10 +57,32 @@ export default function BookDetailPage() {
         fetchBook();
     }, [id]);
 
+    // Helper function to count matching categories
+    const countMatchingCategories = (
+        bookCategoryNames: string[] | undefined,
+        targetCategories: string[]
+    ): number => {
+        if (!bookCategoryNames) return 0;
+        return bookCategoryNames.filter(cat =>
+            targetCategories.includes(cat)
+        ).length;
+    };
+
+    // Helper function to check if a book shares categories with target categories
+    const sharesCategoryWithBook = (
+        bookCategoryNames: string[] | undefined,
+        targetCategories: string[]
+    ): boolean => {
+        if (!bookCategoryNames || bookCategoryNames.length === 0) return false;
+        return bookCategoryNames.some(category =>
+            targetCategories.includes(category)
+        );
+    };
+
     // Fetch similar books based on shared categories
     useEffect(() => {
         const fetchSimilarBooks = async () => {
-            if (!book || !book.categoryNames || book.categoryNames.length === 0) {
+            if (!book?.categoryNames?.length) {
                 setSimilarBooks([]);
                 return;
             }
@@ -70,11 +92,11 @@ export default function BookDetailPage() {
 
                 // Fetch all available categories to validate book categories
                 const categories = await categoryService.getAllCategories();
-                const categoryNames = categories.map(c => c.name);
+                const categoryNames = new Set(categories.map(c => c.name));
 
                 // Get valid categories from the current book
                 const bookCategories = book.categoryNames.filter(cat =>
-                    categoryNames.includes(cat)
+                    categoryNames.has(cat)
                 );
 
                 if (bookCategories.length === 0) {
@@ -94,19 +116,13 @@ export default function BookDetailPage() {
                     if (!b.categoryNames || b.categoryNames.length === 0) return false;
 
                     // Check if this book shares any category with the current book
-                    return b.categoryNames.some((category) =>
-                        bookCategories.includes(category)
-                    );
+                    return sharesCategoryWithBook(b.categoryNames, bookCategories);
                 });
 
                 // Sort by number of matching categories (more matches = more similar)
                 similar.sort((a, b) => {
-                    const aMatches = a.categoryNames?.filter(cat =>
-                        bookCategories.includes(cat)
-                    ).length || 0;
-                    const bMatches = b.categoryNames?.filter(cat =>
-                        bookCategories.includes(cat)
-                    ).length || 0;
+                    const aMatches = countMatchingCategories(a.categoryNames, bookCategories);
+                    const bMatches = countMatchingCategories(b.categoryNames, bookCategories);
                     return bMatches - aMatches;
                 });
 
@@ -149,10 +165,49 @@ export default function BookDetailPage() {
     const bookReviews = getReviewsForBook(String(book.id));
     const coverImage = getImageUrl(book.coverImageUrl);
 
+    const getEmptyContent = () => (
+        <div className="bg-gray-50 rounded-lg p-6 sm:p-8 text-center">
+            <p className="text-gray-600 text-base sm:text-lg mb-2">
+                No similar books found
+            </p>
+            <p className="text-gray-500 text-sm">
+                Try browsing our catalog to discover more books
+            </p>
+        </div>
+    );
+
+    const getLoadingContent = () => (
+        <div className="flex items-center justify-center py-12">
+            <p className="text-gray-500">
+                Loading similar books...
+            </p>
+        </div>
+    );
+
+    const getBooksContent = () => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {similarBooks.map((b) => (
+                <BookCard book={b} key={b.id} />
+            ))}
+        </div>
+    );
+
+    const getSimilarBooksContent = () => {
+        if (loadingSimilar) {
+            return getLoadingContent();
+        }
+        if (similarBooks.length === 0) {
+            return getEmptyContent();
+        }
+        return getBooksContent();
+    };
+
+    const similarBooksContent = getSimilarBooksContent();
+
     return (
-        <div className="max-w-8xl mx-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-12">
+        <div className="max-w-8xl mx-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-12 ">
             {/* top section */}
-            <div className="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-6 lg:gap-8">
+            <div className="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-6 lg:gap-8 max-w-7xl mx-auto p-4">
                 {/* Left column: cover + preview */}
                 <div className="w-full lg:col-span-1">
                     {/* here we can fetch/show other covers if they exist */}
@@ -207,7 +262,9 @@ export default function BookDetailPage() {
                                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                                 />
                             </svg>
-                            <span className="font-medium text-sm sm:text-base">Add to Wishlist</span>
+                            <span className="font-medium text-sm sm:text-base">
+                                Add to Wishlist
+                            </span>
                         </button>
                     </div>
 
@@ -239,7 +296,7 @@ export default function BookDetailPage() {
             </div>
 
             {/* Reviews Section */}
-            <div className="mt-8 sm:mt-12 w-full">
+            <div className="mt-8 sm:mt-12 w-full max-w-7xl mx-auto p-4">
                 <h2 className="text-2xl sm:text-3xl font-serif italic text-gray-700 mb-4 sm:mb-6">
                     Testimonials
                 </h2>
@@ -338,35 +395,11 @@ export default function BookDetailPage() {
 
             {/* Similar books */}
             <div className="mt-8 sm:mt-12 w-full">
-                <h2 className="text-2xl sm:text-3xl font-serif italic text-gray-700 mb-4 sm:mb-6">
+                <h2 className="text-6xl md:text-3xl font-serif italic text-gray-700 capitalize font-bold mb-8">
                     Similar Books
-                    {book?.categoryNames && book.categoryNames.length > 0 && (
-                        <span className="block sm:inline text-sm sm:text-base font-normal text-gray-500 sm:ml-2 mt-1 sm:mt-0">
-                            in {book.categoryNames.join(", ")}
-                        </span>
-                    )}
                 </h2>
 
-                {loadingSimilar ? (
-                    <div className="flex items-center justify-center py-12">
-                        <p className="text-gray-500">Loading similar books...</p>
-                    </div>
-                ) : similarBooks.length === 0 ? (
-                    <div className="bg-gray-50 rounded-lg p-6 sm:p-8 text-center">
-                        <p className="text-gray-600 text-base sm:text-lg mb-2">
-                            No similar books found
-                        </p>
-                        <p className="text-gray-500 text-sm">
-                            Try browsing our catalog to discover more books
-                        </p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                        {similarBooks.map((b) => (
-                            <BookCard book={b} key={b.id} />
-                        ))}
-                    </div>
-                )}
+                {similarBooksContent}
             </div>
         </div>
     );

@@ -204,14 +204,14 @@ const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                                 CONTINUE TO CHECKOUT
                             </button>
 
-                            <div className="text-center">
+                            {/* <div className="text-center">
                                 <p className="text-xs text-gray-600 mb-2">
                                     Or Checkout With
                                 </p>
                                 <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold py-2 rounded transition-colors">
                                     PayPal
                                 </button>
-                            </div>
+                            </div> */}
                         </div>
                     </>
                 )}

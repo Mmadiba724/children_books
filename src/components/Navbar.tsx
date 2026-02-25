@@ -30,6 +30,7 @@ const AccountMenu = ({
     isAuthenticated,
     onLogout,
     userName,
+    userRole,
     onClose,
 }: {
     isOpen: boolean;
@@ -39,6 +40,7 @@ const AccountMenu = ({
     isAuthenticated: boolean;
     onLogout?: () => void;
     userName?: string;
+    userRole?: string;
     onClose: () => void;
 }) => {
     const menuRef = useRef<HTMLDivElement>(null);
@@ -68,16 +70,15 @@ const AccountMenu = ({
                 onClick={onToggle}
                 className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
             >
-                
                 <span>
-                    {isAuthenticated && userName
-
-                        ? 
+                    {isAuthenticated && userName ? (
                         <div className="flex items-center gap-1">
-                        <User size={14} /> 
-                        {userName.toUpperCase()}
+                            <User size={14} />
+                            {userName.toUpperCase()}
                         </div>
-                        : "CREATE ACCOUNT | LOGIN"}
+                    ) : (
+                        "CREATE ACCOUNT | LOGIN"
+                    )}
                 </span>
                 <ChevronDown size={12} />
             </button>
@@ -101,14 +102,18 @@ const AccountMenu = ({
                                 <Package size={14} />
                                 My Orders
                             </Link>
-                            <Link
-                                to="/admin"
-                                className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                onClick={onToggle}
-                            >
-                                <ShieldCheck size={14} />
-                                Admin Dashboard
-                            </Link>
+                            {userRole === "ADMIN" && (
+                                
+                                    <Link
+                                        to="/admin"
+                                        className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                        onClick={onToggle}
+                                    >
+                                        <ShieldCheck size={14} />
+                                        Admin Dashboard
+                                    </Link>
+                                
+                            )}
                             <hr className="my-2 border-gray-200" />
                             <button
                                 onClick={() => {
@@ -240,10 +245,13 @@ const Navbar = () => {
                                     setAccountMenuOpen(!accountMenuOpen)
                                 }
                                 onSignInClick={() => setIsLoginModalOpen(true)}
-                                onCreateAccountClick={() => setIsRegisterModalOpen(true)}
+                                onCreateAccountClick={() =>
+                                    setIsRegisterModalOpen(true)
+                                }
                                 isAuthenticated={isAuthenticated}
                                 onLogout={handleLogout}
                                 userName={user?.name || user?.email}
+                                userRole={user?.role}
                                 onClose={() => setAccountMenuOpen(false)}
                             />
                             <span className="text-gray-300">|</span>
@@ -324,7 +332,10 @@ const Navbar = () => {
                     {/* Desktop Layout */}
                     <div className="hidden md:flex items-center justify-between gap-6">
                         {/* Logo */}
-                        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+                        <Link
+                            to="/"
+                            className="flex items-center gap-2 flex-shrink-0"
+                        >
                             <img src={logo} alt="KidsBooks" className="h-12" />
                             <div className="text-2xl font-bold">
                                 <span className="text-rose-600">KIDS</span>
@@ -338,7 +349,10 @@ const Navbar = () => {
                                 onSubmit={handleSearch}
                                 className="flex items-stretch border border-gray-300 rounded"
                             >
-                                <div className="relative" ref={categoryDropdownRef}>
+                                <div
+                                    className="relative"
+                                    ref={categoryDropdownRef}
+                                >
                                     <button
                                         type="button"
                                         onClick={() =>
@@ -353,21 +367,25 @@ const Navbar = () => {
                                     </button>
                                     {categoryDropdownOpen && (
                                         <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded shadow-lg border border-gray-200 py-1 z-50">
-                                            {["All", ...categories].map((cat) => (
-                                                <button
-                                                    key={cat}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setSearchCategory(cat);
-                                                        setCategoryDropdownOpen(
-                                                            false,
-                                                        );
-                                                    }}
-                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                                >
-                                                    {cat}
-                                                </button>
-                                            ))}
+                                            {["All", ...categories].map(
+                                                (cat) => (
+                                                    <button
+                                                        key={cat}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSearchCategory(
+                                                                cat,
+                                                            );
+                                                            setCategoryDropdownOpen(
+                                                                false,
+                                                            );
+                                                        }}
+                                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                                    >
+                                                        {cat}
+                                                    </button>
+                                                ),
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -375,7 +393,9 @@ const Navbar = () => {
                                     type="text"
                                     placeholder="Search by Title, Author, Keyword or ISBN"
                                     value={searchInput}
-                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    onChange={(e) =>
+                                        setSearchInput(e.target.value)
+                                    }
                                     className="flex-1 px-4 py-2 text-sm focus:outline-none"
                                 />
                                 <button
@@ -465,14 +485,20 @@ const Navbar = () => {
                                         <Package size={16} />
                                         My Orders
                                     </Link>
-                                    <Link
-                                        to="/admin"
-                                        className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                        <ShieldCheck size={16} />
-                                        Admin Dashboard
-                                    </Link>
+                                    {user?.role === "ADMIN" && (
+                                        
+                                            <Link
+                                                to="/admin"
+                                                className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
+                                            >
+                                                <ShieldCheck size={16} />
+                                                Admin Dashboard
+                                            </Link>
+                                        
+                                    )}
                                     <button
                                         onClick={() => {
                                             handleLogout();
@@ -510,7 +536,9 @@ const Navbar = () => {
                         {/* Categories */}
                         <div className="border-b border-gray-200 pb-4">
                             <button
-                                onClick={() => setMobileCategoryOpen(!mobileCategoryOpen)}
+                                onClick={() =>
+                                    setMobileCategoryOpen(!mobileCategoryOpen)
+                                }
                                 className="flex items-center justify-between w-full px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded"
                             >
                                 Categories
@@ -535,7 +563,9 @@ const Navbar = () => {
                                             key={category}
                                             to={`/catalog?category=${category}`}
                                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                                            onClick={() => setMobileMenuOpen(false)}
+                                            onClick={() =>
+                                                setMobileMenuOpen(false)
+                                            }
                                         >
                                             {category}
                                         </Link>

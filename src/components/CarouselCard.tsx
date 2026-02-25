@@ -28,7 +28,7 @@ export default function CarouselCard({
 
     return (
         <article
-            className="group w-full bg-white shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col"
+            className="group w-full bg-white shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col rounded-lg "
         >
             {/* Book Cover with Overlay */}
             <div className="relative mb-4 overflow-hidden">
@@ -36,11 +36,11 @@ export default function CarouselCard({
                     <img
                         src={coverImage}
                         alt={book.title}
-                        className="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-105 rounded-t-lg"
                         onError={onImageError}
                     />
                 ) : (
-                    <div className="w-full h-80 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                    <div className="w-full h-80 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                         <div className="text-center p-4">
                             <svg
                                 className="w-16 h-16 mx-auto mb-2 text-gray-300"
@@ -79,7 +79,7 @@ export default function CarouselCard({
 
             {/* Book Info */}
             <div className="text-center px-3">
-                <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3rem] capitalize">
+                <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 min-h-12 capitalize">
                     {book.title}
                 </h3>
                 <p className="text-sm text-gray-600 mb-1">{book.author}</p>
