@@ -1,7 +1,10 @@
 import { X, ShoppingCart, Minus, Plus } from "lucide-react";
+import { useState } from "react";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { getImageUrl } from "../utils/imageUtils";
+import LoginModal from "./LoginModal";
 
 interface CartSidebarProps {
     isOpen: boolean;
@@ -10,13 +13,19 @@ interface CartSidebarProps {
 
 const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     const { state, update, remove, subtotalCents } = useCart();
+    const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
     const subtotal = subtotalCents();
     const tax = Math.round(subtotal * 0.07);
     const total = subtotal + tax;
 
     const handleCheckout = () => {
+        if (!isAuthenticated) {
+            setIsLoginModalOpen(true);
+            return;
+        }
         onClose();
         navigate("/checkout");
     };
@@ -207,6 +216,22 @@ const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                     </>
                 )}
             </div>
+
+            <LoginModal
+                isOpen={isLoginModalOpen}
+                onClose={() => setIsLoginModalOpen(false)}
+                onSignIn={() => {
+                    // Login successful, modal will close itself
+                    // Navigate to checkout after a brief delay to ensure auth state updates
+                    setTimeout(() => {
+                        onClose();
+                        navigate("/checkout");
+                    }, 100);
+                }}
+                onCreateAccount={() => {
+                    setIsLoginModalOpen(false);
+                }}
+            />
         </>
     );
 };

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import orderService from "../services/orderService";
 import authService from "../services/authService";
+import { cartSessionManager } from "../config/api";
 import { CheckCircle, Edit } from "lucide-react";
 import { getImageUrl } from "../utils/imageUtils";
 
@@ -60,16 +61,27 @@ export default function CheckoutPage() {
                 })),
                 totalAmount: subtotal / 100, // Send subtotal only (converted from cents to dollars)
                 transactionId: transactionNumber.trim(),
-                shippingAddress: shippingAddress.trim() || "No shipping address provided",
+                shippingAddress:
+                    shippingAddress.trim() || "No shipping address provided",
             };
 
             console.log("Order payload being sent:", orderPayload);
 
             // Create order in backend
             const orderResponse = await orderService.createOrder(orderPayload);
+            console.log("[Checkout] ✅ Order created:", orderResponse.data.id);
 
             // Clear cart after successful order creation
             await clear();
+
+            // Clear cart session ID after successful checkout
+            console.log(
+                "[Checkout] Clearing cart session after successful order",
+            );
+            cartSessionManager.clearSessionId();
+            console.log(
+                "[Checkout] ✅ Cart session cleared - ready for new shopping session",
+            );
 
             // Show success message
             toast.success(
@@ -141,7 +153,13 @@ export default function CheckoutPage() {
                                 ) : (
                                     <div className="flex items-start justify-between">
                                         <div>
-                                            <p className={shippingAddress ? "text-gray-700" : "text-red-600 font-semibold"}>
+                                            <p
+                                                className={
+                                                    shippingAddress
+                                                        ? "text-gray-700"
+                                                        : "text-red-600 font-semibold"
+                                                }
+                                            >
                                                 {shippingAddress ||
                                                     "No address provided"}
                                             </p>

@@ -1,12 +1,25 @@
+import { useState } from "react";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import CartItemRow from "../components/CartItemRow";
 import OrderSummary from "../components/OrderSummary";
+import LoginModal from "../components/LoginModal";
 import { Link, useNavigate } from "react-router-dom";
 
 // eslint-disable-next-line max-lines-per-function
 export default function CartPage() {
     const { state, update, remove, subtotalCents } = useCart();
+    const { isAuthenticated } = useAuth();
     const nav = useNavigate();
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+    const handleCheckout = () => {
+        if (!isAuthenticated) {
+            setIsLoginModalOpen(true);
+            return;
+        }
+        nav("/checkout");
+    };
 
     const subtotal = subtotalCents();
     const tax = Math.round(subtotal * 0.07);
@@ -40,10 +53,23 @@ export default function CartPage() {
                         subtotal={subtotal}
                         tax={tax}
                         total={total}
-                        onProceed={() => nav("/checkout")}
+                        onProceed={handleCheckout}
                     />
                 </div>
             )}
+
+            <LoginModal
+                isOpen={isLoginModalOpen}
+                onClose={() => setIsLoginModalOpen(false)}
+                onSignIn={() => {
+                    // Login successful, modal will close itself
+                    // Navigate to checkout after a brief delay to ensure auth state updates
+                    setTimeout(() => nav("/checkout"), 100);
+                }}
+                onCreateAccount={() => {
+                    setIsLoginModalOpen(false);
+                }}
+            />
         </div>
     );
 }

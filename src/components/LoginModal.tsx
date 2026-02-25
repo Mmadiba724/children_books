@@ -73,7 +73,14 @@ const LoginModal = ({
                 login(userData);
 
                 // Refresh cart from backend after login
+                console.log("[Login] Refreshing cart after authentication...");
+                console.log(
+                    "[Login] Guest cart session will be merged with user account",
+                );
                 await refreshCart();
+                console.log(
+                    "[Login] ✅ Cart refreshed - guest cart merged successfully",
+                );
 
                 // Call the callback if provided
                 if (onSignIn) {

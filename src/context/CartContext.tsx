@@ -111,48 +111,47 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
         }
 
         const loadCart = async () => {
-            if (isAuthenticated) {
-                try {
-                    dispatch({ type: "setLoading", isLoading: true });
-                    const cart = await cartService.getCart();
+            console.log("[Cart] Loading cart from backend...");
+            // Try to load from backend for all users (authenticated and guest)
+            try {
+                dispatch({ type: "setLoading", isLoading: true });
+                const cart = await cartService.getCart();
+                console.log("[Cart] ✅ Cart loaded from backend:", {
+                    itemCount: cart.items.length,
+                });
 
-                    // Fetch full book details for each cart item
-                    const itemsWithBooks = await Promise.all(
-                        cart.items.map(async (item) => {
-                            try {
-                                const book = await bookService.getBookById(
-                                    String(item.bookId),
-                                );
-                                return {
-                                    id: item.id,
-                                    book: book,
-                                    quantity: item.quantity,
-                                } as CartItem;
-                            } catch (error) {
-                                console.error(
-                                    `Failed to fetch book ${item.bookId}:`,
-                                    error,
-                                );
-                                return null;
-                            }
-                        }),
-                    );
+                // Fetch full book details for each cart item
+                const itemsWithBooks = await Promise.all(
+                    cart.items.map(async (item) => {
+                        try {
+                            const book = await bookService.getBookById(
+                                String(item.bookId),
+                            );
+                            return {
+                                id: item.id,
+                                book: book,
+                                quantity: item.quantity,
+                            } as CartItem;
+                        } catch (error) {
+                            console.error(
+                                `Failed to fetch book ${item.bookId}:`,
+                                error,
+                            );
+                            return null;
+                        }
+                    }),
+                );
 
-                    // Filter out failed book fetches
-                    const items = itemsWithBooks.filter(
-                        (item) => item !== null,
-                    );
+                // Filter out failed book fetches
+                const items = itemsWithBooks.filter((item) => item !== null);
 
-                    dispatch({ type: "set", items });
-                } catch (error) {
-                    console.error("Failed to load cart from backend:", error);
-                    // Fall back to localStorage for unauthenticated state
-                    loadLocalCart();
-                } finally {
-                    dispatch({ type: "setLoading", isLoading: false });
-                }
-            } else {
+                dispatch({ type: "set", items });
+            } catch (error) {
+                console.error("Failed to load cart from backend:", error);
+                // Fall back to localStorage if backend fails
                 loadLocalCart();
+            } finally {
+                dispatch({ type: "setLoading", isLoading: false });
             }
         };
 
@@ -182,12 +181,8 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
         }
     }, [state, isAuthenticated]);
 
-    // Refresh cart from backend
+    // Refresh cart from backend for all users
     const refreshCart = useCallback(async () => {
-        if (!isAuthenticated) {
-            return;
-        }
-
         try {
             dispatch({ type: "setLoading", isLoading: true });
             const cart = await cartService.getCart();
@@ -224,92 +219,87 @@ export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
         } finally {
             dispatch({ type: "setLoading", isLoading: false });
         }
-    }, [isAuthenticated]);
+    }, []);
 
-    const add = useCallback(
-        async (book: Book, qty = 1) => {
-            if (!isAuthenticated) {
-                toast.error("Please sign in to add items to cart");
-                return;
-            }
+    const add = useCallback(async (book: Book, qty = 1) => {
+        console.log("[Cart] Adding item:", {
+            bookId: book.id,
+            title: book.title,
+            quantity: qty,
+        });
 
-            try {
-                await cartService.addToCart(book.id, qty);
-                await refreshCart();
-                toast.success(`Added ${book.title} to cart`);
-            } catch (error) {
-                console.error("Failed to add to cart:", error);
-                toast.error("Failed to add item to cart");
-            }
-        },
-        [isAuthenticated, refreshCart],
-    );
+        // Optimistic update - immediately update local state for all users
+        dispatch({ type: "add", book, quantity: qty });
+        toast.success(`Added ${book.title} to cart`);
+
+        // Sync to backend for all users (guest and authenticated)
+        try {
+            await cartService.addToCart(book.id, qty);
+            console.log("[Cart] ✅ Item synced to backend successfully");
+            // No need to refresh - optimistic update already has correct data
+        } catch (error) {
+            console.error("[Cart] ❌ Failed to sync cart to backend:", error);
+            // Keep the local state - user can continue shopping
+        }
+    }, []);
 
     const remove = useCallback(
         async (bookId: string | number) => {
-            if (!isAuthenticated) {
-                toast.error("Please sign in to manage cart");
-                return;
-            }
+            // Optimistic update - immediately update local state for all users
+            dispatch({ type: "remove", bookId });
+            toast.success("Item removed from cart");
 
+            // Sync to backend for all users (guest and authenticated)
             try {
                 // Find the cart item ID
                 const item = state.items.find((i) => i.book.id === bookId);
-                if (!item?.id) {
-                    throw new Error("Cart item not found");
+                if (item?.id) {
+                    await cartService.removeFromCart(item.id);
+                    // No need to refresh - optimistic update already has correct data
                 }
-
-                await cartService.removeFromCart(item.id);
-                await refreshCart();
-                toast.success("Item removed from cart");
             } catch (error) {
-                console.error("Failed to remove from cart:", error);
-                toast.error("Failed to remove item from cart");
+                console.error("Failed to sync cart to backend:", error);
+                // Keep the local state - user can continue shopping
             }
         },
-        [isAuthenticated, state.items, refreshCart],
+        [state.items],
     );
 
     const update = useCallback(
         async (bookId: string | number, qty: number) => {
-            if (!isAuthenticated) {
-                toast.error("Please sign in to manage cart");
-                return;
-            }
+            // Optimistic update - immediately update local state for all users
+            dispatch({ type: "update", bookId, quantity: qty });
 
+            // Sync to backend for all users (guest and authenticated)
             try {
                 // Find the cart item ID
                 const item = state.items.find((i) => i.book.id === bookId);
-                if (!item?.id) {
-                    throw new Error("Cart item not found");
+                if (item?.id) {
+                    await cartService.updateCartItem(item.id, qty);
+                    // No need to refresh - optimistic update already has correct data
                 }
-
-                await cartService.updateCartItem(item.id, qty);
-                await refreshCart();
             } catch (error) {
-                console.error("Failed to update cart:", error);
-                toast.error("Failed to update cart item");
+                console.error("Failed to sync cart to backend:", error);
+                // Keep the local state - user can continue shopping
             }
         },
-        [isAuthenticated, state.items, refreshCart],
+        [state.items],
     );
 
     const clear = useCallback(async () => {
-        if (!isAuthenticated) {
-            toast.error("Please sign in to manage cart");
-            return;
-        }
+        // Optimistic update - immediately clear local state for all users
+        dispatch({ type: "clear" });
+        toast.success("Cart cleared");
 
+        // Sync to backend for all users (guest and authenticated)
         try {
             const cart = await cartService.getCart();
             await cartService.clearCart(cart);
-            dispatch({ type: "clear" });
-            toast.success("Cart cleared");
         } catch (error) {
-            console.error("Failed to clear cart:", error);
-            toast.error("Failed to clear cart");
+            console.error("Failed to sync cart to backend:", error);
+            // Local state already cleared - user can continue shopping
         }
-    }, [isAuthenticated]);
+    }, []);
 
     const subtotalCents = useCallback(
         () =>

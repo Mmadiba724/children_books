@@ -10,6 +10,7 @@ import {
 import type { User, AuthContextType } from "../types/user";
 import authService from "../services/authService";
 import tokenStorage from "../utils/tokenStorage";
+import { cartSessionManager } from "../config/api";
 
 type State = {
     user: User | null;
@@ -61,15 +62,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refreshPromiseRef = useRef<Promise<void> | null>(null);
 
     const login = useCallback((userData: User) => {
+        console.log("[Auth] User logged in:", {
+            userId: userData.id,
+            email: userData.email,
+        });
+        console.log(
+            "[Auth] Cart session will be merged with this user account",
+        );
+
         // Store user data in secure storage
         tokenStorage.setUserData(userData);
         dispatch({ type: "SET_USER", user: userData });
     }, []);
 
     const logout = useCallback(() => {
+        console.log("[Auth] User logging out...");
+
         // Clear tokens and user data
         authService.logout();
         tokenStorage.clearAll();
+        // Clear cart session ID on logout
+        cartSessionManager.clearSessionId();
+
+        console.log("[Auth] ✅ Logout complete - all sessions cleared");
         dispatch({ type: "CLEAR_USER" });
     }, []);
 

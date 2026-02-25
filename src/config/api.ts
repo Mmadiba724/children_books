@@ -9,6 +9,27 @@ declare module 'axios' {
 }
 
 const API_BASE_URL = 'https://dev.ebook.api.toughblue.com';
+const CART_SESSION_KEY = 'cartSessionId';
+
+// Cart session management
+const cartSessionManager = {
+    getSessionId: (): string | null => {
+        const sessionId = localStorage.getItem(CART_SESSION_KEY);
+        console.log('[Cart Session] Getting session ID:', sessionId || 'None');
+        return sessionId;
+    },
+
+    setSessionId: (sessionId: string): void => {
+        console.log('[Cart Session] Setting session ID:', sessionId);
+        localStorage.setItem(CART_SESSION_KEY, sessionId);
+    },
+
+    clearSessionId: (): void => {
+        const sessionId = localStorage.getItem(CART_SESSION_KEY);
+        console.log('[Cart Session] Clearing session ID:', sessionId || 'None');
+        localStorage.removeItem(CART_SESSION_KEY);
+    },
+};
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
@@ -16,6 +37,7 @@ const apiClient = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: true, // Enable sending/receiving cookies for guest sessions
 });
 
 // Flag to prevent multiple simultaneous refresh requests
@@ -36,16 +58,33 @@ const processQueue = (error: Error | null, token: string | null = null) => {
     failedQueue = [];
 };
 
-// Request interceptor - adds auth token when available
+// Request interceptor - adds auth token and cart session ID
 apiClient.interceptors.request.use(
     (config) => {
+        const isCartRequest = config.url?.includes('/cart');
+
         // Skip auth for endpoints that don't require it (if marked with skipAuth flag)
         if (!config.skipAuth) {
             const token = tokenStorage.getAccessToken();
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
+                if (isCartRequest) {
+                    console.log('[Cart Session] Request with Auth token to:', config.url);
+                }
             }
         }
+
+        // Add cart session ID for cart-related requests
+        const cartSessionId = cartSessionManager.getSessionId();
+        if (cartSessionId) {
+            config.headers['X-Cart-Session-Id'] = cartSessionId;
+            if (isCartRequest) {
+                console.log('[Cart Session] Sending session ID with request:', cartSessionId);
+            }
+        } else if (isCartRequest) {
+            console.log('[Cart Session] No session ID available for cart request');
+        }
+
         return config;
     },
     (error) => {
@@ -53,9 +92,39 @@ apiClient.interceptors.request.use(
     }
 );
 
-// Response interceptor with automatic token refresh
+// Response interceptor with automatic token refresh and cart session capture
 apiClient.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        const isCartRequest = response.config.url?.includes('/cart');
+
+        // Capture cart session ID from backend if provided
+        // Try headers first (case-insensitive), then fall back to response body
+        let cartSessionId = response.headers['x-cart-session-id'] || response.headers['X-Cart-Session-Id'];
+
+        // If not in headers, check response body (nested in data.data.sessionId or top-level)
+        if (!cartSessionId && response.data && typeof response.data === 'object') {
+            // Check nested path: response.data.data.sessionId (for cart responses)
+            if (response.data.data && typeof response.data.data === 'object') {
+                cartSessionId = response.data.data.sessionId;
+            }
+            // Fallback to top-level sessionId
+            if (!cartSessionId) {
+                cartSessionId = response.data.sessionId || response.data.cartSessionId;
+            }
+        }
+
+        if (cartSessionId) {
+            const existingSessionId = cartSessionManager.getSessionId();
+            if (existingSessionId !== cartSessionId) {
+                console.log('[Cart Session] ✅ New session ID received from backend:', cartSessionId);
+                cartSessionManager.setSessionId(cartSessionId);
+            }
+        } else if (isCartRequest) {
+            console.log('[Cart Session] ⚠️ No session ID found in headers or response body');
+        }
+
+        return response;
+    },
     async (error: AxiosError) => {
         const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
@@ -148,5 +217,5 @@ export const authenticatedRequest = (config: AxiosRequestConfig) => {
     return apiClient(config);
 };
 
-export { API_BASE_URL, apiClient };
+export { API_BASE_URL, apiClient, cartSessionManager };
 export default apiClient;
