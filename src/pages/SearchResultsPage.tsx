@@ -148,25 +148,49 @@ export default function SearchResultsPage() {
 
                     <button
                         onClick={() => {
-                            const sortOptions: Array<"relevance" | "price-low" | "price-high" | "newest"> = ["relevance", "newest", "price-low", "price-high"];
+                            const sortOptions: Array<
+                                | "relevance"
+                                | "price-low"
+                                | "price-high"
+                                | "newest"
+                            > = [
+                                "relevance",
+                                "newest",
+                                "price-low",
+                                "price-high",
+                            ];
                             const currentIndex = sortOptions.indexOf(sortBy);
-                            const nextIndex = (currentIndex + 1) % sortOptions.length;
+                            const nextIndex =
+                                (currentIndex + 1) % sortOptions.length;
                             setSortBy(sortOptions[nextIndex]);
                         }}
                         className="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-3 font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                         <ChevronDown size={18} />
-                        <span>Sort: {sortBy === "relevance" ? "Top Matches" : sortBy === "newest" ? "Newest" : sortBy === "price-low" ? "Price Low" : "Price High"}</span>
+                        <span>
+                            Sort:{" "}
+                            {sortBy === "relevance"
+                                ? "Top Matches"
+                                : sortBy === "newest"
+                                  ? "Newest"
+                                  : sortBy === "price-low"
+                                    ? "Price Low"
+                                    : "Price High"}
+                        </span>
                     </button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
                     {/* Sidebar Filters */}
-                    <div className={`lg:col-span-1 ${showMobileFilters ? "block" : "hidden lg:block"}`}>
+                    <div
+                        className={`lg:col-span-1 ${showMobileFilters ? "block" : "hidden lg:block"}`}
+                    >
                         <div className="bg-white rounded-lg p-4 sm:p-6 lg:sticky lg:top-24 shadow-sm border border-gray-200">
                             {/* Mobile Filter Header */}
                             <div className="lg:hidden flex items-center justify-between mb-4 pb-4 border-b">
-                                <h2 className="text-lg font-bold text-gray-900">Filters</h2>
+                                <h2 className="text-lg font-bold text-gray-900">
+                                    Filters
+                                </h2>
                                 <button
                                     onClick={() => setShowMobileFilters(false)}
                                     className="text-gray-500 hover:text-gray-700 text-xl"
@@ -272,7 +296,7 @@ export default function SearchResultsPage() {
                                     </label>
                                 </div>
                             </div>
-                            
+
                             {/* Clear Filters Button */}
                             {selectedCategory && (
                                 <button

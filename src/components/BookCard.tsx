@@ -1,14 +1,18 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import type { Book } from "../types/book";
 import { getImageUrl } from "../utils/imageUtils";
 import { useCart } from "../context/CartContext";
 import { getCategoryColor } from "../utils/categoryColors";
+import { staggerItemVariants } from "../utils/animations";
 
 export default function BookCard({ book }: { readonly book: Book }) {
     const { add } = useCart();
     const [imageError, setImageError] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: true, amount: 0.2 });
 
     const coverImage = getImageUrl(book.coverImageUrl);
     const price = book.price || 0;
@@ -21,8 +25,14 @@ export default function BookCard({ book }: { readonly book: Book }) {
 
     return (
         <Link to={`/book/${book.id}`}>
-            <article
-                className="group flex flex-col bg-white transition-all duration-300 shadow-xl hover:shadow-2xl rounded-lg h-full"
+            <motion.article
+                ref={ref}
+                initial="hidden"
+                animate={isInView ? "visible" : "hidden"}
+                variants={staggerItemVariants}
+                whileHover={{ y: -8, scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+                className="group flex flex-col bg-white shadow-xl hover:shadow-2xl rounded-lg h-full"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
@@ -59,18 +69,21 @@ export default function BookCard({ book }: { readonly book: Book }) {
                     )}
 
                     {/* Quick Add Button Overlay */}
-                    <div
-                        className={`absolute inset-0 bg-black/50 bg-opacity-40 flex items-center justify-center transition-opacity duration-300 ${
-                            isHovered ? "opacity-100" : "opacity-0"
-                        }`}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: isHovered ? 1 : 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute inset-0 bg-black/50 bg-opacity-40 flex items-center justify-center"
                     >
-                        <button
+                        <motion.button
                             onClick={handleQuickAdd}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             className="bg-white text-gray-800 font-bold py-3 px-8 hover:bg-gray-100 transition-colors duration-200 uppercase tracking-wide text-sm shadow-lg"
                         >
                             Add To Cart
-                        </button>
-                    </div>
+                        </motion.button>
+                    </motion.div>
                 </div>
 
                 {/* Book Info */}
@@ -95,7 +108,7 @@ export default function BookCard({ book }: { readonly book: Book }) {
                             )}
                     </div>
                 </div>
-            </article>
+            </motion.article>
         </Link>
     );
 }

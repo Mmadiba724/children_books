@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import authService from "../services/authService";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { logTokenStatus } from "../utils/tokenDebugger";
+import { modalVariants, backdropVariants } from "../utils/animations";
 
 interface LoginModalProps {
     isOpen: boolean;
@@ -113,158 +115,185 @@ const LoginModal = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 relative">
-                {/* Close button */}
-                <button
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    variants={backdropVariants}
+                    className="fixed inset-0 bg-transparent backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50"
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-                    aria-label="Close modal"
                 >
-                    <X size={24} />
-                </button>
+                    <motion.div
+                        variants={modalVariants}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 relative"
+                    >
+                        {/* Close button */}
+                        <button
+                            onClick={onClose}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                            aria-label="Close modal"
+                        >
+                            <X size={24} />
+                        </button>
 
-                <div className="p-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-                        Sign in or Create an Account
-                    </h2>
+                        <div className="p-8">
+                            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+                                Sign in or Create an Account
+                            </h2>
 
-                    <form onSubmit={handleSignIn} className="space-y-4">
-                        {/* General Error Message */}
-                        {errors.general && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                                {errors.general}
-                            </div>
-                        )}
+                            <form onSubmit={handleSignIn} className="space-y-4">
+                                {/* General Error Message */}
+                                {errors.general && (
+                                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                                        {errors.general}
+                                    </div>
+                                )}
 
-                        {/* Email Input */}
-                        <div>
-                            <input
-                                type="email"
-                                placeholder="Email Address"
-                                value={email}
-                                onChange={(e) => {
-                                    setEmail(e.target.value);
-                                    if (errors.email) {
-                                        setErrors({
-                                            ...errors,
-                                            email: "",
-                                        });
-                                    }
-                                }}
-                                className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${
-                                    errors.email
-                                        ? "border-red-500"
-                                        : "border-gray-300"
-                                }`}
-                            />
-                            {errors.email && (
-                                <p className="text-red-500 text-sm mt-1">
-                                    {errors.email}
-                                </p>
-                            )}
-                        </div>
+                                {/* Email Input */}
+                                <div>
+                                    <input
+                                        type="email"
+                                        placeholder="Email Address"
+                                        value={email}
+                                        onChange={(e) => {
+                                            setEmail(e.target.value);
+                                            if (errors.email) {
+                                                setErrors({
+                                                    ...errors,
+                                                    email: "",
+                                                });
+                                            }
+                                        }}
+                                        className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${
+                                            errors.email
+                                                ? "border-red-500"
+                                                : "border-gray-300"
+                                        }`}
+                                    />
+                                    {errors.email && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.email}
+                                        </p>
+                                    )}
+                                </div>
 
-                        {/* Password Input */}
-                        <div>
-                            <div className="relative">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder="Password"
-                                    value={password}
-                                    onChange={(e) => {
-                                        setPassword(e.target.value);
-                                        if (errors.password) {
-                                            setErrors({
-                                                ...errors,
-                                                password: "",
-                                            });
-                                        }
-                                    }}
-                                    className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${
-                                        errors.password
-                                            ? "border-red-500"
-                                            : "border-gray-300"
-                                    }`}
-                                />
+                                {/* Password Input */}
+                                <div>
+                                    <div className="relative">
+                                        <input
+                                            type={
+                                                showPassword
+                                                    ? "text"
+                                                    : "password"
+                                            }
+                                            placeholder="Password"
+                                            value={password}
+                                            onChange={(e) => {
+                                                setPassword(e.target.value);
+                                                if (errors.password) {
+                                                    setErrors({
+                                                        ...errors,
+                                                        password: "",
+                                                    });
+                                                }
+                                            }}
+                                            className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${
+                                                errors.password
+                                                    ? "border-red-500"
+                                                    : "border-gray-300"
+                                            }`}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setShowPassword(!showPassword)
+                                            }
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                            aria-label="Toggle password visibility"
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff size={20} />
+                                            ) : (
+                                                <Eye size={20} />
+                                            )}
+                                        </button>
+                                    </div>
+                                    {errors.password && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.password}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Remember Me & Forgot Password */}
+                                <div className="flex items-center justify-between">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={rememberMe}
+                                            onChange={(e) =>
+                                                setRememberMe(e.target.checked)
+                                            }
+                                            className="w-5 h-5 rounded border-gray-300 cursor-pointer accent-green-700"
+                                        />
+                                        <span className="text-sm text-gray-700">
+                                            Remember me
+                                        </span>
+                                    </label>
+                                    <a
+                                        href="#"
+                                        className="text-sm text-blue-600 hover:underline"
+                                    >
+                                        Forgot your password?
+                                    </a>
+                                </div>
+
+                                {/* Sign In Button */}
+                                <button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded transition duration-200 mt-6 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                >
+                                    {isLoading
+                                        ? "Signing in..."
+                                        : "Sign In & Continue"}
+                                </button>
+
+                                {/* Create Account Button */}
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        setShowPassword(!showPassword)
-                                    }
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                                    aria-label="Toggle password visibility"
+                                    onClick={handleCreateAccount}
+                                    className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 rounded transition duration-200"
                                 >
-                                    {showPassword ? (
-                                        <EyeOff size={20} />
-                                    ) : (
-                                        <Eye size={20} />
-                                    )}
+                                    Create an Account
                                 </button>
-                            </div>
-                            {errors.password && (
-                                <p className="text-red-500 text-sm mt-1">
-                                    {errors.password}
-                                </p>
-                            )}
+                            </form>
+
+                            {/* Terms and Privacy */}
+                            <p className="text-center text-xs text-gray-600 mt-6">
+                                By signing in you are agreeing to our{" "}
+                                <a
+                                    href="#"
+                                    className="text-blue-600 hover:underline"
+                                >
+                                    Terms of Use
+                                </a>{" "}
+                                and our{" "}
+                                <a
+                                    href="#"
+                                    className="text-blue-600 hover:underline"
+                                >
+                                    Privacy Policy
+                                </a>
+                            </p>
                         </div>
-
-                        {/* Remember Me & Forgot Password */}
-                        <div className="flex items-center justify-between">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={rememberMe}
-                                    onChange={(e) =>
-                                        setRememberMe(e.target.checked)
-                                    }
-                                    className="w-5 h-5 rounded border-gray-300 cursor-pointer accent-green-700"
-                                />
-                                <span className="text-sm text-gray-700">
-                                    Remember me
-                                </span>
-                            </label>
-                            <a
-                                href="#"
-                                className="text-sm text-blue-600 hover:underline"
-                            >
-                                Forgot your password?
-                            </a>
-                        </div>
-
-                        {/* Sign In Button */}
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded transition duration-200 mt-6 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        >
-                            {isLoading ? "Signing in..." : "Sign In & Continue"}
-                        </button>
-
-                        {/* Create Account Button */}
-                        <button
-                            type="button"
-                            onClick={handleCreateAccount}
-                            className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 rounded transition duration-200"
-                        >
-                            Create an Account
-                        </button>
-                    </form>
-
-                    {/* Terms and Privacy */}
-                    <p className="text-center text-xs text-gray-600 mt-6">
-                        By signing in you are agreeing to our{" "}
-                        <a href="#" className="text-blue-600 hover:underline">
-                            Terms of Use
-                        </a>{" "}
-                        and our{" "}
-                        <a href="#" className="text-blue-600 hover:underline">
-                            Privacy Policy
-                        </a>
-                    </p>
-                </div>
-            </div>
-        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 };
 

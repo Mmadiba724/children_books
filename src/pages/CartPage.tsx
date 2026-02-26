@@ -1,10 +1,13 @@
 import { useState } from "react";
+// import { motion } from "framer-motion";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import CartItemRow from "../components/CartItemRow";
 import OrderSummary from "../components/OrderSummary";
 import LoginModal from "../components/LoginModal";
 import { Link, useNavigate } from "react-router-dom";
+// import PageTransition from "../components/PageTransition";
+// import { fadeInVariants } from "../utils/animations";
 
 // eslint-disable-next-line max-lines-per-function
 export default function CartPage() {

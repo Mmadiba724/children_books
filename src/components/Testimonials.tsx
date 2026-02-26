@@ -1,4 +1,11 @@
 import { Star } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
+import {
+    staggerContainerVariants,
+    staggerItemVariants,
+    slideUpVariants,
+} from "../utils/animations";
 
 type Testimonial = {
     name: string;
@@ -53,26 +60,43 @@ const featuredReviews = testimonials.filter((t) => t.featured);
 const detailedReviews = testimonials.filter((t) => !t.featured);
 
 export default function Testimonials() {
+    const featuredRef = useRef(null);
+    const detailedRef = useRef(null);
+    const featuredInView = useInView(featuredRef, { once: true, amount: 0.2 });
+    const detailedInView = useInView(detailedRef, { once: true, amount: 0.2 });
+
     return (
         <section aria-label="Customer testimonials" className="mt-10">
             {/* Top Section - Green/Teal Background with Featured Reviews */}
             <div className="bg-gradient-to-br from-emerald-700 via-teal-700 to-teal-800 text-white py-16">
                 <div className="max-w-7xl mx-auto px-4">
                     {/* Header */}
-                    <div className="text-center mb-12">
+                    <motion.div
+                        ref={featuredRef}
+                        initial="hidden"
+                        animate={featuredInView ? "visible" : "hidden"}
+                        variants={slideUpVariants}
+                        className="text-center mb-12"
+                    >
                         <h2 className="text-4xl font-bold mb-2">
-                            What <span className="text-rose-300">readers</span> and <span className="text-rose-300">Families </span>
-                            <br/> Say About Us
-
+                            What <span className="text-rose-300">readers</span>{" "}
+                            and <span className="text-rose-300">Families </span>
+                            <br /> Say About Us
                         </h2>
-
-                    </div>
+                    </motion.div>
 
                     {/* Featured Reviews Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                    <motion.div
+                        initial="hidden"
+                        animate={featuredInView ? "visible" : "hidden"}
+                        variants={staggerContainerVariants}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12"
+                    >
                         {featuredReviews.map((testimonial) => (
-                            <div
+                            <motion.div
                                 key={testimonial.name}
+                                variants={staggerItemVariants}
+                                whileHover={{ scale: 1.02, y: -5 }}
                                 className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20"
                             >
                                 {/* Quote Icon */}
@@ -101,9 +125,9 @@ export default function Testimonials() {
                                         )}
                                     </div>
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
 
                     {/* Call to Action Button */}
                     {/*<div className="text-center">*/}
@@ -121,10 +145,18 @@ export default function Testimonials() {
             {/* Bottom Section - White Background with Detailed Reviews */}
             <div className="bg-white py-16">
                 <div className="max-w-7xl mx-auto px-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <motion.div
+                        ref={detailedRef}
+                        initial="hidden"
+                        animate={detailedInView ? "visible" : "hidden"}
+                        variants={staggerContainerVariants}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
                         {detailedReviews.map((testimonial) => (
-                            <div
+                            <motion.div
                                 key={testimonial.name}
+                                variants={staggerItemVariants}
+                                whileHover={{ scale: 1.03, y: -5 }}
                                 className="bg-gray-50 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow border border-gray-100"
                             >
                                 {/* Quote Text */}
@@ -165,9 +197,9 @@ export default function Testimonials() {
                                         ))}
                                     </div>
                                 )}
-                            </div>
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </section>

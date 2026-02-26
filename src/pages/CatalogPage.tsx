@@ -5,6 +5,7 @@ import BookCard from "../components/BookCard";
 import Carousel from "../components/Carousel";
 import Hero from "../components/Hero";
 import Testimonials from "../components/Testimonials";
+import PageTransition from "../components/PageTransition";
 import type { Book } from "../types/book";
 
 export default function CatalogPage() {
@@ -87,73 +88,74 @@ export default function CatalogPage() {
     }, [query, selectedCategory, books]);
 
     return (
-        <div className="max-w-8xl mx-auto px-4 md:px-6">
-            <Hero
-                onSearch={handleSearch}
-                query={query}
-                searchResults={filtered}
-            />
+        <PageTransition>
+            <div className="max-w-8xl mx-auto px-4 md:px-6">
+                <Hero
+                    onSearch={handleSearch}
+                    query={query}
+                    searchResults={filtered}
+                />
 
-            <main className="mt-10 px-4 md:px-8 max-w-8xl mx-auto ">
+                <main className="mt-10 px-4 md:px-8 max-w-8xl mx-auto ">
+                    <div className="flex flex-col items-center justify-center mb-8 gap-2 w-full">
+                        <h2 className="text-6xl md:text-3xl font-serif italic text-gray-700 capitalize font-bold text-center">
+                            {selectedCategory
+                                ? `${selectedCategory} Books`
+                                : "All Books"}
+                        </h2>
+                        {query && (
+                            <div className="text-sm text-gray-600">
+                                Found {filtered.length} matches
+                                <button
+                                    onClick={() => setQuery("")}
+                                    className="ml-3 text-rose-600 underline"
+                                >
+                                    Clear
+                                </button>
+                            </div>
+                        )}
+                    </div>
 
-                <div className="flex flex-col items-center justify-center mb-8 gap-2 w-full">
-                    <h2 className="text-6xl md:text-3xl font-serif italic text-gray-700 capitalize font-bold text-center">
-                        {selectedCategory
-                            ? `${selectedCategory} Books`
-                            : "All Books"}
-                    </h2>
-                    {query && (
-                        <div className="text-sm text-gray-600">
-                            Found {filtered.length} matches
-                            <button
-                                onClick={() => setQuery("")}
-                                className="ml-3 text-rose-600 underline"
-                            >
-                                Clear
-                            </button>
+                    {loading && (
+                        <div className="flex items-center justify-center py-12">
+                            <p className="text-gray-500">Loading books...</p>
                         </div>
                     )}
-                </div>
 
-                {loading && (
-                    <div className="flex items-center justify-center py-12">
-                        <p className="text-gray-500">Loading books...</p>
-                    </div>
-                )}
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                            <p className="text-red-700">{error}</p>
+                        </div>
+                    )}
 
-                {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                        <p className="text-red-700">{error}</p>
-                    </div>
-                )}
+                    {!loading && !error && filtered.length === 0 && (
+                        <div className="flex items-center justify-center py-12">
+                            <p className="text-gray-500">
+                                {query
+                                    ? "No books found matching your search."
+                                    : "No books available."}
+                            </p>
+                        </div>
+                    )}
 
-                {!loading && !error && filtered.length === 0 && (
-                    <div className="flex items-center justify-center py-12">
-                        <p className="text-gray-500">
-                            {query
-                                ? "No books found matching your search."
-                                : "No books available."}
-                        </p>
-                    </div>
-                )}
+                    {!loading && !error && (
+                        <div
+                            id="catalog-grid"
+                            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6 w-full mx-auto"
+                        >
+                            {filtered.map((b) => (
+                                <BookCard key={b.id} book={b} />
+                            ))}
+                        </div>
+                    )}
+                </main>
 
-                {!loading && !error && (
-                    <div
-                        id="catalog-grid"
-                        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6 w-full mx-auto"
-                    >
-                        {filtered.map((b) => (
-                            <BookCard key={b.id} book={b} />
-                        ))}
-                    </div>
-                )}
-            </main>
+                <section className="mt-6">
+                    <Carousel />
+                </section>
 
-            <section className="mt-6">
-                <Carousel />
-            </section>
-
-            <Testimonials />
-        </div>
+                <Testimonials />
+            </div>
+        </PageTransition>
     );
 }

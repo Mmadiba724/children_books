@@ -1,7 +1,9 @@
 import { useRef, useState, useEffect } from "react";
+import { motion, useInView } from "framer-motion";
 import { getImageUrl } from "../utils/imageUtils";
 import bookService from "../services/bookService";
 import CarouselCard from "./CarouselCard";
+import { slideUpVariants } from "../utils/animations";
 import type { Book } from "../types/book";
 
 type CarouselBook = {
@@ -14,6 +16,8 @@ type CarouselBook = {
 
 const Carousel = () => {
     const carouselRef = useRef<HTMLDivElement>(null);
+    const sectionRef = useRef(null);
+    const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
     const [carouselBooks, setCarouselBooks] = useState<CarouselBook[]>([]);
     const [loading, setLoading] = useState(true);
     const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
@@ -116,7 +120,13 @@ const Carousel = () => {
     }, [carouselBooks]);
 
     return (
-        <div className="w-full py-6">
+        <motion.div
+            ref={sectionRef}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            variants={slideUpVariants}
+            className="w-full py-6"
+        >
             <div className="flex flex-col gap-4 max-w-8xl px-4 mb-8 md:px-8 mx-auto">
                 <h2 className="text-6xl md:text-3xl font-serif italic text-gray-700 capitalize font-bold">
                     New books
@@ -258,7 +268,7 @@ const Carousel = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 };
 

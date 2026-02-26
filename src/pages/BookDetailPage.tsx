@@ -60,22 +60,21 @@ export default function BookDetailPage() {
     // Helper function to count matching categories
     const countMatchingCategories = (
         bookCategoryNames: string[] | undefined,
-        targetCategories: string[]
+        targetCategories: string[],
     ): number => {
         if (!bookCategoryNames) return 0;
-        return bookCategoryNames.filter(cat =>
-            targetCategories.includes(cat)
-        ).length;
+        return bookCategoryNames.filter((cat) => targetCategories.includes(cat))
+            .length;
     };
 
     // Helper function to check if a book shares categories with target categories
     const sharesCategoryWithBook = (
         bookCategoryNames: string[] | undefined,
-        targetCategories: string[]
+        targetCategories: string[],
     ): boolean => {
         if (!bookCategoryNames || bookCategoryNames.length === 0) return false;
-        return bookCategoryNames.some(category =>
-            targetCategories.includes(category)
+        return bookCategoryNames.some((category) =>
+            targetCategories.includes(category),
         );
     };
 
@@ -92,11 +91,11 @@ export default function BookDetailPage() {
 
                 // Fetch all available categories to validate book categories
                 const categories = await categoryService.getAllCategories();
-                const categoryNames = new Set(categories.map(c => c.name));
+                const categoryNames = new Set(categories.map((c) => c.name));
 
                 // Get valid categories from the current book
-                const bookCategories = book.categoryNames.filter(cat =>
-                    categoryNames.has(cat)
+                const bookCategories = book.categoryNames.filter((cat) =>
+                    categoryNames.has(cat),
                 );
 
                 if (bookCategories.length === 0) {
@@ -113,16 +112,26 @@ export default function BookDetailPage() {
                     if (b.id === book.id) return false;
 
                     // Check if this book has categories
-                    if (!b.categoryNames || b.categoryNames.length === 0) return false;
+                    if (!b.categoryNames || b.categoryNames.length === 0)
+                        return false;
 
                     // Check if this book shares any category with the current book
-                    return sharesCategoryWithBook(b.categoryNames, bookCategories);
+                    return sharesCategoryWithBook(
+                        b.categoryNames,
+                        bookCategories,
+                    );
                 });
 
                 // Sort by number of matching categories (more matches = more similar)
                 similar.sort((a, b) => {
-                    const aMatches = countMatchingCategories(a.categoryNames, bookCategories);
-                    const bMatches = countMatchingCategories(b.categoryNames, bookCategories);
+                    const aMatches = countMatchingCategories(
+                        a.categoryNames,
+                        bookCategories,
+                    );
+                    const bMatches = countMatchingCategories(
+                        b.categoryNames,
+                        bookCategories,
+                    );
                     return bMatches - aMatches;
                 });
 
@@ -178,9 +187,7 @@ export default function BookDetailPage() {
 
     const getLoadingContent = () => (
         <div className="flex items-center justify-center py-12">
-            <p className="text-gray-500">
-                Loading similar books...
-            </p>
+            <p className="text-gray-500">Loading similar books...</p>
         </div>
     );
 

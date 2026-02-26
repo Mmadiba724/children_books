@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import categoryService from "../services/categoryService";
@@ -21,6 +22,7 @@ import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
 import AddBookModal from "./AddBookModal";
 import CartSidebar from "./CartSidebar";
+import { navbarVariants } from "../utils/animations";
 
 const AccountMenu = ({
     isOpen,
@@ -103,16 +105,14 @@ const AccountMenu = ({
                                 My Orders
                             </Link>
                             {userRole === "ADMIN" && (
-                                
-                                    <Link
-                                        to="/admin"
-                                        className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                        onClick={onToggle}
-                                    >
-                                        <ShieldCheck size={14} />
-                                        Admin Dashboard
-                                    </Link>
-                                
+                                <Link
+                                    to="/admin"
+                                    className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                    onClick={onToggle}
+                                >
+                                    <ShieldCheck size={14} />
+                                    Admin Dashboard
+                                </Link>
                             )}
                             <hr className="my-2 border-gray-200" />
                             <button
@@ -233,7 +233,12 @@ const Navbar = () => {
     };
 
     return (
-        <header className="w-full bg-rose-50 sticky mx-auto top-0 z-30 shadow-sm">
+        <motion.header
+            initial="hidden"
+            animate="visible"
+            variants={navbarVariants}
+            className="w-full bg-rose-50 sticky mx-auto top-0 z-30 shadow-sm"
+        >
             {/* Top Bar - Hidden on Mobile */}
             <div className="hidden md:block border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 py-2">
@@ -486,18 +491,16 @@ const Navbar = () => {
                                         My Orders
                                     </Link>
                                     {user?.role === "ADMIN" && (
-                                        
-                                            <Link
-                                                to="/admin"
-                                                className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                                                onClick={() =>
-                                                    setMobileMenuOpen(false)
-                                                }
-                                            >
-                                                <ShieldCheck size={16} />
-                                                Admin Dashboard
-                                            </Link>
-                                        
+                                        <Link
+                                            to="/admin"
+                                            className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                                            onClick={() =>
+                                                setMobileMenuOpen(false)
+                                            }
+                                        >
+                                            <ShieldCheck size={16} />
+                                            Admin Dashboard
+                                        </Link>
                                     )}
                                     <button
                                         onClick={() => {
@@ -625,7 +628,7 @@ const Navbar = () => {
                 isOpen={isCartOpen}
                 onClose={() => setIsCartOpen(false)}
             />
-        </header>
+        </motion.header>
     );
 };
 
