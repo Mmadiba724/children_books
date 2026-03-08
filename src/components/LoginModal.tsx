@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 import authService from "../services/authService";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -25,6 +26,10 @@ const LoginModal = ({
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState("");
+    const [isForgotSubmitting, setIsForgotSubmitting] = useState(false);
+    const [forgotSubmitted, setForgotSubmitted] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const { refreshCart } = useCart();
     const { login } = useAuth();
@@ -105,6 +110,66 @@ const LoginModal = ({
         }
     };
 
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const newErrors: { [key: string]: string } = {};
+
+        if (!forgotEmail) {
+            newErrors.forgotEmail = "Email address is required";
+        } else if (!validateEmail(forgotEmail)) {
+            newErrors.forgotEmail = "Please enter a valid email address";
+        }
+
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length === 0) {
+            setIsForgotSubmitting(true);
+            try {
+                const response = await authService.forgotPassword({
+                    email: forgotEmail,
+                });
+                setForgotSubmitted(true);
+                setErrors({});
+                toast.success(
+                    response.message ||
+                    "If the email exists, a reset link has been sent.",
+                );
+            } catch (error) {
+                const errorMessage =
+                    error &&
+                        typeof error === "object" &&
+                        "message" in error &&
+                        typeof (error as { message: unknown }).message ===
+                        "string"
+                        ? (error as { message: string }).message
+                        : "Failed to request password reset. Please try again.";
+                setErrors({ general: errorMessage });
+            } finally {
+                setIsForgotSubmitting(false);
+            }
+        }
+    };
+
+    const handleOpenForgotPassword = () => {
+        setIsForgotPasswordMode(true);
+        setForgotSubmitted(false);
+        setErrors({});
+        setForgotEmail(email);
+    };
+
+    const handleBackToSignIn = () => {
+        setIsForgotPasswordMode(false);
+        setForgotSubmitted(false);
+        setErrors({});
+    };
+
+    const handleClose = () => {
+        setIsForgotPasswordMode(false);
+        setForgotSubmitted(false);
+        setErrors({});
+        onClose();
+    };
+
     const handleCreateAccount = () => {
         if (onCreateAccount) {
             onCreateAccount();
@@ -123,7 +188,7 @@ const LoginModal = ({
                     exit="exit"
                     variants={backdropVariants}
                     className="fixed inset-0 bg-transparent backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50"
-                    onClick={onClose}
+                    onClick={handleClose}
                 >
                     <motion.div
                         variants={modalVariants}
@@ -132,7 +197,7 @@ const LoginModal = ({
                     >
                         {/* Close button */}
                         <button
-                            onClick={onClose}
+                            onClick={handleClose}
                             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
                             aria-label="Close modal"
                         >
@@ -140,11 +205,26 @@ const LoginModal = ({
                         </button>
 
                         <div className="p-8">
-                            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-                                Sign in or Create an Account
+                            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                                {isForgotPasswordMode
+                                    ? "Forgot your password?"
+                                    : "Sign in or Create an Account"}
                             </h2>
+                            {isForgotPasswordMode && (
+                                <p className="text-sm text-gray-600 mb-6">
+                                    Enter your email and we will send a password
+                                    reset link.
+                                </p>
+                            )}
 
-                            <form onSubmit={handleSignIn} className="space-y-4">
+                            <form
+                                onSubmit={
+                                    isForgotPasswordMode
+                                        ? handleForgotPassword
+                                        : handleSignIn
+                                }
+                                className="space-y-4"
+                            >
                                 {/* General Error Message */}
                                 {errors.general && (
                                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -152,143 +232,212 @@ const LoginModal = ({
                                     </div>
                                 )}
 
-                                {/* Email Input */}
-                                <div>
-                                    <input
-                                        type="email"
-                                        placeholder="Email Address"
-                                        value={email}
-                                        onChange={(e) => {
-                                            setEmail(e.target.value);
-                                            if (errors.email) {
-                                                setErrors({
-                                                    ...errors,
-                                                    email: "",
-                                                });
-                                            }
-                                        }}
-                                        className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${
-                                            errors.email
-                                                ? "border-red-500"
-                                                : "border-gray-300"
-                                        }`}
-                                    />
-                                    {errors.email && (
-                                        <p className="text-red-500 text-sm mt-1">
-                                            {errors.email}
-                                        </p>
-                                    )}
-                                </div>
+                                {isForgotPasswordMode ? (
+                                    <>
+                                        <div>
+                                            <input
+                                                type="email"
+                                                placeholder="Email Address"
+                                                value={forgotEmail}
+                                                onChange={(e) => {
+                                                    setForgotEmail(
+                                                        e.target.value,
+                                                    );
+                                                    if (errors.forgotEmail) {
+                                                        setErrors({
+                                                            ...errors,
+                                                            forgotEmail: "",
+                                                        });
+                                                    }
+                                                }}
+                                                className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${errors.forgotEmail
+                                                        ? "border-red-500"
+                                                        : "border-gray-300"
+                                                    }`}
+                                            />
+                                            {errors.forgotEmail && (
+                                                <p className="text-red-500 text-sm mt-1">
+                                                    {errors.forgotEmail}
+                                                </p>
+                                            )}
+                                        </div>
 
-                                {/* Password Input */}
-                                <div>
-                                    <div className="relative">
-                                        <input
-                                            type={
-                                                showPassword
-                                                    ? "text"
-                                                    : "password"
-                                            }
-                                            placeholder="Password"
-                                            value={password}
-                                            onChange={(e) => {
-                                                setPassword(e.target.value);
-                                                if (errors.password) {
-                                                    setErrors({
-                                                        ...errors,
-                                                        password: "",
-                                                    });
-                                                }
-                                            }}
-                                            className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${
-                                                errors.password
-                                                    ? "border-red-500"
-                                                    : "border-gray-300"
-                                            }`}
-                                        />
+                                        {forgotSubmitted && (
+                                            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded text-sm">
+                                                If this email exists in our
+                                                system, we have sent a reset
+                                                link.
+                                            </div>
+                                        )}
+
+                                        <button
+                                            type="submit"
+                                            disabled={isForgotSubmitting}
+                                            className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded transition duration-200 mt-6 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                        >
+                                            {isForgotSubmitting
+                                                ? "Sending reset link..."
+                                                : "Send Reset Link"}
+                                        </button>
+
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                setShowPassword(!showPassword)
-                                            }
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                                            aria-label="Toggle password visibility"
+                                            onClick={handleBackToSignIn}
+                                            className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 rounded transition duration-200"
                                         >
-                                            {showPassword ? (
-                                                <EyeOff size={20} />
-                                            ) : (
-                                                <Eye size={20} />
-                                            )}
+                                            Back to Sign In
                                         </button>
-                                    </div>
-                                    {errors.password && (
-                                        <p className="text-red-500 text-sm mt-1">
-                                            {errors.password}
-                                        </p>
-                                    )}
-                                </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Email Input */}
+                                        <div>
+                                            <input
+                                                type="email"
+                                                placeholder="Email Address"
+                                                value={email}
+                                                onChange={(e) => {
+                                                    setEmail(e.target.value);
+                                                    if (errors.email) {
+                                                        setErrors({
+                                                            ...errors,
+                                                            email: "",
+                                                        });
+                                                    }
+                                                }}
+                                                className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${errors.email
+                                                        ? "border-red-500"
+                                                        : "border-gray-300"
+                                                    }`}
+                                            />
+                                            {errors.email && (
+                                                <p className="text-red-500 text-sm mt-1">
+                                                    {errors.email}
+                                                </p>
+                                            )}
+                                        </div>
 
-                                {/* Remember Me & Forgot Password */}
-                                <div className="flex items-center justify-between">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={rememberMe}
-                                            onChange={(e) =>
-                                                setRememberMe(e.target.checked)
-                                            }
-                                            className="w-5 h-5 rounded border-gray-300 cursor-pointer accent-green-700"
-                                        />
-                                        <span className="text-sm text-gray-700">
-                                            Remember me
-                                        </span>
-                                    </label>
-                                    <a
-                                        href="#"
-                                        className="text-sm text-blue-600 hover:underline"
-                                    >
-                                        Forgot your password?
-                                    </a>
-                                </div>
+                                        {/* Password Input */}
+                                        <div>
+                                            <div className="relative">
+                                                <input
+                                                    type={
+                                                        showPassword
+                                                            ? "text"
+                                                            : "password"
+                                                    }
+                                                    placeholder="Password"
+                                                    value={password}
+                                                    onChange={(e) => {
+                                                        setPassword(
+                                                            e.target.value,
+                                                        );
+                                                        if (errors.password) {
+                                                            setErrors({
+                                                                ...errors,
+                                                                password: "",
+                                                            });
+                                                        }
+                                                    }}
+                                                    className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${errors.password
+                                                            ? "border-red-500"
+                                                            : "border-gray-300"
+                                                        }`}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setShowPassword(
+                                                            !showPassword,
+                                                        )
+                                                    }
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                                    aria-label="Toggle password visibility"
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff size={20} />
+                                                    ) : (
+                                                        <Eye size={20} />
+                                                    )}
+                                                </button>
+                                            </div>
+                                            {errors.password && (
+                                                <p className="text-red-500 text-sm mt-1">
+                                                    {errors.password}
+                                                </p>
+                                            )}
+                                        </div>
 
-                                {/* Sign In Button */}
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded transition duration-200 mt-6 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                >
-                                    {isLoading
-                                        ? "Signing in..."
-                                        : "Sign In & Continue"}
-                                </button>
+                                        {/* Remember Me & Forgot Password */}
+                                        <div className="flex items-center justify-between">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={rememberMe}
+                                                    onChange={(e) =>
+                                                        setRememberMe(
+                                                            e.target.checked,
+                                                        )
+                                                    }
+                                                    className="w-5 h-5 rounded border-gray-300 cursor-pointer accent-green-700"
+                                                />
+                                                <span className="text-sm text-gray-700">
+                                                    Remember me
+                                                </span>
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={
+                                                    handleOpenForgotPassword
+                                                }
+                                                className="text-sm text-blue-600 hover:underline"
+                                            >
+                                                Forgot your password?
+                                            </button>
+                                        </div>
 
-                                {/* Create Account Button */}
-                                <button
-                                    type="button"
-                                    onClick={handleCreateAccount}
-                                    className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 rounded transition duration-200"
-                                >
-                                    Create an Account
-                                </button>
+                                        {/* Sign In Button */}
+                                        <button
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded transition duration-200 mt-6 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                        >
+                                            {isLoading
+                                                ? "Signing in..."
+                                                : "Sign In & Continue"}
+                                        </button>
+
+                                        {/* Create Account Button */}
+                                        <button
+                                            type="button"
+                                            onClick={handleCreateAccount}
+                                            className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 rounded transition duration-200"
+                                        >
+                                            Create an Account
+                                        </button>
+                                    </>
+                                )}
                             </form>
 
                             {/* Terms and Privacy */}
-                            <p className="text-center text-xs text-gray-600 mt-6">
-                                By signing in you are agreeing to our{" "}
-                                <a
-                                    href="#"
-                                    className="text-blue-600 hover:underline"
-                                >
-                                    Terms of Use
-                                </a>{" "}
-                                and our{" "}
-                                <a
-                                    href="#"
-                                    className="text-blue-600 hover:underline"
-                                >
-                                    Privacy Policy
-                                </a>
-                            </p>
+                            {!isForgotPasswordMode && (
+                                <p className="text-center text-xs text-gray-600 mt-6">
+                                    By signing in you are agreeing to our{" "}
+                                    <a
+                                        href="#"
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        Terms of Use
+                                    </a>{" "}
+                                    and our{" "}
+                                    <a
+                                        href="#"
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        Privacy Policy
+                                    </a>
+                                </p>
+                            )}
                         </div>
                     </motion.div>
                 </motion.div>

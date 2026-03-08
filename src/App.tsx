@@ -9,6 +9,7 @@ import BookDetailPage from "./pages/BookDetailPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import AboutPage from "./pages/AboutPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import LibraryPage from "./pages/LibraryPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
@@ -30,6 +31,10 @@ function App() {
                         <Route path="/book/:id" element={<BookDetailPage />} />
                         <Route path="/checkout" element={<CheckoutPage />} />
                         <Route path="/about" element={<AboutPage />} />
+                        <Route
+                            path="/reset-password"
+                            element={<ResetPasswordPage />}
+                        />
                         <Route
                             path="/library"
                             element={

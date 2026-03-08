@@ -14,6 +14,15 @@ interface LoginPayload {
     password: string;
 }
 
+interface ForgotPasswordPayload {
+    email: string;
+}
+
+interface ResetPasswordPayload {
+    token: string;
+    newPassword: string;
+}
+
 interface AuthResponse {
     success: boolean;
     message: string;
@@ -27,6 +36,12 @@ interface AuthResponse {
         name?: string;
     };
     timestamp: string;
+}
+
+interface BasicApiResponse {
+    success: boolean;
+    message: string;
+    timestamp?: string;
 }
 
 const authService = {
@@ -112,6 +127,40 @@ const authService = {
         } catch (error) {
             // Clear tokens if refresh fails
             tokenStorage.clearAll();
+            throw handleError(error as unknown as import('../utils/errorHandler').ErrorType, { serviceName: 'AuthService' });
+        }
+    },
+
+    // Forgot password (public endpoint)
+    forgotPassword: async (
+        payload: ForgotPasswordPayload,
+    ): Promise<BasicApiResponse> => {
+        try {
+            const response = await publicRequest({
+                method: 'POST',
+                url: '/api/v1/auth/forgot-password',
+                data: payload,
+            });
+
+            return response.data;
+        } catch (error) {
+            throw handleError(error as unknown as import('../utils/errorHandler').ErrorType, { serviceName: 'AuthService' });
+        }
+    },
+
+    // Reset password (public endpoint)
+    resetPassword: async (
+        payload: ResetPasswordPayload,
+    ): Promise<BasicApiResponse> => {
+        try {
+            const response = await publicRequest({
+                method: 'POST',
+                url: '/api/v1/auth/reset-password',
+                data: payload,
+            });
+
+            return response.data;
+        } catch (error) {
             throw handleError(error as unknown as import('../utils/errorHandler').ErrorType, { serviceName: 'AuthService' });
         }
     },
