@@ -10,7 +10,6 @@ const ResetPasswordPage = () => {
 
     const tokenFromQuery = useMemo(() => searchParams.get("token") || "", [searchParams]);
 
-    const [token, setToken] = useState(tokenFromQuery);
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -22,8 +21,8 @@ const ResetPasswordPage = () => {
         e.preventDefault();
         const newErrors: { [key: string]: string } = {};
 
-        if (!token.trim()) {
-            newErrors.token = "Reset token is required";
+        if (!tokenFromQuery.trim()) {
+            newErrors.general = "This reset link is invalid or expired. Please request a new one.";
         }
 
         if (!newPassword) {
@@ -47,7 +46,7 @@ const ResetPasswordPage = () => {
         setIsSubmitting(true);
         try {
             const response = await authService.resetPassword({
-                token: token.trim(),
+                token: tokenFromQuery.trim(),
                 newPassword,
             });
 
@@ -77,28 +76,13 @@ const ResetPasswordPage = () => {
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    <input type="hidden" name="token" value={tokenFromQuery} readOnly />
+
                     {errors.general && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
                             {errors.general}
                         </div>
                     )}
-
-                    <div>
-                        <input
-                            type="text"
-                            placeholder="Reset token"
-                            value={token}
-                            onChange={(e) => {
-                                setToken(e.target.value);
-                                if (errors.token) {
-                                    setErrors({ ...errors, token: "" });
-                                }
-                            }}
-                            className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${errors.token ? "border-red-500" : "border-gray-300"
-                                }`}
-                        />
-                        {errors.token && <p className="text-red-500 text-sm mt-1">{errors.token}</p>}
-                    </div>
 
                     <div>
                         <div className="relative">
