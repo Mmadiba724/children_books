@@ -100,7 +100,7 @@ export default function CatalogPage() {
 
   return (
     <PageTransition>
-      <div className="max-w-7xl mx-auto px-4 md:px-6">
+      <div className="max-w-8xl mx-auto px-4 md:px-6">
         <Hero onSearch={handleSearch} query={query} searchResults={filtered} />
 
         <main
@@ -158,7 +158,7 @@ export default function CatalogPage() {
           )}
         </main>
 
-        <section className="mt-6">
+        <section className="mt-6  max-w-7xl mx-auto">
           <Carousel />
         </section>
 
