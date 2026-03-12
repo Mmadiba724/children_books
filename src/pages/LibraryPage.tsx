@@ -3,6 +3,7 @@ import { Book, Loader2, Download, Eye, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
 import libraryService, { type LibraryBook } from "../services/libraryService";
 import { getImageUrl } from "../utils/imageUtils";
+import { parseLocalDate, formatLocalDate } from "../utils/dateUtils";
 
 const LibraryPage = () => {
   const [books, setBooks] = useState<LibraryBook[]>([]);
@@ -122,8 +123,8 @@ const LibraryPage = () => {
                   {
                     books.filter(
                       (b) =>
-                        new Date(b.purchasedAt) >
-                        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                        (parseLocalDate(b.purchasedAt)?.getTime() ?? 0) >
+                        Date.now() - 30 * 24 * 60 * 60 * 1000,
                     ).length
                   }
                 </p>
@@ -173,8 +174,7 @@ const LibraryPage = () => {
                     <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
                       <Calendar className="w-3 h-3" />
                       <span>
-                        Purchased:{" "}
-                        {new Date(book.purchasedAt).toLocaleDateString()}
+                        Purchased: {formatLocalDate(book.purchasedAt)}
                       </span>
                     </div>
 

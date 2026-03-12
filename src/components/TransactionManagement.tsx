@@ -1,0 +1,477 @@
+import { useState, useEffect, useCallback } from "react";
+import {
+  Plus,
+  List,
+  Loader2,
+  CheckCircle,
+  Clock,
+  Hash,
+  RefreshCw,
+  ShoppingBag,
+  Mail,
+  X,
+  ClipboardList,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import paymentService, {
+  type TransactionMatchRecord,
+} from "../services/paymentService";
+import { formatLocalDateTime } from "../utils/dateUtils";
+
+type ViewMode = "list" | "add-single" | "add-bulk";
+
+export default function TransactionManagement() {
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [records, setRecords] = useState<TransactionMatchRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Single add form
+  const [singleId, setSingleId] = useState("");
+
+  // Bulk add form
+  const [bulkText, setBulkText] = useState("");
+
+  const fetchMatches = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await paymentService.getTransactionMatches();
+      setRecords(data);
+    } catch {
+      toast.error("Failed to load transaction IDs");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMatches();
+  }, [fetchMatches]);
+
+  // ── Single submit ────────────────────────────────────────────────────────────
+  const handleSingleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const id = singleId.trim();
+    if (!id) {
+      toast.error("Please enter a transaction ID");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await paymentService.addTransactionId({ transactionId: id });
+      if (res.success) {
+        toast.success(res.message || "Transaction ID stored successfully");
+        setSingleId("");
+        setViewMode("list");
+        fetchMatches();
+      } else {
+        toast.error(res.error || "Failed to store transaction ID");
+      }
+    } catch {
+      toast.error("Failed to store transaction ID");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ── Bulk submit ──────────────────────────────────────────────────────────────
+  const handleBulkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const ids = bulkText
+      .split(/[\n,;]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    if (ids.length === 0) {
+      toast.error("Enter at least one transaction ID");
+      return;
+    }
+    if (ids.length > 100) {
+      toast.error("Maximum 100 transaction IDs per bulk upload");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await paymentService.addBulkTransactionIds({
+        transactionIds: ids,
+      });
+      if (res.success) {
+        toast.success(
+          res.message || `${ids.length} transaction ID(s) stored successfully`,
+        );
+        setBulkText("");
+        setViewMode("list");
+        fetchMatches();
+      } else {
+        toast.error(res.error || "Failed to store transaction IDs");
+      }
+    } catch {
+      toast.error("Failed to store transaction IDs");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+  const getTransactionId = (rec: TransactionMatchRecord): string =>
+    rec.transactionId ||
+    rec.adminRecord?.transactionId ||
+    rec.orderRecord?.transactionId ||
+    "—";
+
+  const isMatched = (rec: TransactionMatchRecord): boolean => {
+    if (typeof rec.matched === "boolean") return rec.matched;
+    if (rec.orderId || rec.orderRecord?.orderId) return true;
+    return false;
+  };
+
+  const getOrderId = (rec: TransactionMatchRecord): number | undefined =>
+    rec.orderId ?? rec.orderRecord?.orderId;
+
+  const getUserEmail = (rec: TransactionMatchRecord): string | undefined =>
+    rec.userEmail ?? rec.orderRecord?.userEmail;
+
+  const getOrderAmount = (rec: TransactionMatchRecord): number | undefined =>
+    rec.orderAmount ?? rec.orderRecord?.totalAmount;
+
+  const getDate = (rec: TransactionMatchRecord): string | undefined =>
+    rec.createdAt ?? rec.storedAt ?? rec.adminRecord?.createdAt;
+
+  const matchedCount = records.filter(isMatched).length;
+  const unmatchedCount = records.length - matchedCount;
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+  return (
+    <div className="space-y-6">
+      {/* Header Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h3 className="text-xl font-bold text-gray-800">Transaction IDs</h3>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Store mobile-money transaction IDs so orders are auto-matched at
+            checkout
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchMatches}
+            disabled={isLoading}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border-2 border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw
+              className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </button>
+          <button
+            onClick={() =>
+              setViewMode(viewMode === "add-single" ? "list" : "add-single")
+            }
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
+              viewMode === "add-single"
+                ? "bg-rose-100 text-rose-700 border-2 border-rose-300"
+                : "bg-rose-600 hover:bg-rose-700 text-white border-2 border-rose-600"
+            }`}
+          >
+            {viewMode === "add-single" ? (
+              <X className="w-4 h-4" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+            Add Single
+          </button>
+          <button
+            onClick={() =>
+              setViewMode(viewMode === "add-bulk" ? "list" : "add-bulk")
+            }
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
+              viewMode === "add-bulk"
+                ? "bg-blue-100 text-blue-700 border-2 border-blue-300"
+                : "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-600"
+            }`}
+          >
+            {viewMode === "add-bulk" ? (
+              <X className="w-4 h-4" />
+            ) : (
+              <List className="w-4 h-4" />
+            )}
+            Add Bulk
+          </button>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-white rounded-lg border-2 border-gray-100 p-4 text-center">
+          <p className="text-xs text-gray-500 mb-1">Total Stored</p>
+          <p className="text-2xl font-bold text-gray-800">{records.length}</p>
+        </div>
+        <div className="bg-green-50 rounded-lg border-2 border-green-100 p-4 text-center">
+          <p className="text-xs text-gray-500 mb-1">Matched</p>
+          <p className="text-2xl font-bold text-green-700">{matchedCount}</p>
+        </div>
+        <div className="bg-yellow-50 rounded-lg border-2 border-yellow-100 p-4 text-center">
+          <p className="text-xs text-gray-500 mb-1">Unmatched</p>
+          <p className="text-2xl font-bold text-yellow-700">{unmatchedCount}</p>
+        </div>
+      </div>
+
+      {/* Add Single Form */}
+      {viewMode === "add-single" && (
+        <div className="bg-white rounded-xl border-2 border-rose-200 p-6 shadow-sm">
+          <h4 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+            <Plus className="w-5 h-5 text-rose-600" />
+            Add Single Transaction ID
+          </h4>
+          <p className="text-sm text-gray-500 mb-5">
+            Enter a mobile money transaction ID. When a customer places an order
+            with this ID it will be auto-matched.
+          </p>
+
+          <form onSubmit={handleSingleSubmit} className="flex gap-3">
+            <div className="flex-1">
+              <label
+                htmlFor="single-tid"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                Transaction ID
+              </label>
+              <input
+                id="single-tid"
+                type="text"
+                value={singleId}
+                onChange={(e) => setSingleId(e.target.value)}
+                placeholder="e.g. TXN123456789"
+                className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:border-rose-500 focus:outline-none font-mono text-sm"
+                disabled={isSubmitting}
+                required
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    Save
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSingleId("");
+                  setViewMode("list");
+                }}
+                disabled={isSubmitting}
+                className="px-4 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Add Bulk Form */}
+      {viewMode === "add-bulk" && (
+        <div className="bg-white rounded-xl border-2 border-blue-200 p-6 shadow-sm">
+          <h4 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+            <List className="w-5 h-5 text-blue-600" />
+            Add Multiple Transaction IDs
+          </h4>
+          <p className="text-sm text-gray-500 mb-5">
+            Paste or type multiple transaction IDs — one per line, or
+            comma/semicolon-separated. Duplicates are skipped automatically.
+            Maximum 100 per upload.
+          </p>
+
+          <form onSubmit={handleBulkSubmit}>
+            <label
+              htmlFor="bulk-tids"
+              className="block text-sm font-medium text-gray-700 mb-1.5"
+            >
+              Transaction IDs{" "}
+              <span className="text-gray-400 font-normal">
+                (
+                {
+                  bulkText
+                    .split(/[\n,;]+/)
+                    .map((s) => s.trim())
+                    .filter(Boolean).length
+                }{" "}
+                entered)
+              </span>
+            </label>
+            <textarea
+              id="bulk-tids"
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+              placeholder={"TXN123456789\nTXN987654321\nTXN111222333"}
+              rows={8}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none font-mono text-sm resize-y"
+              disabled={isSubmitting}
+              required
+            />
+
+            <div className="flex gap-3 mt-4">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    Save All
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setBulkText("");
+                  setViewMode("list");
+                }}
+                disabled={isSubmitting}
+                className="px-4 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Records List */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h4 className="font-bold text-gray-800 flex items-center gap-2">
+            <ClipboardList className="w-4 h-4 text-gray-500" />
+            Stored Transaction IDs
+          </h4>
+          {!isLoading && (
+            <span className="text-xs text-gray-500">
+              {records.length} record{records.length !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-7 h-7 text-rose-500 animate-spin" />
+          </div>
+        ) : records.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <Hash className="w-12 h-12 mx-auto mb-3 opacity-40" />
+            <p className="font-medium">No transaction IDs stored yet</p>
+            <p className="text-sm mt-1">
+              Use the buttons above to add transaction IDs
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {records.map((rec, idx) => {
+              const txnId = getTransactionId(rec);
+              const matched = isMatched(rec);
+              const orderId = getOrderId(rec);
+              const email = getUserEmail(rec);
+              const amount = getOrderAmount(rec);
+              const date = getDate(rec);
+
+              return (
+                <div
+                  key={`${txnId}-${idx}`}
+                  className={`px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 ${
+                    matched ? "bg-green-50/40" : ""
+                  }`}
+                >
+                  {/* Status dot + ID */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div
+                      className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                        matched
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {matched ? (
+                        <CheckCircle className="w-4 h-4" />
+                      ) : (
+                        <Clock className="w-4 h-4" />
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-sm font-semibold text-gray-900 truncate">
+                          {txnId}
+                        </span>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                            matched
+                              ? "bg-green-100 text-green-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {matched ? "Matched" : "Unmatched"}
+                        </span>
+                        {rec.orderStatus && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
+                            {rec.orderStatus}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Secondary info row */}
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-gray-500">
+                        {date && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatLocalDateTime(date)}
+                          </span>
+                        )}
+                        {orderId && (
+                          <span className="flex items-center gap-1">
+                            <ShoppingBag className="w-3 h-3" />
+                            Order #{orderId}
+                          </span>
+                        )}
+                        {email && (
+                          <span className="flex items-center gap-1">
+                            <Mail className="w-3 h-3" />
+                            {email}
+                          </span>
+                        )}
+                        {amount !== undefined && (
+                          <span className="font-semibold text-gray-700">
+                            ${amount.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
