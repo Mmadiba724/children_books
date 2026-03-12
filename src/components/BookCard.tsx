@@ -96,7 +96,7 @@ export default function BookCard({ book }: { readonly book: Book }) {
                     {/* Price and Category */}
                     <div className="flex flex-col items-center gap-2 mt-2">
                         <span className="text-base font-bold text-gray-900">
-                            UGX {price.toFixed(2)}
+                            UGX {price.toFixed(0)}
                         </span>
                         {book.categoryNames &&
                             book.categoryNames.length > 0 && (

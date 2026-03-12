@@ -89,7 +89,7 @@ export default function BookDetailsColumn({
             <div>
                 <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3">Price</h3>
                 <div className="text-3xl sm:text-4xl font-bold text-rose-600 mb-3 sm:mb-4">
-                    ugx {(book.price ?? 0).toFixed(2)}
+                    ugx {(book.price ?? 0).toFixed(0)}
                 </div>
 
                 {/* Availability Badge */}

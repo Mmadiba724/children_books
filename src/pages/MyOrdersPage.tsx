@@ -545,7 +545,7 @@ const MyOrdersPage = () => {
                                             Total Amount
                                         </p>
                                         <p className="text-2xl font-bold text-rose-600">
-                                            UGX {order.totalAmount.toFixed(2)}
+                                            UGX {order.totalAmount.toFixed(0)}
                                         </p>
                                     </div>
                                 </div>

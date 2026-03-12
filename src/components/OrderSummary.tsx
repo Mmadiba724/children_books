@@ -16,19 +16,19 @@ export default function OrderSummary({
             <div className="mb-3">
                 <div className="text-sm text-gray-600">Subtotal</div>
                 <div className="text-xl font-semibold">
-                    ${(subtotal / 100).toFixed(2)}
+                    Ugx {" "} {(subtotal / 100).toFixed(0)}
                 </div>
             </div>
             <div className="mb-3">
                 <div className="text-sm text-gray-600">Tax (7%)</div>
                 <div className="text-xl font-semibold">
-                    ${(tax / 100).toFixed(2)}
+                    Ugx {" "} {(tax / 100).toFixed(0)}
                 </div>
             </div>
             <div className="mb-4">
                 <div className="text-sm text-gray-600">Total</div>
                 <div className="text-2xl font-bold">
-                    ${(total / 100).toFixed(2)}
+                    Ugx {" "} {(total / 100).toFixed(0)}
                 </div>
             </div>
             <button

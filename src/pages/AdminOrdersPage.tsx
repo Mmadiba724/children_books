@@ -160,7 +160,7 @@ const AdminOrdersPage = () => {
                                             <span className="font-medium">
                                                 Total:
                                             </span>{" "}
-                                            UGX {order.totalAmount.toFixed(2)}
+                                            UGX {order.totalAmount.toFixed()}
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <Clock className="w-4 h-4" />
@@ -193,7 +193,7 @@ const AdminOrdersPage = () => {
                                                                         item.quantity
                                                                     }
                                                                     {item.price &&
-                                                                        ` - UGX ${item.price.toFixed(2)}`}
+                                                                        ` - UGX ${item.price.toFixed(0)}`}
                                                                 </li>
                                                             ),
                                                         )}

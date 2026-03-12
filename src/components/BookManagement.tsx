@@ -49,7 +49,7 @@ function BooksGrid({
 
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-lg font-bold text-rose-600">
-                                ${book.price.toFixed(2)}
+                                Ugx {" "} {book.price.toFixed(0)}
                             </span>
                             <span
                                 className={`text-xs px-2 py-1 rounded ${

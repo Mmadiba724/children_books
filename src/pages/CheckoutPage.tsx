@@ -41,7 +41,7 @@ export default function CheckoutPage() {
 
         // Check if cart is empty
         if (state.items.length === 0) {
-            toast.error("Your cart is empty");
+            // toast.error("Your cart is empty");
             nav("/cart");
         }
     }, [nav, state.items.length]);
@@ -297,7 +297,7 @@ export default function CheckoutPage() {
                                                 {(
                                                     (item.book.price * 100) /
                                                     100
-                                                ).toFixed(2)}
+                                                ).toFixed(0)}
                                             </p>
                                             <p className="text-sm text-gray-600">
                                                 Qty: {item.quantity}
@@ -309,7 +309,7 @@ export default function CheckoutPage() {
                                                         item.quantity *
                                                         100) /
                                                     100
-                                                ).toFixed(2)}
+                                                ).toFixed(0)}
                                             </p>
                                         </div>
                                     </div>
@@ -335,7 +335,7 @@ export default function CheckoutPage() {
                                         )
                                     </span>
                                     <span className="font-semibold">
-                                        UGX {(subtotal / 100).toFixed(2)}
+                                        UGX {(subtotal / 100).toFixed(0)}
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
@@ -353,7 +353,7 @@ export default function CheckoutPage() {
                                     Order Total:
                                 </span>
                                 <span className="text-lg font-bold">
-                                    UGX {(total / 100).toFixed(2)}
+                                    UGX {(total / 100).toFixed(0)}
                                 </span>
                             </div>
 
@@ -363,7 +363,7 @@ export default function CheckoutPage() {
                                     Mobile Money Payment
                                 </h3>
                                 <p className="text-xs text-gray-700 mb-2">
-                                    Please send UGX {(total / 100).toFixed(2)}{" "}
+                                    Please send UGX {(total / 100).toFixed(0)}{" "}
                                     by dialing *185# and follow the prompts to
                                     pay to:
                                 </p>

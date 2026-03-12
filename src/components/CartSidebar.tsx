@@ -143,7 +143,7 @@ const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                                                         (item.book.price *
                                                             100) /
                                                         100
-                                                    ).toFixed(2)}
+                                                    ).toFixed(0)}
                                                 </p>
 
                                                 {/* Quantity Controls */}
@@ -219,7 +219,7 @@ const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
                                             ORDER TOTAL
                                         </span>
                                         <span className="font-bold text-lg">
-                                            UGX {(total / 100).toFixed(2)}
+                                            UGX {(total / 100).toFixed(0)}
                                         </span>
                                     </div>
 

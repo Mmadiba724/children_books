@@ -21,7 +21,7 @@ export default function CartItemRow({
             <div className="flex-1">
                 <div className="font-bold">{item.book.title}</div>
                 <div className="text-sm text-gray-600">{item.book.author}</div>
-                <div className="mt-2">${(item.book.price ?? 0).toFixed(2)}</div>
+                <div className="mt-2">${(item.book.price ?? 0).toFixed(0)}</div>
             </div>
             <div className="flex items-center space-x-2">
                 <div className="inline-flex items-center bg-white rounded-full shadow px-2">
