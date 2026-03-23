@@ -37,13 +37,15 @@ export interface Order {
 
 export interface AdminOrderMetrics {
   totalOrders: number;
-  pendingOrders: number;
-  paidOrders: number;
-  rejectedOrders: number;
-  failedOrders: number;
-  cancelledOrders: number;
-  averageVerificationTimeMinutes?: number;
-  averageVerificationTimeHours?: number;
+  countsByStatus: {
+    PENDING: number;
+    PAID: number;
+    REJECTED: number;
+    FAILED: number;
+    CANCELLED: number;
+    [key: string]: number;
+  };
+  verificationTimes?: Record<string, unknown>;
 }
 
 // Payload for creating an order - matches new API format

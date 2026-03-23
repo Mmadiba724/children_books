@@ -82,20 +82,8 @@ const getTabCount = (
   metrics: AdminOrderMetrics | null,
 ): number | undefined => {
   if (!metrics) return undefined;
-  switch (tab) {
-    case "ALL":
-      return metrics.totalOrders;
-    case "PENDING":
-      return metrics.pendingOrders;
-    case "PAID":
-      return metrics.paidOrders;
-    case "REJECTED":
-      return metrics.rejectedOrders;
-    case "FAILED":
-      return metrics.failedOrders;
-    case "CANCELLED":
-      return metrics.cancelledOrders;
-  }
+  if (tab === "ALL") return metrics.totalOrders;
+  return metrics.countsByStatus?.[tab];
 };
 
 export default function OrdersManagement() {
@@ -623,7 +611,7 @@ export default function OrdersManagement() {
           </div>
 
           {/* Orders Stats */}
-          {metrics && (
+          {/* {metrics && (
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
               <div className="bg-white p-3 rounded-lg border-2 border-gray-100 text-center">
                 <p className="text-xs text-gray-500 mb-1">Total</p>
@@ -632,37 +620,37 @@ export default function OrdersManagement() {
                 </p>
               </div>
               <div className="bg-yellow-50 p-3 rounded-lg border-2 border-yellow-100 text-center">
-                <p className="text-xs text-gray-500 mb-1">Pending</p>
+                <p className="text-xs text-gray-500 mb-1">s</p>
                 <p className="text-xl font-bold text-yellow-700">
-                  {metrics.pendingOrders}
+                  {metrics.countsByStatus?.PENDING ?? 0}
                 </p>
               </div>
               <div className="bg-green-50 p-3 rounded-lg border-2 border-green-100 text-center">
                 <p className="text-xs text-gray-500 mb-1">Paid</p>
                 <p className="text-xl font-bold text-green-700">
-                  {metrics.paidOrders}
+                  {metrics.countsByStatus?.PAID ?? 0}
                 </p>
               </div>
               <div className="bg-red-50 p-3 rounded-lg border-2 border-red-100 text-center">
                 <p className="text-xs text-gray-500 mb-1">Rejected</p>
                 <p className="text-xl font-bold text-red-700">
-                  {metrics.rejectedOrders}
+                  {metrics.countsByStatus?.REJECTED ?? 0}
                 </p>
               </div>
               <div className="bg-orange-50 p-3 rounded-lg border-2 border-orange-100 text-center">
                 <p className="text-xs text-gray-500 mb-1">Failed</p>
                 <p className="text-xl font-bold text-orange-600">
-                  {metrics.failedOrders}
+                  {metrics.countsByStatus?.FAILED ?? 0}
                 </p>
               </div>
               <div className="bg-gray-100 p-3 rounded-lg border-2 border-gray-200 text-center">
                 <p className="text-xs text-gray-500 mb-1">Cancelled</p>
                 <p className="text-xl font-bold text-gray-600">
-                  {metrics.cancelledOrders}
+                  {metrics.countsByStatus?.CANCELLED ?? 0}
                 </p>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Orders count for current tab */}
           {!isLoading && (
