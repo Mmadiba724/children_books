@@ -60,16 +60,22 @@ interface AddBulkTransactionIdPayload {
 export interface TransactionMatchRecord {
   transactionId: string;
   // admin-stored side
-  storedAt?: string;
-  createdAt?: string;
-  // order-matched side
+  storedId?: number | null;
+  storedCreatedBy?: string | null;
+  storedCreatedAt?: string | null;
+  storedOrderId?: number | null;
+  storedMatchedAt?: string | null;
+  // order/customer side
+  orderId?: number | null;
+  orderStatus?: string | null;
+  orderCreatedAt?: string | null;
+  orderTransactionIdMatched?: boolean | null;
+  // legacy / alternative field shapes (kept for backwards compat)
   matched?: boolean;
-  orderId?: number;
-  orderStatus?: string;
   orderAmount?: number;
   userEmail?: string;
-  matchedAt?: string;
-  // raw API may return nested shapes
+  storedAt?: string;
+  createdAt?: string;
   adminRecord?: {
     id?: number;
     transactionId: string;

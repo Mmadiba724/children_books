@@ -11,6 +11,11 @@ import {
   Mail,
   X,
   ClipboardList,
+  ShieldCheck,
+  UserCircle,
+  ArrowLeftRight,
+  DollarSign,
+  Package,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import paymentService, {
@@ -114,17 +119,30 @@ export default function TransactionManagement() {
   };
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
-  const getTransactionId = (rec: TransactionMatchRecord): string =>
-    rec.transactionId ||
-    rec.adminRecord?.transactionId ||
-    rec.orderRecord?.transactionId ||
-    "—";
+  // Both admin and customer have submitted — regardless of backend's flag
+  const hasBothSides = (rec: TransactionMatchRecord): boolean => {
+    const hasAdmin =
+      rec.storedId != null || rec.adminRecord?.transactionId != null;
+    const hasOrder = rec.orderId != null || rec.orderRecord?.orderId != null;
+    return hasAdmin && hasOrder;
+  };
 
+  // True match: both sides present AND backend confirms IDs are equal
   const isMatched = (rec: TransactionMatchRecord): boolean => {
-    if (typeof rec.matched === "boolean") return rec.matched;
-    if (rec.orderId || rec.orderRecord?.orderId) return true;
+    if (hasBothSides(rec)) {
+      // If the backend explicitly says matched, trust it
+      if (rec.orderTransactionIdMatched === true) return true;
+      // If matched flag is null/undefined and both sides are present, treat as matched
+      if (rec.orderTransactionIdMatched == null && rec.matched == null)
+        return true;
+      if (typeof rec.matched === "boolean") return rec.matched;
+    }
     return false;
   };
+
+  // Both sides exist but backend says IDs don't align (conflict indicator)
+  const hasConflict = (rec: TransactionMatchRecord): boolean =>
+    hasBothSides(rec) && rec.orderTransactionIdMatched === false;
 
   const getOrderId = (rec: TransactionMatchRecord): number | undefined =>
     rec.orderId ?? rec.orderRecord?.orderId;
@@ -134,9 +152,6 @@ export default function TransactionManagement() {
 
   const getOrderAmount = (rec: TransactionMatchRecord): number | undefined =>
     rec.orderAmount ?? rec.orderRecord?.totalAmount;
-
-  const getDate = (rec: TransactionMatchRecord): string | undefined =>
-    rec.createdAt ?? rec.storedAt ?? rec.adminRecord?.createdAt;
 
   const matchedCount = records.filter(isMatched).length;
   const unmatchedCount = records.length - matchedCount;
@@ -385,86 +400,183 @@ export default function TransactionManagement() {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-gray-100">
             {records.map((rec, idx) => {
-              const txnId = getTransactionId(rec);
+              // Admin side: the pre-stored entry
+              const adminStored =
+                rec.storedId != null || rec.adminRecord != null;
+              const adminDate =
+                rec.storedCreatedAt ??
+                rec.adminRecord?.createdAt ??
+                rec.storedAt ??
+                rec.createdAt;
+              const adminLabel = rec.storedCreatedBy ?? null;
+
+              // Customer / order side
+              const customerTxnId =
+                rec.transactionId || rec.orderRecord?.transactionId;
               const matched = isMatched(rec);
+              const bothPresent = hasBothSides(rec);
+              const conflict = hasConflict(rec);
               const orderId = getOrderId(rec);
               const email = getUserEmail(rec);
               const amount = getOrderAmount(rec);
-              const date = getDate(rec);
+              const orderStatus = rec.orderStatus ?? rec.orderRecord?.status;
+              const orderCreatedAt =
+                rec.orderCreatedAt ?? rec.orderRecord?.createdAt;
 
               return (
                 <div
-                  key={`${txnId}-${idx}`}
-                  className={`px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 ${
-                    matched ? "bg-green-50/40" : ""
-                  }`}
+                  key={`${customerTxnId ?? ""}-${idx}`}
+                  className="px-5 py-5 space-y-4"
                 >
-                  {/* Status dot + ID */}
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                  {/* Two-column comparison row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* ── Admin side ── */}
                     <div
-                      className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                        matched
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
+                      className={`border rounded-xl p-4 ${
+                        adminStored
+                          ? "bg-blue-50 border-blue-200"
+                          : "bg-gray-50 border-gray-200"
                       }`}
                     >
-                      {matched ? (
-                        <CheckCircle className="w-4 h-4" />
+                      <div
+                        className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide mb-3 ${
+                          adminStored ? "text-blue-600" : "text-gray-400"
+                        }`}
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        Admin Entry
+                      </div>
+                      {adminStored ? (
+                        <>
+                          <p className="font-mono text-sm font-bold text-gray-900 break-all">
+                            {customerTxnId}
+                          </p>
+                          <div className="mt-2 space-y-1">
+                            {adminDate && (
+                              <p className="flex items-center gap-1 text-xs text-blue-500">
+                                <Clock className="w-3 h-3" />
+                                {formatLocalDateTime(adminDate)}
+                              </p>
+                            )}
+                            {adminLabel && (
+                              <p className="flex items-center gap-1 text-xs text-blue-500">
+                                <UserCircle className="w-3 h-3" />
+                                Stored by: {adminLabel}
+                              </p>
+                            )}
+                          </div>
+                        </>
                       ) : (
-                        <Clock className="w-4 h-4" />
+                        <p className="text-sm text-gray-400 italic">
+                          Not yet stored by admin
+                        </p>
                       )}
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono text-sm font-semibold text-gray-900 truncate">
-                          {txnId}
-                        </span>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                            matched
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {matched ? "Matched" : "Unmatched"}
-                        </span>
-                        {rec.orderStatus && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
-                            {rec.orderStatus}
-                          </span>
-                        )}
+                    {/* ── Customer side ── */}
+                    <div
+                      className={`border rounded-xl p-4 ${
+                        matched
+                          ? "bg-green-50 border-green-200"
+                          : "bg-gray-50 border-gray-200"
+                      }`}
+                    >
+                      <div
+                        className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide mb-3 ${
+                          matched ? "text-green-600" : "text-gray-500"
+                        }`}
+                      >
+                        <UserCircle className="w-3.5 h-3.5" />
+                        Customer Order
                       </div>
 
-                      {/* Secondary info row */}
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-gray-500">
-                        {date && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formatLocalDateTime(date)}
-                          </span>
-                        )}
-                        {orderId && (
-                          <span className="flex items-center gap-1">
-                            <ShoppingBag className="w-3 h-3" />
-                            Order #{orderId}
-                          </span>
-                        )}
-                        {email && (
-                          <span className="flex items-center gap-1">
-                            <Mail className="w-3 h-3" />
-                            {email}
-                          </span>
-                        )}
-                        {amount !== undefined && (
-                          <span className="font-semibold text-gray-700">
-                            ${amount.toFixed(2)}
-                          </span>
-                        )}
-                      </div>
+                      {customerTxnId ? (
+                        <>
+                          <p className="font-mono text-sm font-bold text-gray-900 break-all">
+                            {customerTxnId}
+                          </p>
+                          <div className="mt-3 space-y-1.5">
+                            {orderCreatedAt && (
+                              <p className="flex items-center gap-1.5 text-xs text-gray-600">
+                                <Clock className="w-3 h-3 text-gray-400" />
+                                <span className="font-medium">Submitted:</span>
+                                <span>
+                                  {formatLocalDateTime(orderCreatedAt)}
+                                </span>
+                              </p>
+                            )}
+                            {orderId && (
+                              <p className="flex items-center gap-1.5 text-xs text-gray-600">
+                                <ShoppingBag className="w-3 h-3 text-gray-400" />
+                                <span className="font-medium">Order:</span>
+                                <span>#{orderId}</span>
+                              </p>
+                            )}
+                            {email && (
+                              <p className="flex items-center gap-1.5 text-xs text-gray-600">
+                                <Mail className="w-3 h-3 text-gray-400" />
+                                <span className="font-medium">Customer:</span>
+                                <span className="truncate">{email}</span>
+                              </p>
+                            )}
+                            {amount !== undefined && (
+                              <p className="flex items-center gap-1.5 text-xs text-gray-600">
+                                <DollarSign className="w-3 h-3 text-gray-400" />
+                                <span className="font-medium">Amount:</span>
+                                <span>${amount.toFixed(2)}</span>
+                              </p>
+                            )}
+                            {orderStatus && (
+                              <p className="flex items-center gap-1.5 text-xs text-gray-600">
+                                <Package className="w-3 h-3 text-gray-400" />
+                                <span className="font-medium">
+                                  Order status:
+                                </span>
+                                <span
+                                  className={`px-1.5 py-0.5 rounded font-semibold ${
+                                    orderStatus === "COMPLETED"
+                                      ? "bg-green-100 text-green-700"
+                                      : orderStatus === "PENDING"
+                                        ? "bg-yellow-100 text-yellow-700"
+                                        : orderStatus === "CANCELLED"
+                                          ? "bg-red-100 text-red-700"
+                                          : "bg-blue-100 text-blue-700"
+                                  }`}
+                                >
+                                  {orderStatus}
+                                </span>
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-sm text-gray-400 italic mt-1">
+                          No order submitted yet
+                        </p>
+                      )}
                     </div>
+                  </div>
+
+                  {/* ── Match status bar ── */}
+                  <div
+                    className={`flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold ${
+                      matched
+                        ? "bg-green-100 text-green-700"
+                        : conflict
+                          ? "bg-orange-50 text-orange-700 border border-orange-200"
+                          : "bg-yellow-50 text-yellow-700 border border-yellow-200"
+                    }`}
+                  >
+                    <ArrowLeftRight className="w-4 h-4" />
+                    {matched
+                      ? "Transaction IDs matched — order confirmed"
+                      : conflict
+                        ? "Both submitted — IDs do not match"
+                        : bothPresent
+                          ? "Both submitted — awaiting confirmation"
+                          : "Awaiting customer order with this transaction ID"}
                   </div>
                 </div>
               );
