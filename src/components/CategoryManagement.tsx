@@ -67,7 +67,7 @@ export default function CategoryManagement() {
         <h2 className="text-2xl font-bold text-gray-800">Manage Categories</h2>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Category
@@ -77,7 +77,7 @@ export default function CategoryManagement() {
       {/* Categories List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-rose-600 animate-spin" />
+          <Loader2 className="w-8 h-8 text-brand animate-spin" />
         </div>
       ) : categories.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow-md">
@@ -90,7 +90,7 @@ export default function CategoryManagement() {
           {categories.map((category) => (
             <div
               key={category.id}
-              className="bg-white rounded-lg shadow-md p-4 border-2 border-gray-100 hover:border-rose-200 transition-colors"
+              className="bg-white rounded-lg shadow-md p-4 border-2 border-gray-100 hover:border-brand-light transition-colors"
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">

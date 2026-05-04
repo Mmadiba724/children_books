@@ -89,7 +89,7 @@ export default function BookDetailsColumn({
         <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3">
           Price
         </h3>
-        <div className="text-3xl sm:text-4xl font-bold text-rose-600 mb-3 sm:mb-4">
+        <div className="text-3xl sm:text-4xl font-bold text-brand mb-3 sm:mb-4">
           ugx {(book.price ?? 0).toFixed(0)}
         </div>
 
@@ -99,6 +99,24 @@ export default function BookDetailsColumn({
 
       {/* Book Details */}
       <div className="border-t border-b border-gray-200 py-3 sm:py-4 space-y-2 sm:space-y-3">
+        {book.isbn && (
+          <div>
+            <p className="text-xs text-gray-600 uppercase font-semibold">
+              ISBN
+            </p>
+            <p className="text-sm text-gray-900">{book.isbn}</p>
+          </div>
+        )}
+
+        {book.format && (
+          <div>
+            <p className="text-xs text-gray-600 uppercase font-semibold">
+              Format
+            </p>
+            <p className="text-sm text-gray-900">{book.format}</p>
+          </div>
+        )}
+
         {book.format && (
           <div>
             <p className="text-xs text-gray-600 uppercase font-semibold">

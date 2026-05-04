@@ -116,7 +116,7 @@ export default function CatalogPage() {
                 Found {filtered.length} matches
                 <button
                   onClick={() => setQuery("")}
-                  className="ml-3 text-rose-600 underline"
+                  className="ml-3 text-brand underline"
                 >
                   Clear
                 </button>

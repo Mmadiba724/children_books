@@ -53,14 +53,14 @@ export default function AboutPage() {
           initial="hidden"
           animate="visible"
           variants={slideUpVariants}
-          className="bg-gradient-to-r from-rose-600 to-pink-600 text-white py-16"
+          className="bg-gradient-to-r from-brand to-pink-600 text-white py-16"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
                 About KidsBooks
               </h1>
-              <p className="text-xl md:text-2xl text-rose-100 max-w-3xl mx-auto">
+              <p className="text-xl md:text-2xl text-brand-light max-w-3xl mx-auto">
                 A playful collection of stories, designed for early readers and
                 bedtime magic.
               </p>
@@ -106,8 +106,8 @@ export default function AboutPage() {
                       }}
                       className={`block py-2 px-3 rounded transition-colors ${
                         activeSection === id
-                          ? "text-rose-600 font-medium bg-rose-50"
-                          : "text-gray-700 hover:text-rose-600 hover:bg-rose-50"
+                          ? "text-brand font-medium bg-brand-light"
+                          : "text-gray-700 hover:text-brand hover:bg-brand-light"
                       }`}
                     >
                       {label}
@@ -170,16 +170,16 @@ export default function AboutPage() {
                 variants={slideUpVariants}
                 className="mb-12"
               >
-                <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-lg shadow-md p-8  border-2 border-rose-200">
+                <div className="bg-gradient-to-br from-brand-light to-pink-50 rounded-lg shadow-md p-8  border-2 border-brand-light">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="bg-rose-600 rounded-full p-3">
+                    <div className="bg-brand rounded-full p-3">
                       <BookOpen className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <h2 className="text-3xl font-bold text-gray-900 mb-2">
                         Our Mission
                       </h2>
-                      <p className="text-xl text-rose-700 font-semibold">
+                      <p className="text-xl text-brand-dark font-semibold">
                         Inspiring Young Minds Through Stories
                       </p>
                     </div>
@@ -210,8 +210,8 @@ export default function AboutPage() {
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex gap-4">
-                      <div className="bg-rose-100 rounded-lg p-3 h-fit">
-                        <Heart className="w-6 h-6 text-rose-600" />
+                      <div className="bg-brand-light rounded-lg p-3 h-fit">
+                        <Heart className="w-6 h-6 text-brand" />
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -296,13 +296,13 @@ export default function AboutPage() {
                     illustrators, and child development experts to ensure every
                     book meets our high standards.
                   </p>
-                  <div className="bg-rose-50 rounded-lg p-6 border-l-4 border-rose-600">
+                  <div className="bg-brand-light rounded-lg p-6 border-l-4 border-brand">
                     <p className="text-gray-700 italic">
                       "We're not just selling books—we're nurturing the next
                       generation of readers, thinkers, and dreamers. Every story
                       we share is an investment in a child's future."
                     </p>
-                    <p className="text-rose-600 font-semibold mt-2">
+                    <p className="text-brand font-semibold mt-2">
                       — The KidsBooks Team
                     </p>
                   </div>

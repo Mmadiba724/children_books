@@ -30,15 +30,15 @@ function BooksGrid({
       {books.map((book) => (
         <div
           key={book.id}
-          className="bg-white rounded-lg shadow-md overflow-hidden border-2 border-gray-100 hover:border-rose-200 transition-colors"
+          className="bg-white rounded-lg shadow-md overflow-hidden border-2 border-gray-100 hover:border-brand-light transition-colors"
         >
           {/* Book Cover */}
-          <div className="relative h-48 bg-gray-200 flex items-center justify-center">
+          <div className="relative  bg-gray-200 flex items-center justify-center">
             {book.coverImageUrl ? (
               <img
                 src={getImageUrl(book.coverImageUrl)}
                 alt={book.title}
-                className="w-full h-full object-cover"
+                className="w-full h-136 object-cover"
               />
             ) : (
               <Image className="w-12 h-12 text-gray-400" />
@@ -56,7 +56,7 @@ function BooksGrid({
             </p>
 
             <div className="flex items-center justify-between mb-2">
-              <span className="text-lg font-bold text-rose-600">
+              <span className="text-lg font-bold text-brand">
                 Ugx {book.price.toFixed(0)}
               </span>
               <span
@@ -281,21 +281,21 @@ export default function BookManagement() {
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
               showFilters || hasActiveFilters
-                ? "bg-rose-600 text-white hover:bg-rose-700"
+                ? "bg-brand text-white hover:bg-brand-dark"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
             <Filter className="w-4 h-4" />
             Filter & Sort
             {hasActiveFilters && (
-              <span className="bg-white text-rose-600 text-xs px-2 py-0.5 rounded-full font-semibold">
+              <span className="bg-white text-brand text-xs px-2 py-0.5 rounded-full font-semibold">
                 Active
               </span>
             )}
           </button>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Book
@@ -354,7 +354,7 @@ export default function BookManagement() {
 
       {/* Filter and Sort Panel */}
       {showFilters && (
-        <div className="bg-white rounded-lg shadow-md p-6 border-2 border-rose-200">
+        <div className="bg-white rounded-lg shadow-md p-6 border-2 border-brand-light">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-gray-800">
               Filter & Sort Books
@@ -362,7 +362,7 @@ export default function BookManagement() {
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-2 text-sm text-rose-600 hover:text-rose-700"
+                className="flex items-center gap-2 text-sm text-brand hover:text-brand-dark"
               >
                 <X className="w-4 h-4" />
                 Clear All
@@ -383,7 +383,7 @@ export default function BookManagement() {
                 id="filter-category"
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-rose-500 focus:outline-none"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-brand focus:outline-none"
               >
                 <option value="">All Categories</option>
                 {uniqueCategories.map((category) => (
@@ -406,7 +406,7 @@ export default function BookManagement() {
                 id="filter-author"
                 value={filterAuthor}
                 onChange={(e) => setFilterAuthor(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-rose-500 focus:outline-none"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-brand focus:outline-none"
               >
                 <option value="">All Authors</option>
                 {uniqueAuthors.map((author) => (
@@ -429,7 +429,7 @@ export default function BookManagement() {
                 id="sort-by"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-rose-500 focus:outline-none"
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-brand focus:outline-none"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -463,7 +463,7 @@ export default function BookManagement() {
       {/* Books List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-rose-600 animate-spin" />
+          <Loader2 className="w-8 h-8 text-brand animate-spin" />
         </div>
       ) : null}
 
@@ -477,7 +477,7 @@ export default function BookManagement() {
           {hasActiveFilters && books.length > 0 && (
             <button
               onClick={clearFilters}
-              className="mt-4 px-4 py-2 text-rose-600 hover:text-rose-700 font-medium"
+              className="mt-4 px-4 py-2 text-brand hover:text-brand-dark font-medium"
             >
               Clear Filters
             </button>

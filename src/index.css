@@ -1,40 +1,99 @@
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @plugin "daisyui" {
-	themes: false;
+  themes: false;
 }
 
-
+/* ============================================
+   CENTRAL COLOR SCHEME - Design Tokens
+   ============================================ */
 :root {
-	/* Design tokens */
-	--font-display: 'Quicksand', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-	--font-body: 'Quicksand', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-	--color-bg: #fff1f2;
-	/* soft rose */
-	--color-brand: #fb7185;
-	/* pink */
-	--color-accent: #06b6d4;
-	/* cyan */
-	--color-cta: #6366f1;
-	/* indigo */
-	--radius-lg: 12px;
+  /* Typography */
+  --font-display:
+    "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial;
+  --font-body:
+    "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial;
 
-	font-family: var(--font-body);
-	line-height: 1.5;
-	font-weight: 400;
+  /* === PRIMARY COLORS === */
+  --color-bg: #f1fff6; /* soft rose - main background */
+  --color-bg-alt: #ffe4e8; /* lighter rose - alternate backgrounds */
+  --color-surface: #ffffff; /* white - cards, modals */
 
-	margin: 0 auto;
-	text-align: center;
+  /* === BRAND COLORS === */
+  --color-brand: #e82542; /* pink - primary brand */
+  --color-brand-light: #eeecec; /* light pink */
+  --color-brand-dark: #e11d48; /* dark rose */
 
-	--daisyui-theme: none;
+  /* === ACCENT COLORS === */
+  --color-accent: #06b6d4; /* cyan - secondary accent */
+  --color-accent-light: #22d3ee;
+  --color-accent-dark: #0891b2;
+
+  /* === CTA / ACTION COLORS === */
+  --color-cta: #6366f1; /* indigo - call to action */
+  --color-cta-light: #818cf8;
+  --color-cta-dark: #4f46e5;
+
+  /* === SEMANTIC COLORS === */
+  --color-success: #10b981; /* emerald */
+  --color-success-light: #d1fae5;
+  --color-success-dark: #059669;
+
+  --color-warning: #f59e0b; /* amber */
+  --color-warning-light: #fef3c7;
+  --color-warning-dark: #d97706;
+
+  --color-error: #ef4444; /* red */
+  --color-error-light: #fee2e2;
+  --color-error-dark: #dc2626;
+
+  --color-info: #3b82f6; /* blue */
+  --color-info-light: #dbeafe;
+  --color-info-dark: #2563eb;
+
+  /* === NEUTRAL COLORS === */
+  --color-text: #1f2937; /* gray-800 - primary text */
+  --color-text-secondary: #4b5563; /* gray-600 - secondary text */
+  --color-text-muted: #9ca3af; /* gray-400 - muted text */
+  --color-text-inverse: #ffffff; /* white - text on dark */
+
+  --color-border: #e5e7eb; /* gray-200 */
+  --color-border-light: #f3f4f6; /* gray-100 */
+
+  /* === SHADOWS === */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
+  /* === BORDER RADIUS === */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* === SPACING === */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  font-family: var(--font-body);
+  line-height: 1.5;
+  font-weight: 400;
+  margin: 0 auto;
+  text-align: center;
+  --daisyui-theme: none;
 }
 
 body {
-	background-color: var(--color-bg);
-	font-family: var(--font-body);
-	color: #1f2937;
-	/* gray-800 */
+  background-color: var(--color-bg);
+  font-family: var(--font-body);
+  color: var(--color-text);
 }
 
 h1,
@@ -43,5 +102,98 @@ h3,
 h4,
 h5,
 h6 {
-	font-family: var(--font-display);
+  font-family: var(--font-display);
+}
+
+/* === UTILITY CLASSES FOR COLOR SCHEME === */
+/* Backgrounds */
+.bg-brand {
+  background-color: var(--color-brand);
+}
+.bg-brand-light {
+  background-color: var(--color-brand-light);
+}
+.bg-accent {
+  background-color: var(--color-accent);
+}
+.bg-cta {
+  background-color: var(--color-cta);
+}
+.bg-surface {
+  background-color: var(--color-surface);
+}
+.bg-success {
+  background-color: var(--color-success);
+}
+.bg-warning {
+  background-color: var(--color-warning);
+}
+.bg-error {
+  background-color: var(--color-error);
+}
+.bg-info {
+  background-color: var(--color-info);
+}
+
+/* Text colors */
+.text-brand {
+  color: var(--color-brand);
+}
+.text-brand-dark {
+  color: var(--color-brand-dark);
+}
+.text-accent {
+  color: var(--color-accent);
+}
+.text-cta {
+  color: var(--color-cta);
+}
+.text-success {
+  color: var(--color-success);
+}
+.text-warning {
+  color: var(--color-warning);
+}
+.text-error {
+  color: var(--color-error);
+}
+.text-info {
+  color: var(--color-info);
+}
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+/* Border colors */
+.border-brand {
+  border-color: var(--color-brand);
+}
+.border-accent {
+  border-color: var(--color-accent);
+}
+.border-cta {
+  border-color: var(--color-cta);
+}
+.border-success {
+  border-color: var(--color-success);
+}
+.border-warning {
+  border-color: var(--color-warning);
+}
+.border-error {
+  border-color: var(--color-error);
+}
+.border-info {
+  border-color: var(--color-info);
+}
+
+/* Hover states */
+.hover\:text-brand:hover {
+  color: var(--color-brand);
+}
+.hover\:bg-brand:hover {
+  background-color: var(--color-brand);
+}
+.hover\:border-brand:hover {
+  border-color: var(--color-brand);
 }

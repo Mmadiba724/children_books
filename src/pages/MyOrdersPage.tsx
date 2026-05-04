@@ -151,7 +151,7 @@ const MyOrdersPage = () => {
     return (
       <div className="max-w-7xl mx-auto p-6">
         <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+          <Loader2 className="w-8 h-8 animate-spin text-brand" />
           <p className="ml-3 text-gray-600">Loading your orders...</p>
         </div>
       </div>
@@ -163,7 +163,7 @@ const MyOrdersPage = () => {
       {/* Header */}
       <div className="mb-8 flex flex-col items-center justify-center gap-2 w-full">
         <div className="flex items-center gap-3 mb-2">
-          <ShoppingBag className="w-8 h-8 text-rose-600" />
+          <ShoppingBag className="w-8 h-8 text-brand" />
           <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
         </div>
         <p className="text-gray-600">
@@ -173,7 +173,7 @@ const MyOrdersPage = () => {
 
       {/* Filter Button */}
       {(startDate || endDate) && (
-        <div className="mt-3 inline-flex items-center gap-2 bg-rose-50 text-rose-700 px-3 py-1.5 rounded-full text-sm font-medium border border-rose-200">
+        <div className="mt-3 inline-flex items-center gap-2 bg-brand-light text-brand-dark px-3 py-1.5 rounded-full text-sm font-medium border border-brand-light">
           <Filter className="w-4 h-4" />
           Showing {filteredOrders.length} of {orders.length} orders
         </div>
@@ -181,12 +181,12 @@ const MyOrdersPage = () => {
       <div className="relative lg:min-w-[380px] flex lg:justify-end mb-4 lg:items-center">
         <button
           onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-rose-500 transition-all font-medium shadow-sm"
+          className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-brand transition-all font-medium shadow-sm"
         >
           <Filter className="w-4 h-4" />
           Filter Orders
           {(startDate || endDate) && (
-            <span className="ml-1 px-2 py-0.5 bg-rose-100 text-rose-700 text-xs font-bold rounded-full">
+            <span className="ml-1 px-2 py-0.5 bg-brand-light text-brand-dark text-xs font-bold rounded-full">
               {[startDate, endDate].filter(Boolean).length}
             </span>
           )}
@@ -213,8 +213,8 @@ const MyOrdersPage = () => {
               <div className="bg-linear-to-br from-white to-gray-50 rounded-xl shadow-xl border border-gray-200 p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-rose-100 rounded-lg">
-                      <Filter className="w-4 h-4 text-rose-600" />
+                    <div className="p-2 bg-brand-light rounded-lg">
+                      <Filter className="w-4 h-4 text-brand" />
                     </div>
                     <h3 className="text-base font-semibold text-gray-900">
                       Filter Orders
@@ -291,7 +291,7 @@ const MyOrdersPage = () => {
               </p>
               <Link
                 to="/catalog"
-                className="inline-flex items-center gap-2 bg-rose-600 text-white px-6 py-2 rounded-lg hover:bg-rose-700 transition-colors"
+                className="inline-flex items-center gap-2 bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-dark transition-colors"
               >
                 Browse Books
                 <ChevronRight size={16} />
@@ -304,7 +304,7 @@ const MyOrdersPage = () => {
               </p>
               <button
                 onClick={clearFilters}
-                className="inline-flex items-center gap-2 bg-rose-600 text-white px-6 py-2 rounded-lg hover:bg-rose-700 transition-colors"
+                className="inline-flex items-center gap-2 bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-dark transition-colors"
               >
                 <X size={16} />
                 Clear Filters
@@ -439,7 +439,7 @@ const MyOrdersPage = () => {
                                   <span className="text-xs font-medium text-gray-700">
                                     Total
                                   </span>
-                                  <span className="text-xs font-bold text-rose-600">
+                                  <span className="text-xs font-bold text-brand">
                                     {(item.price * item.quantity).toFixed(0)}
                                   </span>
                                 </div>
@@ -476,7 +476,7 @@ const MyOrdersPage = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-gray-600 mb-1">Total Amount</p>
-                    <p className="text-2xl font-bold text-rose-600">
+                    <p className="text-2xl font-bold text-brand">
                       UGX {order.totalAmount.toFixed(0)}
                     </p>
                   </div>

@@ -13,59 +13,58 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import LibraryPage from "./pages/LibraryPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
+import AllBooksPage from "./pages/AllBooksPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
-    return (
-        <AuthProvider>
-            <CartProvider>
-                <div className="min-h-screen bg-rose-50">
-                    <Toaster position="top-right" />
-                    <Navbar />
-                    <ScrollToTop />
-                    <Routes>
-                        <Route path="/" element={<CatalogPage />} />
-                        <Route path="/search" element={<SearchResultsPage />} />
-                        <Route path="/book/:id" element={<BookDetailPage />} />
-                        <Route path="/checkout" element={<CheckoutPage />} />
-                        <Route path="/about" element={<AboutPage />} />
-                        <Route
-                            path="/reset-password"
-                            element={<ResetPasswordPage />}
-                        />
-                        <Route
-                            path="/library"
-                            element={
-                                <ProtectedRoute>
-                                    <LibraryPage />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/orders"
-                            element={
-                                <ProtectedRoute>
-                                    <MyOrdersPage />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/admin"
-                            element={
-                                <ProtectedRoute>
-                                    <AdminDashboard />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route path="*" element={<CatalogPage />} />
-                    </Routes>
-                    <Footer />
-                </div>
-            </CartProvider>
-        </AuthProvider>
-    );
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <div className="min-h-screen bg-brand-light">
+          <Toaster position="top-right" />
+          <Navbar />
+          <ScrollToTop />
+          <Routes>
+            <Route path="/" element={<CatalogPage />} />
+            <Route path="/books" element={<AllBooksPage />} />
+            <Route path="/search" element={<SearchResultsPage />} />
+            <Route path="/book/:id" element={<BookDetailPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route
+              path="/library"
+              element={
+                <ProtectedRoute>
+                  <LibraryPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoute>
+                  <MyOrdersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<CatalogPage />} />
+          </Routes>
+          <Footer />
+        </div>
+      </CartProvider>
+    </AuthProvider>
+  );
 }
 
 export default App;

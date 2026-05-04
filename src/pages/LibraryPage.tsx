@@ -67,7 +67,7 @@ const LibraryPage = () => {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-center min-h-[400px]">
-            <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+            <Loader2 className="w-8 h-8 animate-spin text-brand" />
             <p className="ml-3 text-gray-600">Loading your library...</p>
           </div>
         </div>
@@ -81,7 +81,7 @@ const LibraryPage = () => {
         {/* Header */}
         <div className="mb-8 flex flex-col items-center justify-center gap-2 w-full">
           <div className="flex items-center gap-3 mb-2">
-            <Book className="w-8 h-8 text-rose-600" />
+            <Book className="w-8 h-8 text-brand" />
             <h1 className="text-3xl font-bold text-gray-900">My Library</h1>
           </div>
           <p className="text-gray-600">
@@ -102,7 +102,7 @@ const LibraryPage = () => {
             </p>
             <a
               href="/"
-              className="inline-block bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+              className="inline-block bg-brand hover:bg-brand-dark text-white font-semibold py-2 px-6 rounded-lg transition-colors"
             >
               Browse Books
             </a>
@@ -185,7 +185,7 @@ const LibraryPage = () => {
                           handleReadBook(book.bookId, book.bookTitle)
                         }
                         disabled={loadingBookId === String(book.bookId)}
-                        className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                        className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
                       >
                         {loadingBookId === String(book.bookId) ? (
                           <>

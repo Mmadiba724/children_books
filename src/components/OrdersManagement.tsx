@@ -215,7 +215,7 @@ export default function OrdersManagement() {
     if (isLoading) {
       return (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-rose-600 animate-spin" />
+          <Loader2 className="w-8 h-8 text-brand animate-spin" />
         </div>
       );
     }
@@ -245,7 +245,7 @@ export default function OrdersManagement() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="bg-white p-2 rounded-lg shadow-sm">
-                    <ShoppingBag className="w-5 h-5 text-rose-600" />
+                    <ShoppingBag className="w-5 h-5 text-brand" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">
