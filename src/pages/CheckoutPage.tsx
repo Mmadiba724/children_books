@@ -8,6 +8,7 @@ import authService from "../services/authService";
 import { cartSessionManager } from "../config/api";
 import { CheckCircle, Edit } from "lucide-react";
 import { getImageUrl } from "../utils/imageUtils";
+import Map from "../components/googlemaps";
 
 export default function CheckoutPage() {
   const { state, subtotalCents, clear } = useCart();
@@ -15,6 +16,10 @@ export default function CheckoutPage() {
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
   const [shippingAddress, setShippingAddress] = useState("");
+  const [shippingCoords, setShippingCoords] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [transactionNumber, setTransactionNumber] = useState("");
@@ -61,6 +66,12 @@ export default function CheckoutPage() {
       // Create order payload matching new API format
       // Note: totalAmount should be the subtotal (sum of item prices) without tax/shipping
       // The server will validate this against the calculated total from book prices
+      const shippingAddressForOrder =
+        shippingAddress.trim() ||
+        (shippingCoords
+          ? `Coordinates: ${shippingCoords.lat.toFixed(6)}, ${shippingCoords.lng.toFixed(6)}`
+          : "No shipping address provided");
+
       const orderPayload = {
         items: state.items.map((item) => ({
           bookId: Number(item.book.id),
@@ -68,8 +79,7 @@ export default function CheckoutPage() {
         })),
         totalAmount: (subtotal + shippingCents) / 100, // subtotal + shipping (converted from cents to dollars)
         transactionId: transactionNumber.trim(),
-        shippingAddress:
-          shippingAddress.trim() || "No shipping address provided",
+        shippingAddress: shippingAddressForOrder,
       };
 
       console.log("Order payload being sent:", orderPayload);
@@ -136,7 +146,7 @@ export default function CheckoutPage() {
                     />
                     <button
                       onClick={() => {
-                        if (shippingAddress.trim()) {
+                        if (shippingAddress.trim() || shippingCoords) {
                           setShowAddressForm(false);
                           setCurrentStep(2);
                         }
@@ -145,18 +155,41 @@ export default function CheckoutPage() {
                     >
                       Save Address
                     </button>
+
+                    <div className="mt-6">
+                      <h3 className="font-semibold mb-2">
+                        Select delivery location on map
+                      </h3>
+                      <div className="h-72 rounded-lg overflow-hidden border border-gray-200">
+                        <Map
+                          selectedLocation={shippingCoords}
+                          onSelectLocation={(coords) =>
+                            setShippingCoords(coords)
+                          }
+                        />
+                      </div>
+                      {shippingCoords && (
+                        <p className="mt-2 text-sm text-gray-600">
+                          Selected location: {shippingCoords.lat.toFixed(6)},{" "}
+                          {shippingCoords.lng.toFixed(6)}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-start justify-between">
                     <div>
                       <p
                         className={
-                          shippingAddress
+                          shippingAddress || shippingCoords
                             ? "text-gray-700"
                             : "text-red-600 font-semibold"
                         }
                       >
-                        {shippingAddress || "No address provided"}
+                        {shippingAddress ||
+                          (shippingCoords
+                            ? `Lat: ${shippingCoords.lat.toFixed(6)}, Lng: ${shippingCoords.lng.toFixed(6)}`
+                            : "No address provided")}
                       </p>
                     </div>
                     <button
@@ -418,7 +451,9 @@ export default function CheckoutPage() {
                 onClick={handleSubmitOrder}
                 disabled={
                   loading ||
-                  (hasPhysicalBooks && !shippingAddress) ||
+                  (hasPhysicalBooks &&
+                    !shippingAddress.trim() &&
+                    !shippingCoords) ||
                   (hasPhysicalBooks && !shippingLocation) ||
                   !transactionNumber.trim()
                 }

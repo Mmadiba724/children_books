@@ -6,7 +6,9 @@ import tokenStorage from '../utils/tokenStorage';
 interface RegisterPayload {
     email: string;
     password: string;
-    name?: string;
+    firstName: string;
+    lastName: string;
+	phone: string;
 }
 
 interface LoginPayload {

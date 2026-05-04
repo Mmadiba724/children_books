@@ -16,6 +16,9 @@ const RegisterModal = ({
 }: RegisterModalProps) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [phone, setPhone] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [name, setName] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -70,9 +73,11 @@ const RegisterModal = ({
             setIsLoading(true);
             try {
                 await authService.register({
-                    email,
-                    password,
-                    name: name || undefined,
+                  email,
+                  password,
+                  firstName,
+                  lastName,
+                  phone,
                 });
                 console.log("Registration successful");
 
@@ -140,16 +145,39 @@ const RegisterModal = ({
                             </div>
                         )}
 
-                        {/* Name Input (Optional) */}
+                        {/* First Name Input  */}
                         <div>
                             <input
                                 type="text"
-                                placeholder="Full Name (Optional)"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                placeholder="First Name"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
                                 className="w-full px-4 py-3 border-2 border-gray-300 rounded focus:outline-none focus:border-green-700"
                             />
                         </div>
+
+                        {/* Last Name Input  */}
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Last Name"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                className="w-full px-4 py-3 border-2 border-gray-300 rounded focus:outline-none focus:border-green-700"
+                            />
+                        </div>
+
+                        {/* Phone Input */}
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Phone Number"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="w-full px-4 py-3 border-2 border-gray-300 rounded focus:outline-none focus:border-green-700"
+                            />
+                        </div>
+                        
 
                         {/* Email Input */}
                         <div>

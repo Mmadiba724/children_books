@@ -13,6 +13,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@react-google-maps/api": "^2.20.8",
     "@tailwindcss/vite": "^4.1.17",
     "@tanstack/react-query": "^5.90.20",
     "@types/react-router-dom": "^5.3.3",

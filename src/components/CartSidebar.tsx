@@ -20,8 +20,8 @@ const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
     const subtotal = subtotalCents();
-    const tax = Math.round(subtotal * 0.07);
-    const total = subtotal + tax;
+    // const tax = Math.round(subtotal * 0.07);
+    const total = subtotal ;
 
     const handleCheckout = () => {
         if (!isAuthenticated) {
