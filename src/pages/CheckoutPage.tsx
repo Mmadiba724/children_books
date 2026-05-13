@@ -25,7 +25,7 @@ export default function CheckoutPage() {
   const [transactionNumber, setTransactionNumber] = useState("");
   const [shippingLocation, setShippingLocation] = useState<
     "kampala" | "outside" | ""
-  >("kampala");
+  >("");
 
   // Check if cart contains any physical books
   const hasPhysicalBooks = state.items.some(
@@ -128,11 +128,75 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Checkout Steps */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Step 1: Shipping Address */}
+{/* Step 1: Shipping Options */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-3 mb-4">
                 <CheckCircle className="text-green-600" size={24} />
-                <h2 className="text-lg font-bold">1. SHIPPING ADDRESS</h2>
+                <h2 className="text-lg font-bold">1. SHIPPING OPTIONS</h2>
+                {currentStep > 2 && (
+                  <button className="ml-auto text-blue-600 hover:underline text-sm font-semibold">
+                    Edit
+                  </button>
+                )}
+              </div>
+              {hasPhysicalBooks ? (
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-2">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="shippingLocation"
+                        value="kampala"
+                        checked={shippingLocation === "kampala"}
+                        onChange={() => setShippingLocation("kampala")}
+                        className="accent-blue-600"
+                      />
+                      <span className="font-semibold">Within Kampala</span>
+                      <span className="ml-auto font-bold text-gray-900">
+                        UGX 10,000
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="shippingLocation"
+                        value="outside"
+                        checked={shippingLocation === "outside"}
+                        onChange={() => setShippingLocation("outside")}
+                        className="accent-blue-600"
+                      />
+                      <span className="font-semibold">Outside Kampala</span>
+                      <span className="ml-auto font-bold text-orange-600">
+                        Negotiated
+                      </span>
+                    </label>
+                  </div>
+                  {shippingLocation === "outside" && (
+                    <p className="text-xs text-orange-600 bg-orange-50 border border-orange-200 rounded p-2">
+                      Shipping cost will be confirmed after order submission.
+                      You will be contacted with the final amount.
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-600">
+                    Estimated delivery: 5-7 business days
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p className="font-semibold">eBook</p>
+                  <p className="text-sm text-gray-600">
+                    Available Immediately in Your Digital Library (Pre-orders
+                    will be available on their release dates.)
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Step 2: Shipping Address */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <CheckCircle className="text-green-600" size={24} />
+                <h2 className="text-lg font-bold">2. SHIPPING ADDRESS DESCRIPTION</h2>
               </div>
               {hasPhysicalBooks ? (
                 showAddressForm ? (
@@ -211,69 +275,7 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            {/* Step 2: Shipping Options */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <CheckCircle className="text-green-600" size={24} />
-                <h2 className="text-lg font-bold">2. SHIPPING OPTIONS</h2>
-                {currentStep > 2 && (
-                  <button className="ml-auto text-blue-600 hover:underline text-sm font-semibold">
-                    Edit
-                  </button>
-                )}
-              </div>
-              {hasPhysicalBooks ? (
-                <div className="space-y-3">
-                  <div className="flex flex-col gap-2">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="shippingLocation"
-                        value="kampala"
-                        checked={shippingLocation === "kampala"}
-                        onChange={() => setShippingLocation("kampala")}
-                        className="accent-blue-600"
-                      />
-                      <span className="font-semibold">Within Kampala</span>
-                      <span className="ml-auto font-bold text-gray-900">
-                        UGX 10,000
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="shippingLocation"
-                        value="outside"
-                        checked={shippingLocation === "outside"}
-                        onChange={() => setShippingLocation("outside")}
-                        className="accent-blue-600"
-                      />
-                      <span className="font-semibold">Outside Kampala</span>
-                      <span className="ml-auto font-bold text-orange-600">
-                        Negotiated
-                      </span>
-                    </label>
-                  </div>
-                  {shippingLocation === "outside" && (
-                    <p className="text-xs text-orange-600 bg-orange-50 border border-orange-200 rounded p-2">
-                      Shipping cost will be confirmed after order submission.
-                      You will be contacted with the final amount.
-                    </p>
-                  )}
-                  <p className="text-sm text-gray-600">
-                    Estimated delivery: 5-7 business days
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <p className="font-semibold">eBook</p>
-                  <p className="text-sm text-gray-600">
-                    Available Immediately in Your Digital Library (Pre-orders
-                    will be available on their release dates.)
-                  </p>
-                </div>
-              )}
-            </div>
+            
 
             {/* Step 3: Payment Details */}
             {/*<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">*/}

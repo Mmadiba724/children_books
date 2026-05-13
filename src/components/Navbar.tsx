@@ -158,6 +158,10 @@ const Navbar = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
+  const displayName =
+    user && (user.firstName || user.lastName)
+      ? [user.firstName, user.lastName].filter(Boolean).join(" ")
+      : user?.email;
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchCategory, setSearchCategory] = useState("All");
   const [searchInput, setSearchInput] = useState("");
@@ -248,7 +252,7 @@ const Navbar = () => {
                 onCreateAccountClick={() => setIsRegisterModalOpen(true)}
                 isAuthenticated={isAuthenticated}
                 onLogout={handleLogout}
-                userName={user?.name || user?.email}
+                userName={displayName}
                 userRole={user?.role}
                 onClose={() => setAccountMenuOpen(false)}
               />
@@ -443,7 +447,7 @@ const Navbar = () => {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 px-2 py-2 text-sm font-medium text-gray-700">
                     <User size={16} />
-                    {user?.name || user?.email}
+                    {displayName}
                   </div>
                   <Link
                     to="/library"

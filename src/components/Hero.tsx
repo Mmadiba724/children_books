@@ -117,7 +117,7 @@ const Hero = ({ query, books = [] }: HeroProps) => {
               whileHover={{ scale: 1.05, rotate: 3 }}
               src={displaybook}
               alt="featured book"
-              className="absolute -right-14 sm:-right-18 -bottom-6 sm:-bottom-8 w-32 sm:w-48 md:w-64 rounded-lg shadow-2xl border-4 border-white"
+              className="absolute -right-104 sm:-right-54 -bottom-6 sm:-bottom-8 w-32 sm:w-48 md:w-64 rounded-lg shadow-2xl border-4 border-red-100"
             />
 
             {/* floating small covers - hidden on mobile */}

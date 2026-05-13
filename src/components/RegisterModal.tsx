@@ -20,7 +20,7 @@ const RegisterModal = ({
     const [lastName, setLastName] = useState("");
     const [phone, setPhone] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [name, setName] = useState("");
+    // const [name, setName] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -88,7 +88,7 @@ const RegisterModal = ({
                 setEmail("");
                 setPassword("");
                 setConfirmPassword("");
-                setName("");
+                // setName("");
                 setAgreeToTerms(false);
                 setErrors({});
 

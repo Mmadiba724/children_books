@@ -336,7 +336,7 @@ export default function OrdersManagement() {
                               <Hash className="w-4 h-4 text-green-700" />
                             </div>
                             <span className="text-sm font-bold text-gray-900">
-                              Mobile Money Transaction Number
+                              Customer Input Mobile Money Transaction Number
                             </span>
                           </div>
                           <div className="bg-green-50 px-3 py-2 rounded border-2 border-green-200">
@@ -344,9 +344,15 @@ export default function OrdersManagement() {
                               {order.transactionId}
                             </span>
                           </div>
-                          <p className="text-xs text-green-700 mt-2 text-center font-medium">
-                            ✓ Payment Proof Verified
-                          </p>
+                          {order.transactionIdMatched === true ? (
+                            <p className="text-xs text-green-700 mt-2 text-center font-medium">
+                              ✓ Payment Proof Verified
+                            </p>
+                          ) : (
+                            <p className="text-xs text-orange-600 mt-2 text-center font-medium">
+                              ⏳ Awaiting Payment Verification
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -410,13 +416,15 @@ export default function OrdersManagement() {
 
                 {/* Action Section */}
                 <div className="lg:col-span-1">
-                  {order.status === "PENDING" ? (
+                  {order.status === "PENDING" ||
+                  (order.transactionIdMatched === true &&
+                    order.status !== "PAID") ? (
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 sticky top-4">
                       <h4 className="font-bold text-gray-900 mb-4">
                         Actions Required
                       </h4>
                       <div className="space-y-3">
-                        {!order.transactionId ? (
+                        {!order.transactionIdMatched ? (
                           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                             <p className="text-sm font-medium text-yellow-800 mb-2">
                               ⏳ Waiting for Payment
@@ -427,35 +435,38 @@ export default function OrdersManagement() {
                             </p>
                           </div>
                         ) : null}
-                        <button
-                          onClick={() => handleApproveOrder(order.id)}
-                          disabled={
-                            processingOrderId === order.id ||
-                            !order.transactionId
-                          }
-                          className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none"
-                          title={
-                            !order.transactionId
-                              ? "Transaction ID must be added first"
-                              : "Approve this order"
-                          }
-                        >
-                          {processingOrderId === order.id ? (
-                            <>
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                              <span>Processing...</span>
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="w-5 h-5" />
-                              <span>
-                                {!order.transactionId
-                                  ? "Waiting for Payment"
-                                  : "Approve Order"}
-                              </span>
-                            </>
-                          )}
-                        </button>
+
+                        {order.transactionIdMatched === true && (
+                          <button
+                            onClick={() => handleApproveOrder(order.id)}
+                            disabled={
+                              processingOrderId === order.id ||
+                              !order.transactionId
+                            }
+                            className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none"
+                            title={
+                              !order.transactionId
+                                ? "Transaction ID must be added first"
+                                : "Approve this order"
+                            }
+                          >
+                            {processingOrderId === order.id ? (
+                              <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <span>Processing...</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="w-5 h-5" />
+                                <span>
+                                  {!order.transactionId
+                                    ? "Waiting for Payment confirmation"
+                                    : "Approve Order"}
+                                </span>
+                              </>
+                            )}
+                          </button>
+                        )}
 
                         <button
                           onClick={() => handleRejectOrder(order.id)}
