@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import categoryService from "../services/categoryService";
 import toast from "react-hot-toast";
 import logo from "/logo-main.png";
+import logoText from "/logo-text.png";
 import {
   User,
   ShoppingBag,
@@ -27,12 +28,12 @@ import { navbarVariants } from "../utils/animations";
 const menuItem =
   "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-ink-soft transition-colors hover:bg-brand-light hover:text-brand-dark";
 
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-full px-4 py-2 text-sm font-extrabold transition-colors ${
-    isActive
-      ? "bg-ink text-white"
-      : "text-ink-soft hover:bg-brand-light hover:text-brand-dark"
-  }`;
+// const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+//   `rounded-full px-4 py-2 text-sm font-extrabold transition-colors ${
+//     isActive
+//       ? "bg-ink text-white"
+//       : "text-ink-soft hover:bg-brand-light hover:text-brand-dark"
+//   }`;
 
 const AccountMenu = ({
   isOpen,
@@ -344,7 +345,7 @@ const Navbar = () => {
           >
             <img src={logo} alt="" className="h-9 w-auto md:h-11" />
             <img
-              src="/logo-text.png"
+              src={logoText}
               alt="Book Jungle"
               className="h-9 w-auto md:h-11"
             />

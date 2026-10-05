@@ -31,9 +31,9 @@ export default function Hero({ books = [] }: HeroProps) {
   return (
     <section
       aria-labelledby="hero-title"
-      className="kb-paper relative overflow-hidden border-b border-line"
+      className="kb-paper relative flex min-h-[calc(100svh-8.5rem)] items-center overflow-hidden border-b border-line md:min-h-[calc(100svh-7.5rem)]"
     >
-      <div className="kb-container grid items-center gap-8 py-10 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:py-20">
+      <div className="mx-auto grid w-full max-w-[110rem] items-center gap-8 px-4 py-12 sm:px-8 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-14 lg:py-24">
         <div className="text-left">
           <motion.p
             {...rise(0)}

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import logo from "/logo-main.png";
+import logoText from "/logo-text.png";
 
 const columns = [
   {
@@ -30,7 +31,7 @@ const Footer = () => (
           >
             <img src={logo} alt="" className="h-11 w-auto" />
             <img
-              src="/logo-text.png"
+              src={logoText}
               alt="Book Jungle"
               className="h-11 w-auto"
             />
