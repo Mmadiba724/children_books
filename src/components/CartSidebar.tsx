@@ -1,267 +1,258 @@
-import { X, ShoppingCart, Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { X, ShoppingBag, Minus, Plus, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { getImageUrl } from "../utils/imageUtils";
+import { Link, useNavigate } from "react-router-dom";
 import LoginModal from "./LoginModal";
+import BookCover from "./ui/BookCover";
+import { formatPrice } from "../utils/formatPrice";
 import { backdropVariants, sidebarVariants } from "../utils/animations";
 
 interface CartSidebarProps {
-    isOpen: boolean;
-    onClose: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
-    const { state, update, remove, subtotalCents } = useCart();
-    const { isAuthenticated } = useAuth();
-    const navigate = useNavigate();
-    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const { state, update, remove, subtotalCents } = useCart();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
-    const subtotal = subtotalCents();
-    // const tax = Math.round(subtotal * 0.07);
-    const total = subtotal ;
+  const total = subtotalCents();
+  const itemCount = state.items.reduce((s, i) => s + i.quantity, 0);
 
-    const handleCheckout = () => {
-        if (!isAuthenticated) {
-            setIsLoginModalOpen(true);
-            return;
-        }
-        onClose();
-        navigate("/checkout");
+  const handleCheckout = () => {
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    onClose();
+    navigate("/checkout");
+  };
+
+  // Escape closes the drawer, focus moves in when it opens, page scroll is locked
+  useEffect(() => {
+    if (!isOpen) return;
+    closeRef.current?.focus();
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isLoginModalOpen) onClose();
     };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [isOpen, isLoginModalOpen, onClose]);
 
-    if (!isOpen) return null;
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Overlay */}
+          <motion.button
+            type="button"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={backdropVariants}
+            onClick={onClose}
+            className="fixed inset-0 z-40 cursor-default bg-ink/45 backdrop-blur-[2px]"
+            aria-label="Close cart"
+            tabIndex={-1}
+          />
 
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <>
-                    {/* Overlay */}
-                    <motion.button
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        variants={backdropVariants}
+          {/* Drawer */}
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cart-title"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={sidebarVariants}
+            className="fixed top-0 right-0 z-50 flex h-full w-full max-w-md flex-col bg-cream text-left shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-line bg-white px-5 py-4">
+              <h2
+                id="cart-title"
+                className="flex items-center gap-2 font-display text-xl font-bold"
+              >
+                <ShoppingBag
+                  className="h-5 w-5 text-brand"
+                  aria-hidden="true"
+                />
+                Your cart
+                {itemCount > 0 && (
+                  <span className="kb-badge bg-brand-light text-brand-dark">
+                    {itemCount}
+                  </span>
+                )}
+              </h2>
+              <button
+                ref={closeRef}
+                type="button"
+                onClick={onClose}
+                aria-label="Close cart"
+                className="kb-btn kb-btn-quiet !min-h-11 !min-w-11 !p-0"
+              >
+                <X className="h-6 w-6" aria-hidden="true" />
+              </button>
+            </div>
+
+            {state.items.length === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
+                <span className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-sun-light text-warning">
+                  <ShoppingBag className="h-9 w-9" aria-hidden="true" />
+                </span>
+                <p className="font-display text-2xl font-bold">
+                  Your cart is empty
+                </p>
+                <p className="mt-2 text-ink-soft">
+                  Find a story to add and it will wait for you here.
+                </p>
+                <Link
+                  to="/books"
+                  onClick={onClose}
+                  className="kb-btn kb-btn-primary mt-6"
+                >
+                  Browse books
+                </Link>
+              </div>
+            ) : (
+              <>
+                <ul className="flex-1 space-y-4 overflow-y-auto p-5">
+                  {state.items.map((item) => (
+                    <li key={item.book.id} className="kb-card flex gap-4 p-3">
+                      <Link
+                        to={`/book/${item.book.id}`}
                         onClick={onClose}
-                        className="fixed inset-0 bg-transparent bg-opacity-50 z-40 cursor-default"
-                        aria-label="Close cart"
-                    />
+                        className="w-20 shrink-0 self-start"
+                        aria-label={`View ${item.book.title}`}
+                      >
+                        <BookCover
+                          title={item.book.title}
+                          coverImageUrl={item.book.coverImageUrl}
+                        />
+                      </Link>
 
-                    {/* Sidebar */}
-                    <motion.div
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        variants={sidebarVariants}
-                        className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col"
-                    >
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                            <div className="flex items-center gap-2">
-                                <ShoppingCart
-                                    size={20}
-                                    className="text-gray-700"
-                                />
-                                <h2 className="text-lg font-bold">
-                                    Shopping Cart
-                                </h2>
-                                {state.items.length > 0 && (
-                                    <span className="bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                                        {state.items.length}
-                                    </span>
-                                )}
-                            </div>
+                      <div className="flex min-w-0 flex-1 flex-col">
+                        <h3 className="line-clamp-2 font-display text-base leading-snug font-bold capitalize">
+                          {item.book.title}
+                        </h3>
+                        <p className="truncate text-sm text-ink-soft">
+                          {item.book.author}
+                        </p>
+                        <p className="mt-0.5 text-xs font-bold text-muted">
+                          {item.book.format === "DIGITAL" ? "Digital" : "Print"}
+                        </p>
+                        <p className="mt-1 font-extrabold">
+                          {formatPrice(item.book.price)}
+                        </p>
+
+                        <div className="mt-auto flex items-center justify-between pt-3">
+                          <div
+                            role="group"
+                            aria-label={`Quantity of ${item.book.title}`}
+                            className="flex items-center rounded-full border-2 border-line"
+                          >
                             <button
-                                onClick={onClose}
-                                className="text-gray-500 hover:text-gray-700"
+                              type="button"
+                              aria-label="Decrease quantity"
+                              onClick={() =>
+                                update(
+                                  item.book.id,
+                                  Math.max(1, item.quantity - 1),
+                                )
+                              }
+                              disabled={item.quantity <= 1}
+                              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-brand-light disabled:opacity-40"
                             >
-                                <X size={24} />
+                              <Minus
+                                className="h-3.5 w-3.5"
+                                aria-hidden="true"
+                              />
                             </button>
+                            <output className="min-w-6 text-center text-sm font-extrabold">
+                              {item.quantity}
+                            </output>
+                            <button
+                              type="button"
+                              aria-label="Increase quantity"
+                              onClick={() =>
+                                update(item.book.id, item.quantity + 1)
+                              }
+                              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-brand-light"
+                            >
+                              <Plus
+                                className="h-3.5 w-3.5"
+                                aria-hidden="true"
+                              />
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => remove(item.book.id)}
+                            aria-label={`Remove ${item.book.title} from cart`}
+                            className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition-colors hover:bg-error-light hover:text-error"
+                          >
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
+                          </button>
                         </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
 
-                        {/* Content */}
-                        {state.items.length === 0 ? (
-                            <div className="flex-1 flex items-center justify-center p-6">
-                                <div className="text-center">
-                                    <ShoppingCart
-                                        size={64}
-                                        className="mx-auto text-gray-300 mb-4"
-                                    />
-                                    <p className="text-gray-600 mb-4">
-                                        Your cart is empty
-                                    </p>
-                                    <button
-                                        onClick={onClose}
-                                        className="text-blue-600 hover:underline"
-                                    >
-                                        Continue Shopping
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <>
-                                {/* Free Shipping Notice */}
-                                {/* <div className="bg-green-50 border-b border-green-200 p-3">
-                            <p className="text-sm text-green-800">
-                                ADD ${((31 * 100 - subtotal) / 100).toFixed(2)}{" "}
-                                OF ELIGIBLE ITEMS TO QUALIFY FOR FREE SHIPPING
-                            </p>
-                        </div> */}
-
-                                {/* Cart Items */}
-                                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                                    {state.items.map((item) => (
-                                        <div
-                                            key={item.book.id}
-                                            className="flex gap-3 pb-4 border-b border-gray-200"
-                                        >
-                                            {/* Book Image */}
-                                            <img
-                                                src={getImageUrl(
-                                                    item.book.coverImageUrl,
-                                                )}
-                                                alt={item.book.title}
-                                                className="w-20 h-28 object-cover rounded"
-                                            />
-
-                                            {/* Book Details */}
-                                            <div className="flex-1">
-                                                <h3 className="font-semibold text-sm mb-1">
-                                                    {item.book.title}
-                                                </h3>
-                                                <p className="text-xs text-gray-600 mb-1">
-                                                    {item.book.author}
-                                                </p>
-                                                <p className="text-xs text-gray-500 mb-2">
-                                                    {item.book.format}
-                                                </p>
-                                                <p className="font-bold text-sm mb-2">
-                                                    UGX{" "}
-                                                    {(
-                                                        (item.book.price *
-                                                            100) /
-                                                        100
-                                                    ).toFixed(0)}
-                                                </p>
-
-                                                {/* Quantity Controls */}
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex items-center border border-gray-300 rounded">
-                                                        <button
-                                                            onClick={() =>
-                                                                update(
-                                                                    item.book
-                                                                        .id,
-                                                                    Math.max(
-                                                                        1,
-                                                                        item.quantity -
-                                                                            1,
-                                                                    ),
-                                                                )
-                                                            }
-                                                            className="p-1 hover:bg-gray-100"
-                                                            disabled={
-                                                                item.quantity <=
-                                                                1
-                                                            }
-                                                        >
-                                                            <Minus size={14} />
-                                                        </button>
-                                                        <input
-                                                            type="text"
-                                                            value={
-                                                                item.quantity
-                                                            }
-                                                            readOnly
-                                                            className="w-10 text-center text-sm border-x border-gray-300"
-                                                        />
-                                                        <button
-                                                            onClick={() =>
-                                                                update(
-                                                                    item.book
-                                                                        .id,
-                                                                    item.quantity +
-                                                                        1,
-                                                                )
-                                                            }
-                                                            className="p-1 hover:bg-gray-100"
-                                                        >
-                                                            <Plus size={14} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Actions */}
-                                                <div className="flex gap-3 mt-2">
-                                                    <button className="text-xs text-blue-600 hover:underline">
-                                                        Save for Later
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            remove(item.book.id)
-                                                        }
-                                                        className="text-xs text-red-600 hover:underline"
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Footer */}
-                                <div className="border-t border-gray-200 p-4 bg-gray-50">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className="font-bold text-lg">
-                                            ORDER TOTAL
-                                        </span>
-                                        <span className="font-bold text-lg">
-                                            UGX {(total / 100).toFixed(0)}
-                                        </span>
-                                    </div>
-
-                                    <button
-                                        onClick={handleCheckout}
-                                        className="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold py-3 rounded transition-colors mb-3"
-                                    >
-                                        CONTINUE TO CHECKOUT
-                                    </button>
-
-                                    {/* <div className="text-center">
-                                <p className="text-xs text-gray-600 mb-2">
-                                    Or Checkout With
-                                </p>
-                                <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold py-2 rounded transition-colors">
-                                    PayPal
-                                </button>
-                            </div> */}
-                                </div>
-                            </>
-                        )}
-                    </motion.div>
-
-                    <LoginModal
-                        isOpen={isLoginModalOpen}
-                        onClose={() => setIsLoginModalOpen(false)}
-                        onSignIn={() => {
-                            // Login successful, modal will close itself
-                            // Navigate to checkout after a brief delay to ensure auth state updates
-                            setTimeout(() => {
-                                onClose();
-                                navigate("/checkout");
-                            }, 100);
-                        }}
-                        onCreateAccount={() => {
-                            setIsLoginModalOpen(false);
-                        }}
-                    />
-                </>
+                <div className="border-t border-line bg-white p-5">
+                  <div className="mb-4 flex items-baseline justify-between">
+                    <span className="font-bold text-ink-soft">Total</span>
+                    <span className="text-2xl font-extrabold">
+                      {formatPrice(total / 100)}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCheckout}
+                    className="kb-btn kb-btn-primary w-full py-3 text-base"
+                  >
+                    Continue to checkout
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="kb-btn kb-btn-quiet mt-2 w-full"
+                  >
+                    Keep browsing
+                  </button>
+                </div>
+              </>
             )}
-        </AnimatePresence>
-    );
+          </motion.div>
+
+          <LoginModal
+            isOpen={isLoginModalOpen}
+            onClose={() => setIsLoginModalOpen(false)}
+            onSignIn={() => {
+              // Login successful, modal will close itself
+              // Navigate to checkout after a brief delay to ensure auth state updates
+              setTimeout(() => {
+                onClose();
+                navigate("/checkout");
+              }, 100);
+            }}
+            onCreateAccount={() => {
+              setIsLoginModalOpen(false);
+            }}
+          />
+        </>
+      )}
+    </AnimatePresence>
+  );
 };
 
 export default CartSidebar;

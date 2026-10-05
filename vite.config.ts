@@ -9,6 +9,10 @@ export default defineConfig(({ mode }) => ({
     react(),
     tailwindcss(),
   ],
+  server: {
+    // Allow ngrok tunnels (leading dot matches any subdomain)
+    allowedHosts: ['.ngrok-free.app'],
+  },
   // Use dynamic base: '/' for dev, '/children_books/' for production (GitHub Pages)
   base: mode === 'production' ? '/children_books/' : '/',
   // Vite's dev server already provides SPA fallback by default

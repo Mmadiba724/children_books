@@ -1,148 +1,148 @@
+import { Link } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, BookOpenCheck, Sparkles, Tablet } from "lucide-react";
 import baby from "../assets/baby_reading.png";
-import displaybook from "../assets/15frt.jpg";
-import { Info, Star } from "lucide-react";
+import fallbackCover from "../assets/15frt.jpg";
 import { getImageUrl } from "../utils/imageUtils";
 import type { Book } from "../types/book";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { slideInLeftVariants, slideInRightVariants } from "../utils/animations";
-
-function scrollToCatalog() {
-  const el = document.getElementById("catalog-grid");
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
 
 type HeroProps = {
-  query?: string;
-  books?: Book[];
-  onSearch: (newQuery: string) => void;
-  searchResults: Book[];
+  readonly books?: readonly Book[];
 };
 
-const Hero = ({ query, books = [] }: HeroProps) => {
-  const heading = query ? `Results for "${query}"` : "Featured picks";
+const perks = [
+  { icon: Tablet, label: "Digital & print editions" },
+  { icon: BookOpenCheck, label: "Read in your own library" },
+  { icon: Sparkles, label: "Made for early readers" },
+];
+
+export default function Hero({ books = [] }: HeroProps) {
+  const reduce = useReducedMotion();
+  const covers = books.filter((b) => b.coverImageUrl).slice(0, 2);
+  const rise = (delay: number) =>
+    reduce
+      ? {}
+      : {
+          initial: { opacity: 0, y: 16 },
+          animate: { opacity: 1, y: 0 },
+          transition: { delay, duration: 0.5, ease: "easeOut" as const },
+        };
 
   return (
-    <section className="relative overflow-hidden  md:h-[600px]  md:rounded-3xl p-6 sm:p-8 md:p-10 lg:p-12 bg-linear-to-br from-brand-light via-white to-pink-50  mt-8">
-      {/* Decorative background blobs */}
-      <div className="pointer-events-none absolute -left-20 -top-16 w-48 h-48 md:w-64 md:h-64 bg-brand-light  opacity-40 blur-3xl transform rotate-12" />
-      <div className="pointer-events-none absolute -right-24 -bottom-12 w-60 h-60 md:w-80 md:h-80 bg-pink-100  opacity-40 blur-3xl transform -rotate-6" />
-
-      <div className="relative max-w-7xl mx-auto h-full grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10 lg:gap-12 items-center">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={slideInLeftVariants}
-          className="order-2 lg:order-1 z-10"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="inline-flex items-center gap-2 bg-brand-light text-brand rounded-full px-4 py-2 text-sm font-semibold mb-6 shadow-sm"
+    <section
+      aria-labelledby="hero-title"
+      className="kb-paper relative overflow-hidden border-b border-line"
+    >
+      <div className="kb-container grid items-center gap-8 py-10 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:py-20">
+        <div className="text-left">
+          <motion.p
+            {...rise(0)}
+            className="kb-badge mb-5 border border-sun/60 bg-sun-light px-3.5 py-1 text-sm text-ink"
           >
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            {heading}
-          </motion.div>
+            <Sparkles className="h-4 w-4 text-warning" aria-hidden="true" />
+            Children&apos;s digital library
+          </motion.p>
 
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-4"
+            {...rise(0.08)}
+            id="hero-title"
+            className="font-display text-[2.5rem] leading-[1.05] font-extrabold tracking-tight text-ink sm:text-6xl lg:text-[4.25rem]"
           >
-            Stories that Spark <span className="text-brand">Imaginations</span>
+            Stories that spark{" "}
+            <span className="relative whitespace-nowrap text-brand">
+              little imaginations
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 300 12"
+                preserveAspectRatio="none"
+                className="absolute -bottom-1.5 left-0 h-2.5 w-full text-sun"
+              >
+                <path
+                  d="M2 8 C 60 2, 120 12, 180 5 S 270 3, 298 7"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="mt-4 text-gray-700 text-lg leading-relaxed max-w-xl"
+            {...rise(0.16)}
+            className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft sm:text-xl"
           >
-            Bright, gentle tales for early readers — friendly characters,
-            playful learning, and bedtime magic. Curated picks and seasonal
-            collections to make storytime special.
+            Gentle tales, playful learning and bedtime magic, picked for early
+            readers and trusted by the grown-ups reading beside them.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="mt-8 flex md:flex-wrap gap-4 w-full items-center"
+            {...rise(0.24)}
+            className="mt-8 flex flex-col gap-3 sm:flex-row"
           >
-            <motion.button
-              onClick={scrollToCatalog}
-              aria-label="Browse books"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-brand hover:bg-brand-dark text-white font-semibold px-8 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 text-base"
+            <Link
+              to="/books"
+              className="kb-btn kb-btn-primary px-8 py-3.5 text-base"
             >
-              Browse Books
-            </motion.button>
-
-            <Link to="/about">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="inline-flex items-center gap-2 bg-white border-2 border-brand-light px-7 py-3.5 rounded-full text-brand font-semibold hover:bg-brand-light hover:border-brand transition-all duration-200 text-base shadow-md"
-              >
-                Learn More
-                <Info className="w-4 h-4" />
-              </motion.div>
+              Browse all books
+              <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            </Link>
+            <Link
+              to="/about"
+              className="kb-btn kb-btn-secondary px-8 py-3.5 text-base"
+            >
+              Our story
             </Link>
           </motion.div>
-        </motion.div>
 
+          <motion.ul
+            {...rise(0.32)}
+            className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-ink-soft"
+          >
+            {perks.map(({ icon: Icon, label }) => (
+              <li key={label} className="flex items-center gap-2">
+                <Icon className="h-5 w-5 text-accent" aria-hidden="true" />
+                {label}
+              </li>
+            ))}
+          </motion.ul>
+        </div>
+
+        {/* Illustration: reader + real covers from the catalogue */}
         <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={slideInRightVariants}
-          className="relative md:flex justify-center items-center order-1 hidden lg:order-2 z-10"
+          {...rise(0.15)}
+          className="relative mx-auto w-full max-w-md lg:max-w-none"
         >
-          <div className="relative w-full max-w-sm md:max-w-md">
-            <motion.img
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              src={baby}
-              alt="child reading"
-              className="w-full rounded-2xl shadow-2x border-4 border-white"
+          <div className="absolute inset-x-6 top-6 bottom-0 rounded-[3rem] bg-sun-light" />
+          <div className="absolute top-0 -right-2 h-24 w-24 rounded-full bg-brand-light sm:h-32 sm:w-32" />
+          <div className="absolute bottom-10 -left-2 h-16 w-16 rounded-full bg-accent-light sm:h-20 sm:w-20" />
+          <img
+            src={baby}
+            alt="A toddler sitting and reading a colourful picture book"
+            className="relative z-10 mx-auto w-4/5 max-w-sm drop-shadow-xl"
+            width={600}
+            height={600}
+          />
+          <img
+            src={
+              covers[0] ? getImageUrl(covers[0].coverImageUrl) : fallbackCover
+            }
+            alt={
+              covers[0]
+                ? `Cover of ${covers[0].title}`
+                : "Featured picture book cover"
+            }
+            className="absolute right-0 bottom-2 z-20 w-[34%] -rotate-6 rounded-r-lg rounded-l-sm border-4 border-white shadow-(--shadow-book) sm:bottom-4"
+          />
+          {covers[1] && (
+            <img
+              src={getImageUrl(covers[1].coverImageUrl)}
+              alt={`Cover of ${covers[1].title}`}
+              className="absolute top-8 left-0 z-20 hidden w-[24%] rotate-6 rounded-r-lg rounded-l-sm border-4 border-white shadow-(--shadow-book) sm:block"
             />
-
-            <motion.img
-              initial={{ opacity: 0, rotate: 0, scale: 0.8 }}
-              animate={{ opacity: 1, rotate: 6, scale: 1 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              whileHover={{ scale: 1.05, rotate: 3 }}
-              src={displaybook}
-              alt="featured book"
-              className="absolute -right-104 sm:-right-54 -bottom-6 sm:-bottom-8 w-32 sm:w-48 md:w-64 rounded-lg shadow-2xl border-4 border-red-100"
-            />
-
-            {/* floating small covers - hidden on mobile */}
-            <div className="hidden sm:grid absolute right-4 md:right-6 top-4 md:top-6 grid-cols-1 gap-3">
-              {books.slice(3, 6).map((b, index) => (
-                <motion.img
-                  key={b.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{
-                    delay: 0.6 + index * 0.1,
-                    duration: 0.5,
-                  }}
-                  whileHover={{ scale: 1.1, zIndex: 10 }}
-                  src={getImageUrl(b.coverImageUrl)}
-                  alt={b.title}
-                  className="w-16 h-22 md:w-20 md:h-28 object-cover rounded-md shadow-lg border-2 border-white"
-                />
-              ))}
-            </div>
-          </div>
+          )}
         </motion.div>
       </div>
     </section>
   );
-};
-
-export default Hero;
+}

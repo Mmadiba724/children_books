@@ -1,168 +1,293 @@
-import { useMemo, useState, useEffect, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import {
+  ArrowRight,
+  BookMarked,
+  Heart,
+  ShieldCheck,
+  Tablet,
+} from "lucide-react";
 import bookService from "../services/bookService";
 import BookCard from "../components/BookCard";
-import Carousel from "../components/Carousel";
+import BookRail from "../components/BookRail";
 import Hero from "../components/Hero";
-import Testimonials from "../components/Testimonials";
 import PageTransition from "../components/PageTransition";
+import SectionHeading from "../components/ui/SectionHeading";
+import StatePanel from "../components/ui/StatePanel";
+import { BookGridSkeleton } from "../components/ui/Skeletons";
+import { getCategoryColor } from "../utils/categoryColors";
 import type { Book } from "../types/book";
 
+const FEATURED_COUNT = 8;
+// A "new arrivals" shelf only adds value once there are more books than the grid shows.
+const MIN_BOOKS_FOR_RAIL = 5;
+
+const values = [
+  {
+    icon: Tablet,
+    title: "Read on any screen",
+    text: "Digital editions land in your personal library, ready to read on a phone, tablet or laptop.",
+  },
+  {
+    icon: BookMarked,
+    title: "Print or digital",
+    text: "Choose a book to hold at bedtime, or one to open straight away. Many titles come both ways.",
+  },
+  {
+    icon: Heart,
+    title: "Chosen with care",
+    text: "Warm, gentle stories and early-learning reads that suit curious young readers.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Safe, simple checkout",
+    text: "Clear prices in UGX and an order history you can check any time.",
+  },
+];
+
 export default function CatalogPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [query, setQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q") ?? "";
+  const selectedCategory = searchParams.get("category") ?? "";
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const catalogRef = useRef<HTMLElement>(null);
-
-  // Initialize query and category from URL params
-  useEffect(() => {
-    const qParam = searchParams.get("q");
-    const categoryParam = searchParams.get("category");
-    setQuery(qParam || "");
-    setSelectedCategory(categoryParam || "");
-    if (categoryParam) {
-      setTimeout(() => {
-        if (catalogRef.current) {
-          const navbarHeight = 120;
-          const top =
-            catalogRef.current.getBoundingClientRect().top +
-            window.scrollY -
-            navbarHeight;
-          window.scrollTo({ top, behavior: "smooth" });
-        }
-      }, 50);
-    }
-  }, [searchParams]);
-
-  // Handle search input change - update both state and URL
-  const handleSearch = (newQuery: string) => {
-    setQuery(newQuery);
-    const params = new URLSearchParams();
-    if (newQuery.trim()) {
-      params.append("q", newQuery.trim());
-    }
-    if (selectedCategory && selectedCategory !== "All") {
-      params.append("category", selectedCategory);
-    }
-    setSearchParams(params);
-  };
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const fetchBooks = async () => {
       try {
         setLoading(true);
         setError(null);
-        const fetchedBooks = await bookService.getAllBooks();
-        setBooks(fetchedBooks);
+        setBooks(await bookService.getAllBooks());
       } catch (err: unknown) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to fetch books";
-        setError(errorMessage);
+        setError(err instanceof Error ? err.message : "Failed to fetch books");
         console.error("Error fetching books:", err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchBooks();
-  }, []);
+  }, [reloadKey]);
 
-  const normalized = (s: string) => s.trim().toLowerCase();
+  const allBooks = useMemo(() => (Array.isArray(books) ? books : []), [books]);
 
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    allBooks.forEach((b) =>
+      b.categoryNames?.forEach((c) => counts.set(c, (counts.get(c) ?? 0) + 1)),
+    );
+    return Array.from(counts, ([name, count]) => ({ name, count })).sort(
+      (a, b) => b.count - a.count || a.name.localeCompare(b.name),
+    );
+  }, [allBooks]);
+
+  const newest = useMemo(
+    () =>
+      [...allBooks]
+        .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""))
+        .slice(0, 10),
+    [allBooks],
+  );
+
+  const isFiltered = Boolean(query || selectedCategory);
   const filtered = useMemo(() => {
-    const booksArray = Array.isArray(books) ? books : [];
-    let result = booksArray;
+    const q = query.trim().toLowerCase();
+    return allBooks.filter((b) => {
+      const matchesQuery =
+        !q ||
+        b.title.toLowerCase().includes(q) ||
+        b.author.toLowerCase().includes(q) ||
+        b.categoryNames?.some((c) => c.toLowerCase().includes(q));
+      const matchesCategory =
+        !selectedCategory || b.categoryNames?.includes(selectedCategory);
+      return matchesQuery && matchesCategory;
+    });
+  }, [allBooks, query, selectedCategory]);
 
-    // Filter by search query
-    if (query) {
-      const q = normalized(query);
-      result = result.filter((b) => {
-        return (
-          normalized(b.title).includes(q) ||
-          normalized(b.author).includes(q) ||
-          b.categoryNames?.some((cat) => normalized(cat).includes(q))
-        );
-      });
-    }
+  const shelf = isFiltered ? filtered : allBooks.slice(0, FEATURED_COUNT);
 
-    // Filter by category
-    if (selectedCategory && selectedCategory !== "All") {
-      result = result.filter((b) =>
-        b.categoryNames?.includes(selectedCategory),
-      );
-    }
-
-    return result;
-  }, [query, selectedCategory, books]);
+  let shelfContent;
+  if (loading) {
+    shelfContent = <BookGridSkeleton count={FEATURED_COUNT} />;
+  } else if (error) {
+    shelfContent = (
+      <StatePanel
+        variant="error"
+        title="We couldn't load the books"
+        message="Please check your connection and try again."
+        action={
+          <button
+            type="button"
+            onClick={() => setReloadKey((k) => k + 1)}
+            className="kb-btn kb-btn-primary"
+          >
+            Try again
+          </button>
+        }
+      />
+    );
+  } else if (shelf.length === 0) {
+    shelfContent = (
+      <StatePanel
+        variant={isFiltered ? "search" : "empty"}
+        title={isFiltered ? "No books match that search" : "No books yet"}
+        message={
+          isFiltered
+            ? "Try a different word, or browse the whole library."
+            : "New stories are on their way. Please check back soon."
+        }
+        action={
+          isFiltered && (
+            <Link to="/books" className="kb-btn kb-btn-primary">
+              Browse all books
+            </Link>
+          )
+        }
+      />
+    );
+  } else {
+    shelfContent = (
+      <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 md:gap-x-6 lg:grid-cols-4">
+        {shelf.map((b) => (
+          <BookCard key={b.id} book={b} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <PageTransition>
-      <div className="max-w-8xl mx-auto px-4 md:px-6">
-        <Hero onSearch={handleSearch} query={query} searchResults={filtered} />
+      <div>
+        <Hero books={allBooks} />
 
-        <main
-          ref={catalogRef}
-          className="mt-10 px-4 md:px-8 max-w-7xl mx-auto "
+        {categories.length > 0 && !isFiltered && (
+          <section
+            aria-labelledby="browse-title"
+            className="kb-container py-12 md:py-16"
+          >
+            <SectionHeading
+              id="browse-title"
+              eyebrow="Browse"
+              title="Find a story by theme"
+              description="Pick a shelf and see what's inside."
+            />
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4">
+              {categories.slice(0, 8).map(({ name, count }) => (
+                <li key={name}>
+                  <Link
+                    to={`/books?category=${encodeURIComponent(name)}`}
+                    className={`group flex h-full min-h-28 flex-col justify-between rounded-2xl border p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-(--shadow-soft) sm:p-5 ${getCategoryColor(name)}`}
+                  >
+                    <span className="font-display text-lg leading-tight font-bold capitalize sm:text-xl">
+                      {name}
+                    </span>
+                    <span className="mt-4 flex items-center justify-between text-sm font-bold">
+                      {count} {count === 1 ? "book" : "books"}
+                      <ArrowRight
+                        className="h-4 w-4 transition-transform group-hover:translate-x-1"
+                        aria-hidden="true"
+                      />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {!isFiltered && !loading && allBooks.length >= MIN_BOOKS_FOR_RAIL && (
+          <section
+            aria-labelledby="new-title"
+            className="border-y border-line bg-white/60 py-12 md:py-16"
+          >
+            <div className="kb-container">
+              <SectionHeading
+                id="new-title"
+                eyebrow="Just in"
+                title="New on the shelf"
+                action={
+                  <Link to="/books" className="kb-btn kb-btn-quiet kb-btn-sm">
+                    See everything{" "}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                }
+              />
+              <BookRail books={newest} label="New books" />
+            </div>
+          </section>
+        )}
+
+        <section
+          id="catalog-grid"
+          aria-labelledby="catalog-title"
+          className="kb-container py-12 md:py-16"
         >
-          <div className="flex flex-col items-center justify-center mb-8 gap-2 w-full">
-            <h2 className="text-6xl md:text-3xl mt-24 font-serif italic text-gray-700 capitalize font-bold text-center">
-              {selectedCategory ? `${selectedCategory} Books` : "All Books"}
-            </h2>
-            {query && (
-              <div className="text-sm text-gray-600">
-                Found {filtered.length} matches
-                <button
-                  onClick={() => setQuery("")}
-                  className="ml-3 text-brand underline"
-                >
-                  Clear
-                </button>
+          <SectionHeading
+            id="catalog-title"
+            eyebrow={isFiltered ? "Results" : "Our library"}
+            title={
+              selectedCategory
+                ? `${selectedCategory} books`
+                : query
+                  ? `Results for "${query}"`
+                  : "Popular reads"
+            }
+            description={
+              isFiltered && !loading && !error
+                ? `${filtered.length} ${filtered.length === 1 ? "book" : "books"} found`
+                : undefined
+            }
+            action={
+              isFiltered ? (
+                <Link to="/" className="kb-btn kb-btn-secondary kb-btn-sm">
+                  Clear filters
+                </Link>
+              ) : undefined
+            }
+          />
+          {shelfContent}
+
+          {!isFiltered &&
+            !loading &&
+            !error &&
+            allBooks.length > FEATURED_COUNT && (
+              <div className="mt-12 text-center">
+                <Link to="/books" className="kb-btn kb-btn-primary px-8">
+                  Browse the full library ({allBooks.length})
+                  <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                </Link>
               </div>
             )}
-          </div>
-
-          {loading && (
-            <div className="flex items-center justify-center py-12">
-              <p className="text-gray-500">Loading books...</p>
-            </div>
-          )}
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
-
-          {!loading && !error && filtered.length === 0 && (
-            <div className="flex items-center justify-center py-12">
-              <p className="text-gray-500">
-                {query
-                  ? "No books found matching your search."
-                  : "No books available."}
-              </p>
-            </div>
-          )}
-
-          {!loading && !error && (
-            <div
-              id="catalog-grid"
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 w-full mx-auto"
-            >
-              {filtered.map((b) => (
-                <BookCard key={b.id} book={b} />
-              ))}
-            </div>
-          )}
-        </main>
-
-        <section className="mt-6  max-w-7xl mx-auto">
-          <Carousel />
         </section>
 
-        <Testimonials />
+        {!isFiltered && (
+          <section
+            aria-labelledby="values-title"
+            className="kb-paper border-t border-line py-14 md:py-20"
+          >
+            <div className="kb-container">
+              <SectionHeading
+                id="values-title"
+                eyebrow="Why families choose us"
+                title="Storytime, made simple"
+              />
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+                {values.map(({ icon: Icon, title, text }) => (
+                  <li key={title} className="kb-card p-6 text-left">
+                    <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-light text-brand">
+                      <Icon className="h-6 w-6" aria-hidden="true" />
+                    </span>
+                    <h3 className="font-display text-lg font-bold">{title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                      {text}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
       </div>
     </PageTransition>
   );

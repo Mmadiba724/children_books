@@ -139,7 +139,7 @@ const MyOrdersPage = () => {
       case "REJECTED":
         return "bg-red-100 text-red-800 border-red-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-cream-deep text-ink border-line";
     }
   };
 
@@ -152,7 +152,7 @@ const MyOrdersPage = () => {
       <div className="max-w-7xl mx-auto p-6">
         <div className="flex items-center justify-center min-h-screen">
           <Loader2 className="w-8 h-8 animate-spin text-brand" />
-          <p className="ml-3 text-gray-600">Loading your orders...</p>
+          <p className="ml-3 text-ink-soft">Loading your orders...</p>
         </div>
       </div>
     );
@@ -164,9 +164,9 @@ const MyOrdersPage = () => {
       <div className="mb-8 flex flex-col items-center justify-center gap-2 w-full">
         <div className="flex items-center gap-3 mb-2">
           <ShoppingBag className="w-8 h-8 text-brand" />
-          <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
+          <h1 className="text-3xl font-bold text-ink">My Orders</h1>
         </div>
-        <p className="text-gray-600">
+        <p className="text-ink-soft">
           View and manage all your orders and purchases
         </p>
       </div>
@@ -181,7 +181,7 @@ const MyOrdersPage = () => {
       <div className="relative lg:min-w-[380px] flex lg:justify-end mb-4 lg:items-center">
         <button
           onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-brand transition-all font-medium shadow-sm"
+          className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-line-strong text-ink-soft rounded-lg hover:bg-cream hover:border-brand transition-all font-medium shadow-sm"
         >
           <Filter className="w-4 h-4" />
           Filter Orders
@@ -210,19 +210,19 @@ const MyOrdersPage = () => {
 
             {/* Filter Panel */}
             <div className="absolute right-0 top-full mt-2 z-50 w-full lg:max-w-96 ">
-              <div className="bg-linear-to-br from-white to-gray-50 rounded-xl shadow-xl border border-gray-200 p-5">
+              <div className="bg-linear-to-br from-white to-gray-50 rounded-xl shadow-xl border border-line p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-brand-light rounded-lg">
                       <Filter className="w-4 h-4 text-brand" />
                     </div>
-                    <h3 className="text-base font-semibold text-gray-900">
+                    <h3 className="text-base font-semibold text-ink">
                       Filter Orders
                     </h3>
                   </div>
                   <button
                     onClick={() => setIsFilterOpen(false)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-muted hover:text-ink-soft transition-colors"
                   >
                     <X size={20} />
                   </button>
@@ -232,7 +232,7 @@ const MyOrdersPage = () => {
                   <div>
                     <label
                       htmlFor="startDate"
-                      className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide"
+                      className="block text-xs font-semibold text-ink-soft mb-1.5 uppercase tracking-wide"
                     >
                       From Date
                     </label>
@@ -241,14 +241,14 @@ const MyOrdersPage = () => {
                       id="startDate"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-all bg-white"
+                      className="w-full px-3 py-2.5 text-sm border border-line-strong rounded-lg focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all bg-white"
                     />
                   </div>
 
                   <div>
                     <label
                       htmlFor="endDate"
-                      className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide"
+                      className="block text-xs font-semibold text-ink-soft mb-1.5 uppercase tracking-wide"
                     >
                       To Date
                     </label>
@@ -257,7 +257,7 @@ const MyOrdersPage = () => {
                       id="endDate"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-all bg-white"
+                      className="w-full px-3 py-2.5 text-sm border border-line-strong rounded-lg focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all bg-white"
                     />
                   </div>
 
@@ -267,7 +267,7 @@ const MyOrdersPage = () => {
                         clearFilters();
                         setIsFilterOpen(false);
                       }}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all font-medium text-sm"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border-2 border-line-strong text-ink-soft rounded-lg hover:bg-cream hover:border-gray-400 transition-all font-medium text-sm"
                     >
                       <X size={16} />
                       Clear Filters
@@ -283,10 +283,10 @@ const MyOrdersPage = () => {
       {/* Orders List */}
       {!Array.isArray(filteredOrders) || filteredOrders.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-12 text-center">
-          <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+          <Package className="w-16 h-16 mx-auto text-muted mb-4" />
           {orders.length === 0 ? (
             <>
-              <p className="text-gray-600 text-lg mb-4">
+              <p className="text-ink-soft text-lg mb-4">
                 You haven't placed any orders yet
               </p>
               <Link
@@ -299,7 +299,7 @@ const MyOrdersPage = () => {
             </>
           ) : (
             <>
-              <p className="text-gray-600 text-lg mb-4">
+              <p className="text-ink-soft text-lg mb-4">
                 No orders found for the selected date range
               </p>
               <button
@@ -320,10 +320,10 @@ const MyOrdersPage = () => {
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               {/* Order Header */}
-              <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+              <div className="bg-cream px-6 py-4 border-b border-line">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+                    <div className="flex items-center gap-1 text-sm text-ink-soft mt-1">
                       <Clock className="w-4 h-4" />
                       <span>{formatDate(order.createdAt)}</span>
                     </div>
@@ -349,10 +349,10 @@ const MyOrdersPage = () => {
                         return (
                           <div
                             key={`${order.id}-${item.bookId}`}
-                            className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow max-w-xs"
+                            className="border border-line rounded-lg overflow-hidden hover:shadow-md transition-shadow max-w-xs"
                           >
                             {/* Book Cover */}
-                            <div className="relative aspect-[1/1.5] bg-gray-100 flex items-center justify-center w-full">
+                            <div className="relative aspect-[1/1.5] bg-cream-deep flex items-center justify-center w-full">
                               {book && book.coverImageUrl ? (
                                 <img
                                   src={getImageUrl(book.coverImageUrl)}
@@ -364,7 +364,7 @@ const MyOrdersPage = () => {
                                 />
                               ) : (
                                 <svg
-                                  className="w-8 h-8 text-gray-400"
+                                  className="w-8 h-8 text-muted"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -389,10 +389,10 @@ const MyOrdersPage = () => {
                             <div className="p-1.5 bg-white">
                               {book ? (
                                 <>
-                                  <h5 className="font-semibold text-gray-900 text-xs mb-0.5 line-clamp-1">
+                                  <h5 className="font-semibold text-ink text-xs mb-0.5 line-clamp-1">
                                     {book.title}
                                   </h5>
-                                  <p className="text-xs text-gray-600 mb-0.5 line-clamp-1">
+                                  <p className="text-xs text-ink-soft mb-0.5 line-clamp-1">
                                     by {book.author}
                                   </p>
                                   {book.categoryNames &&
@@ -404,7 +404,7 @@ const MyOrdersPage = () => {
                                             .map((cat) => (
                                               <span
                                                 key={cat}
-                                                className="inline-block bg-blue-50 text-blue-700 text-xs px-1 py-0.5 rounded"
+                                                className="inline-block bg-blue-50 text-accent-dark text-xs px-1 py-0.5 rounded"
                                               >
                                                 {cat}
                                               </span>
@@ -415,28 +415,28 @@ const MyOrdersPage = () => {
                                 </>
                               ) : (
                                 <>
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-muted">
                                     Book #{item.bookId}
                                   </p>
                                 </>
                               )}
 
                               {/* Price and Quantity */}
-                              <div className="border-t border-gray-100 pt-0.5 mt-0.5">
+                              <div className="border-t border-line-soft pt-0.5 mt-0.5">
                                 <div className="flex justify-between items-center mb-0.5 text-xs">
-                                  <span className="text-gray-600">Price</span>
-                                  <span className="font-semibold text-gray-900 text-xs">
+                                  <span className="text-ink-soft">Price</span>
+                                  <span className="font-semibold text-ink text-xs">
                                     {item.price.toFixed(0)}
                                   </span>
                                 </div>
                                 <div className="flex justify-between items-center mb-0.5 text-xs">
-                                  <span className="text-gray-600">Qty</span>
-                                  <span className="font-semibold text-gray-900 text-xs">
+                                  <span className="text-ink-soft">Qty</span>
+                                  <span className="font-semibold text-ink text-xs">
                                     {item.quantity}
                                   </span>
                                 </div>
-                                <div className="flex justify-between items-center border-t border-gray-100 pt-0.5">
-                                  <span className="text-xs font-medium text-gray-700">
+                                <div className="flex justify-between items-center border-t border-line-soft pt-0.5">
+                                  <span className="text-xs font-medium text-ink-soft">
                                     Total
                                   </span>
                                   <span className="text-xs font-bold text-brand">
@@ -453,10 +453,10 @@ const MyOrdersPage = () => {
                 )}
 
                 {/* Order Summary */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-line">
                   <div className="space-y-1 mb-4 sm:mb-0">
                     {order.verifiedAt && (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-ink-soft">
                         <span className="font-medium">Verified:</span>{" "}
                         {formatDate(order.verifiedAt)}
                       </p>
@@ -468,14 +468,14 @@ const MyOrdersPage = () => {
                       </p>
                     )}
                     {order.transactionId && (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-ink-soft">
                         <span className="font-medium">Transaction:</span>{" "}
                         {order.transactionId}
                       </p>
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-600 mb-1">Total Amount</p>
+                    <p className="text-sm text-ink-soft mb-1">Total Amount</p>
                     <p className="text-2xl font-bold text-brand">
                       UGX {order.totalAmount.toFixed(0)}
                     </p>

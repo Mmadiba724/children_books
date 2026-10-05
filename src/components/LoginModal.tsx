@@ -100,12 +100,20 @@ const LoginModal = ({
         setErrors({});
         onClose();
       } catch (error) {
-        // Handle authentication errors
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Login failed. Please check your credentials and try again.";
+        // Handle authentication errors - extract message from error response
+        let errorMessage =
+          "Login failed. Please check your credentials and try again.";
+
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (error && typeof error === "object" && "message" in error) {
+          // ErrorResponse object from handleError utility
+          errorMessage =
+            (error as { message?: string }).message || errorMessage;
+        }
+
         setErrors({ general: errorMessage });
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -137,14 +145,20 @@ const LoginModal = ({
             "If the email exists, a reset link has been sent.",
         );
       } catch (error) {
-        const errorMessage =
-          error &&
-          typeof error === "object" &&
-          "message" in error &&
-          typeof (error as { message: unknown }).message === "string"
-            ? (error as { message: string }).message
-            : "Failed to request password reset. Please try again.";
+        // Handle password reset errors - extract message from error response
+        let errorMessage =
+          "Failed to request password reset. Please try again.";
+
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (error && typeof error === "object" && "message" in error) {
+          // ErrorResponse object from handleError utility
+          errorMessage =
+            (error as { message?: string }).message || errorMessage;
+        }
+
         setErrors({ general: errorMessage });
+        toast.error(errorMessage);
       } finally {
         setIsForgotSubmitting(false);
       }
@@ -188,31 +202,31 @@ const LoginModal = ({
           animate="visible"
           exit="exit"
           variants={backdropVariants}
-          className="fixed inset-0 bg-transparent backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-ink/45 backdrop-blur-sm flex items-center justify-center z-50"
           onClick={handleClose}
         >
           <motion.div
             variants={modalVariants}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 relative"
+            className="max-h-[92dvh] overflow-y-auto bg-white rounded-3xl shadow-(--shadow-lift) w-full max-w-md mx-4 relative text-left"
           >
             {/* Close button */}
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+              className="absolute top-3 right-3 flex h-11 w-11 items-center justify-center rounded-full text-muted hover:bg-brand-light hover:text-ink-soft"
               aria-label="Close modal"
             >
               <X size={24} />
             </button>
 
             <div className="p-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              <h2 id="login-title" className="font-display text-2xl font-bold text-ink mb-2">
                 {isForgotPasswordMode
                   ? "Forgot your password?"
                   : "Sign in or Create an Account"}
               </h2>
               {isForgotPasswordMode && (
-                <p className="text-sm text-gray-600 mb-6">
+                <p className="text-sm text-ink-soft mb-6">
                   Enter your email and we will send a password reset link.
                 </p>
               )}
@@ -246,14 +260,14 @@ const LoginModal = ({
                             });
                           }
                         }}
-                        className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${
+                        className={`kb-input !border-2 !px-4 !py-3 ${
                           errors.forgotEmail
-                            ? "border-red-500"
-                            : "border-gray-300"
+                            ? "border-error"
+                            : "border-line-strong"
                         }`}
                       />
                       {errors.forgotEmail && (
-                        <p className="text-red-500 text-sm mt-1">
+                        <p className="text-error text-sm mt-1">
                           {errors.forgotEmail}
                         </p>
                       )}
@@ -269,7 +283,7 @@ const LoginModal = ({
                     <button
                       type="submit"
                       disabled={isForgotSubmitting}
-                      className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded transition duration-200 mt-6 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      className="kb-btn kb-btn-primary w-full py-3 mt-6"
                     >
                       {isForgotSubmitting
                         ? "Sending reset link..."
@@ -279,7 +293,7 @@ const LoginModal = ({
                     <button
                       type="button"
                       onClick={handleBackToSignIn}
-                      className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 rounded transition duration-200"
+                      className="kb-btn kb-btn-secondary w-full py-3"
                     >
                       Back to Sign In
                     </button>
@@ -301,12 +315,12 @@ const LoginModal = ({
                             });
                           }
                         }}
-                        className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${
-                          errors.email ? "border-red-500" : "border-gray-300"
+                        className={`kb-input !border-2 !px-4 !py-3 ${
+                          errors.email ? "border-error" : "border-line-strong"
                         }`}
                       />
                       {errors.email && (
-                        <p className="text-red-500 text-sm mt-1">
+                        <p className="text-error text-sm mt-1">
                           {errors.email}
                         </p>
                       )}
@@ -328,16 +342,16 @@ const LoginModal = ({
                               });
                             }
                           }}
-                          className={`w-full px-4 py-3 border-2 rounded focus:outline-none focus:border-green-700 ${
+                          className={`kb-input !border-2 !px-4 !py-3 ${
                             errors.password
-                              ? "border-red-500"
-                              : "border-gray-300"
+                              ? "border-error"
+                              : "border-line-strong"
                           }`}
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink-soft"
                           aria-label="Toggle password visibility"
                         >
                           {showPassword ? (
@@ -348,7 +362,7 @@ const LoginModal = ({
                         </button>
                       </div>
                       {errors.password && (
-                        <p className="text-red-500 text-sm mt-1">
+                        <p className="text-error text-sm mt-1">
                           {errors.password}
                         </p>
                       )}
@@ -361,16 +375,16 @@ const LoginModal = ({
                           type="checkbox"
                           checked={rememberMe}
                           onChange={(e) => setRememberMe(e.target.checked)}
-                          className="w-5 h-5 rounded border-gray-300 cursor-pointer accent-green-700"
+                          className="w-5 h-5 rounded border-line-strong cursor-pointer accent-brand"
                         />
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-ink-soft">
                           Remember me
                         </span>
                       </label>
                       <button
                         type="button"
                         onClick={handleOpenForgotPassword}
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-accent-dark hover:underline"
                       >
                         Forgot your password?
                       </button>
@@ -380,7 +394,7 @@ const LoginModal = ({
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded transition duration-200 mt-6 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      className="kb-btn kb-btn-primary w-full py-3 mt-6"
                     >
                       {isLoading ? "Signing in..." : "Sign In & Continue"}
                     </button>
@@ -389,7 +403,7 @@ const LoginModal = ({
                     <button
                       type="button"
                       onClick={handleCreateAccount}
-                      className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 rounded transition duration-200"
+                      className="kb-btn kb-btn-secondary w-full py-3"
                     >
                       Create an Account
                     </button>
@@ -399,15 +413,15 @@ const LoginModal = ({
 
               {/* Terms and Privacy */}
               {!isForgotPasswordMode && (
-                <p className="text-center text-xs text-gray-600 mt-6">
+                <p className="text-center text-xs text-ink-soft mt-6">
                   By signing in you are agreeing to our{" "}
-                  <a href="#" className="text-blue-600 hover:underline">
+                  <span className="font-bold text-ink">
                     Terms of Use
-                  </a>{" "}
+                  </span>{" "}
                   and our{" "}
-                  <a href="#" className="text-blue-600 hover:underline">
+                  <span className="font-bold text-ink">
                     Privacy Policy
-                  </a>
+                  </span>
                 </p>
               )}
             </div>

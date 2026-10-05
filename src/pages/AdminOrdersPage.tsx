@@ -73,7 +73,7 @@ const AdminOrdersPage = () => {
       case "REJECTED":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-cream-deep text-ink";
     }
   };
 
@@ -86,9 +86,9 @@ const AdminOrdersPage = () => {
       case "FAILED":
         return "bg-red-100 text-red-800";
       case "REFUNDED":
-        return "bg-gray-100 text-gray-800";
+        return "bg-cream-deep text-ink";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-cream-deep text-ink";
     }
   };
 
@@ -97,7 +97,7 @@ const AdminOrdersPage = () => {
       <div className="max-w-7xl mx-auto p-6">
         <div className="flex items-center justify-center min-h-screen">
           <Loader2 className="w-8 h-8 animate-spin text-brand" />
-          <p className="ml-3 text-gray-600">Loading orders...</p>
+          <p className="ml-3 text-ink-soft">Loading orders...</p>
         </div>
       </div>
     );
@@ -106,10 +106,10 @@ const AdminOrdersPage = () => {
   return (
     <div className="max-w-7xl mx-auto p-6 ">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-ink mb-2">
           Pending Orders
         </h1>
-        <p className="text-gray-600">
+        <p className="text-ink-soft">
           Review and approve or reject pending customer orders
         </p>
       </div>
@@ -117,8 +117,8 @@ const AdminOrdersPage = () => {
       {/* Orders List */}
       {orders.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
-          <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600">No pending orders</p>
+          <Package className="w-16 h-16 mx-auto text-muted mb-4" />
+          <p className="text-ink-soft">No pending orders</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -128,7 +128,7 @@ const AdminOrdersPage = () => {
                 {/* Order Info */}
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-bold text-gray-900">
+                    <h3 className="text-lg font-bold text-ink">
                       Order #{order.id}
                     </h3>
                     <span
@@ -145,7 +145,7 @@ const AdminOrdersPage = () => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-ink-soft">
                     {order.userEmail && (
                       <div className="md:col-span-2">
                         <span className="font-medium">Customer:</span>{" "}
@@ -195,7 +195,7 @@ const AdminOrdersPage = () => {
                   <button
                     onClick={() => handleApproveOrder(order.id)}
                     disabled={processingOrderId === order.id}
-                    className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded transition-colors"
+                    className="flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded transition-colors"
                   >
                     {processingOrderId === order.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

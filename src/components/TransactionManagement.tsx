@@ -162,8 +162,8 @@ export default function TransactionManagement() {
       {/* Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h3 className="text-xl font-bold text-gray-800">Transaction IDs</h3>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h3 className="text-xl font-bold text-ink">Transaction IDs</h3>
+          <p className="text-sm text-muted mt-0.5">
             Store mobile-money transaction IDs so orders are auto-matched at
             checkout
           </p>
@@ -173,7 +173,7 @@ export default function TransactionManagement() {
           <button
             onClick={fetchMatches}
             disabled={isLoading}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm border-2 border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border-2 border-line text-ink-soft rounded-lg hover:bg-cream transition-colors disabled:opacity-50"
           >
             <RefreshCw
               className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
@@ -187,7 +187,7 @@ export default function TransactionManagement() {
             className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
               viewMode === "add-single"
                 ? "bg-rose-100 text-rose-700 border-2 border-rose-300"
-                : "bg-rose-600 hover:bg-rose-700 text-white border-2 border-rose-600"
+                : "bg-brand hover:bg-brand-dark text-white border-2 border-brand"
             }`}
           >
             {viewMode === "add-single" ? (
@@ -203,8 +203,8 @@ export default function TransactionManagement() {
             }
             className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
               viewMode === "add-bulk"
-                ? "bg-blue-100 text-blue-700 border-2 border-blue-300"
-                : "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-600"
+                ? "bg-blue-100 text-accent-dark border-2 border-blue-300"
+                : "bg-brand hover:bg-brand-dark text-white border-2 border-blue-600"
             }`}
           >
             {viewMode === "add-bulk" ? (
@@ -219,16 +219,16 @@ export default function TransactionManagement() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-lg border-2 border-gray-100 p-4 text-center">
-          <p className="text-xs text-gray-500 mb-1">Total Stored</p>
-          <p className="text-2xl font-bold text-gray-800">{records.length}</p>
+        <div className="bg-white rounded-lg border-2 border-line-soft p-4 text-center">
+          <p className="text-xs text-muted mb-1">Total Stored</p>
+          <p className="text-2xl font-bold text-ink">{records.length}</p>
         </div>
         <div className="bg-green-50 rounded-lg border-2 border-green-100 p-4 text-center">
-          <p className="text-xs text-gray-500 mb-1">Matched</p>
+          <p className="text-xs text-muted mb-1">Matched</p>
           <p className="text-2xl font-bold text-green-700">{matchedCount}</p>
         </div>
         <div className="bg-yellow-50 rounded-lg border-2 border-yellow-100 p-4 text-center">
-          <p className="text-xs text-gray-500 mb-1">Unmatched</p>
+          <p className="text-xs text-muted mb-1">Unmatched</p>
           <p className="text-2xl font-bold text-yellow-700">{unmatchedCount}</p>
         </div>
       </div>
@@ -236,11 +236,11 @@ export default function TransactionManagement() {
       {/* Add Single Form */}
       {viewMode === "add-single" && (
         <div className="bg-white rounded-xl border-2 border-rose-200 p-6 shadow-sm">
-          <h4 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
-            <Plus className="w-5 h-5 text-rose-600" />
+          <h4 className="text-lg font-bold text-ink mb-1 flex items-center gap-2">
+            <Plus className="w-5 h-5 text-brand" />
             Add Single Transaction ID
           </h4>
-          <p className="text-sm text-gray-500 mb-5">
+          <p className="text-sm text-muted mb-5">
             Enter a mobile money transaction ID. When a customer places an order
             with this ID it will be auto-matched.
           </p>
@@ -249,7 +249,7 @@ export default function TransactionManagement() {
             <div className="flex-1">
               <label
                 htmlFor="single-tid"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
+                className="block text-sm font-medium text-ink-soft mb-1.5"
               >
                 Transaction ID
               </label>
@@ -259,7 +259,7 @@ export default function TransactionManagement() {
                 value={singleId}
                 onChange={(e) => setSingleId(e.target.value)}
                 placeholder="e.g. TXN123456789"
-                className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:border-rose-500 focus:outline-none font-mono text-sm"
+                className="w-full px-4 py-2.5 border-2 border-line-strong rounded-lg focus:border-accent focus:outline-none font-mono text-sm"
                 disabled={isSubmitting}
                 required
               />
@@ -268,7 +268,7 @@ export default function TransactionManagement() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand-dark text-white font-semibold rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
@@ -289,7 +289,7 @@ export default function TransactionManagement() {
                   setViewMode("list");
                 }}
                 disabled={isSubmitting}
-                className="px-4 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="px-4 py-2.5 border-2 border-line-strong text-ink-soft rounded-lg hover:bg-cream transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -301,11 +301,11 @@ export default function TransactionManagement() {
       {/* Add Bulk Form */}
       {viewMode === "add-bulk" && (
         <div className="bg-white rounded-xl border-2 border-blue-200 p-6 shadow-sm">
-          <h4 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
-            <List className="w-5 h-5 text-blue-600" />
+          <h4 className="text-lg font-bold text-ink mb-1 flex items-center gap-2">
+            <List className="w-5 h-5 text-accent-dark" />
             Add Multiple Transaction IDs
           </h4>
-          <p className="text-sm text-gray-500 mb-5">
+          <p className="text-sm text-muted mb-5">
             Paste or type multiple transaction IDs — one per line, or
             comma/semicolon-separated. Duplicates are skipped automatically.
             Maximum 100 per upload.
@@ -314,10 +314,10 @@ export default function TransactionManagement() {
           <form onSubmit={handleBulkSubmit}>
             <label
               htmlFor="bulk-tids"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
+              className="block text-sm font-medium text-ink-soft mb-1.5"
             >
               Transaction IDs{" "}
-              <span className="text-gray-400 font-normal">
+              <span className="text-muted font-normal">
                 (
                 {
                   bulkText
@@ -334,7 +334,7 @@ export default function TransactionManagement() {
               onChange={(e) => setBulkText(e.target.value)}
               placeholder={"TXN123456789\nTXN987654321\nTXN111222333"}
               rows={8}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none font-mono text-sm resize-y"
+              className="w-full px-4 py-3 border-2 border-line-strong rounded-lg focus:border-blue-500 focus:outline-none font-mono text-sm resize-y"
               disabled={isSubmitting}
               required
             />
@@ -343,7 +343,7 @@ export default function TransactionManagement() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand-dark text-white font-semibold rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
@@ -364,7 +364,7 @@ export default function TransactionManagement() {
                   setViewMode("list");
                 }}
                 disabled={isSubmitting}
-                className="px-4 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="px-4 py-2.5 border-2 border-line-strong text-ink-soft rounded-lg hover:bg-cream transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -374,14 +374,14 @@ export default function TransactionManagement() {
       )}
 
       {/* Records List */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h4 className="font-bold text-gray-800 flex items-center gap-2">
-            <ClipboardList className="w-4 h-4 text-gray-500" />
+      <div className="bg-white rounded-xl border border-line-soft shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-line-soft flex items-center justify-between">
+          <h4 className="font-bold text-ink flex items-center gap-2">
+            <ClipboardList className="w-4 h-4 text-muted" />
             Stored Transaction IDs
           </h4>
           {!isLoading && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-muted">
               {records.length} record{records.length !== 1 ? "s" : ""}
             </span>
           )}
@@ -392,7 +392,7 @@ export default function TransactionManagement() {
             <Loader2 className="w-7 h-7 text-rose-500 animate-spin" />
           </div>
         ) : records.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-muted">
             <Hash className="w-12 h-12 mx-auto mb-3 opacity-40" />
             <p className="font-medium">No transaction IDs stored yet</p>
             <p className="text-sm mt-1">
@@ -437,12 +437,12 @@ export default function TransactionManagement() {
                       className={`border rounded-xl p-4 ${
                         adminStored
                           ? "bg-blue-50 border-blue-200"
-                          : "bg-gray-50 border-gray-200"
+                          : "bg-cream border-line"
                       }`}
                     >
                       <div
                         className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide mb-3 ${
-                          adminStored ? "text-blue-600" : "text-gray-400"
+                          adminStored ? "text-accent-dark" : "text-muted"
                         }`}
                       >
                         <ShieldCheck className="w-3.5 h-3.5" />
@@ -450,18 +450,18 @@ export default function TransactionManagement() {
                       </div>
                       {adminStored ? (
                         <>
-                          <p className="font-mono text-sm font-bold text-gray-900 break-all">
+                          <p className="font-mono text-sm font-bold text-ink break-all">
                             {customerTxnId}
                           </p>
                           <div className="mt-2 space-y-1">
                             {adminDate && (
-                              <p className="flex items-center gap-1 text-xs text-blue-500">
+                              <p className="flex items-center gap-1 text-xs text-accent-dark">
                                 <Clock className="w-3 h-3" />
                                 {formatLocalDateTime(adminDate)}
                               </p>
                             )}
                             {adminLabel && (
-                              <p className="flex items-center gap-1 text-xs text-blue-500">
+                              <p className="flex items-center gap-1 text-xs text-accent-dark">
                                 <UserCircle className="w-3 h-3" />
                                 Stored by: {adminLabel}
                               </p>
@@ -469,7 +469,7 @@ export default function TransactionManagement() {
                           </div>
                         </>
                       ) : (
-                        <p className="text-sm text-gray-400 italic">
+                        <p className="text-sm text-muted italic">
                           Not yet stored by admin
                         </p>
                       )}
@@ -480,12 +480,12 @@ export default function TransactionManagement() {
                       className={`border rounded-xl p-4 ${
                         matched
                           ? "bg-green-50 border-green-200"
-                          : "bg-gray-50 border-gray-200"
+                          : "bg-cream border-line"
                       }`}
                     >
                       <div
                         className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide mb-3 ${
-                          matched ? "text-green-600" : "text-gray-500"
+                          matched ? "text-green-600" : "text-muted"
                         }`}
                       >
                         <UserCircle className="w-3.5 h-3.5" />
@@ -494,13 +494,13 @@ export default function TransactionManagement() {
 
                       {customerTxnId ? (
                         <>
-                          <p className="font-mono text-sm font-bold text-gray-900 break-all">
+                          <p className="font-mono text-sm font-bold text-ink break-all">
                             {customerTxnId}
                           </p>
                           <div className="mt-3 space-y-1.5">
                             {orderCreatedAt && (
-                              <p className="flex items-center gap-1.5 text-xs text-gray-600">
-                                <Clock className="w-3 h-3 text-gray-400" />
+                              <p className="flex items-center gap-1.5 text-xs text-ink-soft">
+                                <Clock className="w-3 h-3 text-muted" />
                                 <span className="font-medium">Submitted:</span>
                                 <span>
                                   {formatLocalDateTime(orderCreatedAt)}
@@ -508,29 +508,29 @@ export default function TransactionManagement() {
                               </p>
                             )}
                             {orderId && (
-                              <p className="flex items-center gap-1.5 text-xs text-gray-600">
-                                <ShoppingBag className="w-3 h-3 text-gray-400" />
+                              <p className="flex items-center gap-1.5 text-xs text-ink-soft">
+                                <ShoppingBag className="w-3 h-3 text-muted" />
                                 <span className="font-medium">Order:</span>
                                 <span>#{orderId}</span>
                               </p>
                             )}
                             {email && (
-                              <p className="flex items-center gap-1.5 text-xs text-gray-600">
-                                <Mail className="w-3 h-3 text-gray-400" />
+                              <p className="flex items-center gap-1.5 text-xs text-ink-soft">
+                                <Mail className="w-3 h-3 text-muted" />
                                 <span className="font-medium">Customer:</span>
                                 <span className="truncate">{email}</span>
                               </p>
                             )}
                             {amount !== undefined && (
-                              <p className="flex items-center gap-1.5 text-xs text-gray-600">
-                                <DollarSign className="w-3 h-3 text-gray-400" />
+                              <p className="flex items-center gap-1.5 text-xs text-ink-soft">
+                                <DollarSign className="w-3 h-3 text-muted" />
                                 <span className="font-medium">Amount:</span>
                                 <span>${amount.toFixed(2)}</span>
                               </p>
                             )}
                             {orderStatus && (
-                              <p className="flex items-center gap-1.5 text-xs text-gray-600">
-                                <Package className="w-3 h-3 text-gray-400" />
+                              <p className="flex items-center gap-1.5 text-xs text-ink-soft">
+                                <Package className="w-3 h-3 text-muted" />
                                 <span className="font-medium">
                                   Order status:
                                 </span>
@@ -542,7 +542,7 @@ export default function TransactionManagement() {
                                         ? "bg-yellow-100 text-yellow-700"
                                         : orderStatus === "CANCELLED"
                                           ? "bg-red-100 text-red-700"
-                                          : "bg-blue-100 text-blue-700"
+                                          : "bg-blue-100 text-accent-dark"
                                   }`}
                                 >
                                   {orderStatus}
@@ -552,7 +552,7 @@ export default function TransactionManagement() {
                           </div>
                         </>
                       ) : (
-                        <p className="text-sm text-gray-400 italic mt-1">
+                        <p className="text-sm text-muted italic mt-1">
                           No order submitted yet
                         </p>
                       )}

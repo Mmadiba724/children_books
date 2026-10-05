@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -8,8 +8,7 @@ import toast from "react-hot-toast";
 import logo from "/logo-main.png";
 import {
   User,
-  Heart,
-  ShoppingCart,
+  ShoppingBag,
   Search,
   ChevronDown,
   ShieldCheck,
@@ -17,12 +16,23 @@ import {
   Package,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
 import AddBookModal from "./AddBookModal";
 import CartSidebar from "./CartSidebar";
 import { navbarVariants } from "../utils/animations";
+
+const menuItem =
+  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-ink-soft transition-colors hover:bg-brand-light hover:text-brand-dark";
+
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `rounded-full px-4 py-2 text-sm font-extrabold transition-colors ${
+    isActive
+      ? "bg-ink text-white"
+      : "text-ink-soft hover:bg-brand-light hover:text-brand-dark"
+  }`;
 
 const AccountMenu = ({
   isOpen,
@@ -48,101 +58,117 @@ const AccountMenu = ({
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!isOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         onClose();
       }
     };
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKey);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKey);
     };
   }, [isOpen, onClose]);
 
   return (
     <div className="relative" ref={menuRef}>
       <button
+        type="button"
         onClick={onToggle}
-        className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+        className="kb-btn kb-btn-secondary kb-btn-sm max-w-52 !px-3 sm:!px-4"
       >
-        <span>
-          {isAuthenticated && userName ? (
-            <div className="flex items-center gap-1">
-              <User size={14} />
-              {userName.toUpperCase()}
-            </div>
-          ) : (
-            "CREATE ACCOUNT | LOGIN"
-          )}
+        <User className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <span className="hidden truncate lg:inline">
+          {isAuthenticated && userName ? userName : "Sign in"}
         </span>
-        <ChevronDown size={12} />
+        <span className="sr-only lg:hidden">Account menu</span>
+        <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       </button>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg border border-gray-200 py-2 z-50">
+        <div
+          role="menu"
+          className="absolute right-0 z-50 mt-2 w-60 rounded-2xl border border-line bg-white p-2 shadow-(--shadow-lift)"
+        >
           {isAuthenticated ? (
             <>
+              <p className="truncate px-3 pt-1 pb-2 text-xs font-extrabold tracking-wide text-muted uppercase">
+                {userName}
+              </p>
               <Link
                 to="/library"
-                className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                role="menuitem"
+                className={menuItem}
                 onClick={onToggle}
               >
-                <BookOpen size={14} />
-                My Library
+                <BookOpen className="h-4 w-4" aria-hidden="true" />
+                My library
               </Link>
               <Link
                 to="/orders"
-                className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                role="menuitem"
+                className={menuItem}
                 onClick={onToggle}
               >
-                <Package size={14} />
-                My Orders
+                <Package className="h-4 w-4" aria-hidden="true" />
+                My orders
               </Link>
               {userRole === "ADMIN" && (
                 <Link
                   to="/admin"
-                  className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  role="menuitem"
+                  className={menuItem}
                   onClick={onToggle}
                 >
-                  <ShieldCheck size={14} />
-                  Admin Dashboard
+                  <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                  Admin dashboard
                 </Link>
               )}
-              <hr className="my-2 border-gray-200" />
+              <hr className="my-2 border-line" />
               <button
+                type="button"
+                role="menuitem"
                 onClick={() => {
                   onLogout?.();
                   onToggle();
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                className={`${menuItem} text-error hover:bg-error-light hover:text-error`}
               >
-                Sign Out
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                Sign out
               </button>
             </>
           ) : (
-            <div className="flex flex-col">
+            <>
               <button
+                type="button"
+                role="menuitem"
                 onClick={() => {
                   onSignInClick?.();
                   onToggle();
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className={menuItem}
               >
-                Sign In
+                Sign in
               </button>
               <button
+                type="button"
+                role="menuitem"
                 onClick={() => {
                   onCreateAccountClick?.();
                   onToggle();
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className={menuItem}
               >
-                Create Account
+                Create account
               </button>
-            </div>
+            </>
           )}
         </div>
       )}
@@ -152,25 +178,25 @@ const AccountMenu = ({
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { state } = useCart();
   const { isAuthenticated, logout, user } = useAuth();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
-  const displayName =
-    user && (user.firstName || user.lastName)
-      ? [user.firstName, user.lastName].filter(Boolean).join(" ")
-      : user?.email;
+  const fullName = [user?.firstName, user?.lastName]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(" ");
+  const displayName = fullName || user?.email;
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchCategory, setSearchCategory] = useState("All");
   const [searchInput, setSearchInput] = useState("");
-  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
   const count = state.items.reduce((s, i) => s + i.quantity, 0);
-  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  const activeCategory = new URLSearchParams(location.search).get("category");
 
   const handleLogout = async () => {
     try {
@@ -184,35 +210,14 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        categoryDropdownRef.current &&
-        !categoryDropdownRef.current.contains(event.target as Node)
-      ) {
-        setCategoryDropdownOpen(false);
-      }
-    };
-
-    if (categoryDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [categoryDropdownOpen]);
-
-  useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await categoryService.getAllCategories();
         if (response && Array.isArray(response)) {
-          const categoryNames = response.map((cat) => cat.name);
-          setCategories(categoryNames);
+          setCategories(response.map((cat) => cat.name));
         }
       } catch (err) {
         console.error("Error fetching categories:", err);
-        // Fallback to empty array if fetch fails
         setCategories([]);
       }
     };
@@ -220,9 +225,22 @@ const Navbar = () => {
     fetchCategories();
   }, []);
 
+  // Close the mobile drawer whenever the route changes, and on Escape
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileMenuOpen(false);
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [mobileMenuOpen]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Navigate to search results page with search params
     const params = new URLSearchParams();
     if (searchInput.trim()) {
       params.append("q", searchInput.trim());
@@ -233,18 +251,111 @@ const Navbar = () => {
     navigate(`/books?${params.toString()}`);
   };
 
-  return (
-    <motion.header
-      initial="hidden"
-      animate="visible"
-      variants={navbarVariants}
-      className="w-full bg-brand-light sticky mx-auto top-0 z-30 shadow-sm"
+  const cartButton = (
+    <button
+      type="button"
+      onClick={() => setIsCartOpen(true)}
+      aria-label={`Open cart, ${count} ${count === 1 ? "item" : "items"}`}
+      className="kb-btn kb-btn-primary relative !min-h-11 !px-3.5"
     >
-      {/* Top Bar - Hidden on Mobile */}
-      <div className="hidden md:block border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-2">
-          <div className="flex justify-end items-center text-xs">
-            <div className="flex items-center gap-4">
+      <ShoppingBag className="h-5 w-5" aria-hidden="true" />
+      <span className="hidden sm:inline">Cart</span>
+      {count > 0 && (
+        <span
+          aria-hidden="true"
+          className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-cream bg-sun px-1 text-xs font-extrabold text-ink"
+        >
+          {count}
+        </span>
+      )}
+    </button>
+  );
+
+  const searchForm = (
+    <form
+      onSubmit={handleSearch}
+      role="search"
+      className="flex min-h-11 w-full items-stretch overflow-hidden rounded-full border-2 border-accent/60 bg-white transition-colors focus-within:border-accent focus-within:ring-3 focus-within:ring-accent/20"
+    >
+      <label htmlFor="nav-category" className="sr-only">
+        Search in category
+      </label>
+      <select
+        id="nav-category"
+        value={searchCategory}
+        onChange={(e) => setSearchCategory(e.target.value)}
+        className="hidden max-w-36 cursor-pointer truncate border-r-2 border-accent/60 bg-cream-deep/60 pr-2 pl-4 text-sm font-bold text-ink-soft focus:outline-none md:block"
+      >
+        {["All", ...categories].map((cat) => (
+          <option key={cat} value={cat}>
+            {cat}
+          </option>
+        ))}
+      </select>
+      <label htmlFor="nav-search" className="sr-only">
+        Search books, authors or categories
+      </label>
+      <input
+        id="nav-search"
+        type="search"
+        placeholder="Search books, authors…"
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
+        className="min-w-0 flex-1 bg-transparent px-4 text-base text-ink placeholder:text-muted focus:outline-none"
+      />
+      <button
+        type="submit"
+        aria-label="Search"
+        className="m-1 flex w-10 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-brand"
+      >
+        <Search className="h-4 w-4" aria-hidden="true" />
+      </button>
+    </form>
+  );
+
+  return (
+    <>
+      <motion.header
+        initial="hidden"
+        animate="visible"
+        variants={navbarVariants}
+        className="sticky top-0 z-40 w-full border-b border-line bg-cream/95 backdrop-blur supports-[backdrop-filter]:bg-cream/85"
+      >
+        <div className="kb-container flex h-16 items-center gap-3 md:h-[4.5rem] md:gap-6">
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((o) => !o)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            className="kb-btn kb-btn-quiet !min-h-11 !min-w-11 !p-0 md:hidden"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" aria-hidden="true" />
+            ) : (
+              <Menu className="h-6 w-6" aria-hidden="true" />
+            )}
+          </button>
+
+          <Link
+            to="/"
+            aria-label="Book Jungle home"
+            className="flex shrink-0 items-center gap-1 max-md:mr-auto"
+          >
+            <img src={logo} alt="" className="h-9 w-auto md:h-11" />
+            <img
+              src="/logo-text.png"
+              alt="Book Jungle"
+              className="h-9 w-auto md:h-11"
+            />
+          </Link>
+
+          {/* Search form */}
+
+          <div className="hidden min-w-0 flex-1 md:block">{searchForm}</div>
+
+          <div className="ml-auto flex items-center gap-2">
+            <div className="hidden md:block">
               <AccountMenu
                 isOpen={accountMenuOpen}
                 onToggle={() => setAccountMenuOpen(!accountMenuOpen)}
@@ -256,319 +367,161 @@ const Navbar = () => {
                 userRole={user?.role}
                 onClose={() => setAccountMenuOpen(false)}
               />
-              <span className="text-gray-300">|</span>
-              <Link
-                to="#"
-                className="flex items-center gap-1 text-gray-700 hover:text-gray-900"
-              >
-                <Heart size={14} />
-                WISHLIST
-              </Link>
             </div>
+            {cartButton}
           </div>
         </div>
-      </div>
 
-      {/* Main Header */}
-      <div className="px-4 py-3 md:px-4 md:py-4">
-        <div className="max-w-7xl mx-auto">
-          {/* Mobile Layout */}
-          <div className="md:hidden flex items-center justify-between gap-3">
-            {/* Hamburger Menu */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="flex items-center justify-center p-2 text-gray-700 hover:text-gray-900"
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+        {/* Mobile search */}
+        <div className="kb-container pb-3 md:hidden">{searchForm}</div>
 
-            {/* Logo - Small */}
-            <Link to="/" className="flex items-center  flex-1">
-              <img src={logo} alt="KidsBooks" className="h-8" />
-              <div className="text-lg font-bold">
-                <img src="/logo-text.png" alt="KidsBooks" className="h-8" />
-                {/* <span className="text-rose-600">KIDS</span>
-                  <span className="text-gray-700">BOOKS</span> */}
-              </div>
-            </Link>
-
-            {/* Cart Icon */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative flex items-center justify-center p-2"
-            >
-              <ShoppingCart size={24} className="text-gray-700" />
-              {count > 0 && (
-                <span className="absolute -top-1 -right-1 bg-brand text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {count}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Mobile Search Bar */}
-          <div className="md:hidden mt-3">
-            <form
-              onSubmit={handleSearch}
-              className="flex items-stretch border border-gray-300 rounded"
-            >
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="flex-1 px-3 py-2 text-sm focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="px-3 bg-gray-800 hover:bg-gray-900 text-white"
-              >
-                <Search size={18} />
-              </button>
-            </form>
-          </div>
-
-          {/* Desktop Layout */}
-          <div className="hidden md:flex items-center justify-between gap-6">
-            {/* Logo */}
-            <Link to="/" className="flex items-center  flex-shrink-0">
-              <img src={logo} alt="KidsBooks" className="h-12" />
-              <div className="">
-                <img src="/logo-text.png" alt="KidsBooks" className="h-12" />
-                {/* <span className="text-rose-600">KIDzS</span>
-                                <span className="text-gray-700">BOOKS</span> */}
-              </div>
-            </Link>
-
-            {/* Search Bar */}
-            <div className="flex-1 max-w-250">
-              <form
-                onSubmit={handleSearch}
-                className="flex items-stretch border border-gray-300 rounded"
-              >
-                <div className="relative" ref={categoryDropdownRef}>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCategoryDropdownOpen(!categoryDropdownOpen)
-                    }
-                    className="flex items-center gap-2 px-4 h-full bg-gray-50 hover:bg-gray-100 border-r border-gray-300 text-sm font-medium"
-                  >
-                    {searchCategory}
-                    <ChevronDown size={16} />
-                  </button>
-                  {categoryDropdownOpen && (
-                    <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded shadow-lg border border-gray-200 py-1 z-50">
-                      {["All", ...categories].map((cat) => (
-                        <button
-                          key={cat}
-                          type="button"
-                          onClick={() => {
-                            setSearchCategory(cat);
-                            setCategoryDropdownOpen(false);
-                          }}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                          {cat}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search by Title, Author, Keyword or ISBN"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="flex-1 px-4 py-2 text-sm focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  className="px-6 bg-gray-800 hover:bg-gray-900 text-white"
-                >
-                  <Search size={20} />
-                </button>
-              </form>
-            </div>
-
-            {/* Cart */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative flex items-center justify-center flex-shrink-0"
-            >
-              <ShoppingCart size={28} className="text-gray-700" />
-              {count > 0 && (
-                <span className="absolute -top-1 -right-1 bg-brand text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {count}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Category Navigation - Desktop Only */}
-      <div className="hidden md:block border-t border-gray-200">
-        <div className="max-w-8xl mx-auto px-4">
-          <nav className="flex items-center justify-center gap-8 py-3 text-sm font-medium overflow-x-auto">
-            <Link
-              to="/books"
-              className="text-gray-700 hover:text-brand whitespace-nowrap"
-            >
-              All
-            </Link>
-
-            {categories.length > 0 && <span className="text-gray-300">|</span>}
-
-            {categories.map((category, index) => (
-              <div key={category} className="flex items-center">
+        {/* Category shelf: desktop */}
+        {categories.length > 0 && (
+          <nav
+            aria-label="Browse by category"
+            className="hidden border-t border-line-soft md:block"
+          >
+            <ul className="kb-container hide-scrollbar flex items-center justify-center-safe gap-2 overflow-x-auto py-2">
+              <li>
                 <Link
-                  to={`/books?category=${category}`}
-                  className="text-gray-700 hover:text-brand whitespace-nowrap"
+                  to="/books"
+                  aria-current={
+                    location.pathname === "/books" && !activeCategory
+                      ? "page"
+                      : undefined
+                  }
+                  className="kb-chip !min-h-9 !text-[0.8125rem]"
                 >
-                  {category}
+                  All books
                 </Link>
-                {index < categories.length - 1 && (
-                  <span className="text-gray-300 ml-8">|</span>
+              </li>
+              {categories.map((category) => (
+                <li key={category}>
+                  <Link
+                    to={`/books?category=${encodeURIComponent(category)}`}
+                    aria-current={
+                      activeCategory === category ? "page" : undefined
+                    }
+                    className="kb-chip !min-h-9 !text-[0.8125rem]"
+                  >
+                    {category}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+
+        {/* Mobile drawer */}
+        {mobileMenuOpen && (
+          <div
+            id="mobile-menu"
+            className="absolute inset-x-0 top-full max-h-[calc(100dvh-8.5rem)] overflow-y-auto border-t border-line bg-white shadow-(--shadow-lift) md:hidden"
+          >
+            <div className="kb-container space-y-5 py-5 text-left">
+              <nav aria-label="Main" className="grid gap-1">
+                <Link to="/books" className={menuItem}>
+                  All books
+                </Link>
+                <Link to="/about" className={menuItem}>
+                  About us
+                </Link>
+                {isAuthenticated && (
+                  <>
+                    <Link to="/library" className={menuItem}>
+                      <BookOpen className="h-4 w-4" aria-hidden="true" />
+                      My library
+                    </Link>
+                    <Link to="/orders" className={menuItem}>
+                      <Package className="h-4 w-4" aria-hidden="true" />
+                      My orders
+                    </Link>
+                    {user?.role === "ADMIN" && (
+                      <Link to="/admin" className={menuItem}>
+                        <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                        Admin dashboard
+                      </Link>
+                    )}
+                  </>
+                )}
+              </nav>
+
+              {categories.length > 0 && (
+                <div>
+                  <p className="mb-2 px-1 text-xs font-extrabold tracking-wide text-muted uppercase">
+                    Browse by category
+                  </p>
+                  <ul className="flex flex-wrap gap-2">
+                    {categories.map((category) => (
+                      <li key={category}>
+                        <Link
+                          to={`/books?category=${encodeURIComponent(category)}`}
+                          className="kb-chip"
+                        >
+                          {category}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="border-t border-line pt-4">
+                {isAuthenticated ? (
+                  <>
+                    <p className="mb-2 flex items-center gap-2 px-1 text-sm font-bold text-ink">
+                      <User className="h-4 w-4" aria-hidden="true" />
+                      {displayName}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleLogout();
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`${menuItem} text-error hover:bg-error-light hover:text-error`}
+                    >
+                      <LogOut className="h-4 w-4" aria-hidden="true" />
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsLoginModalOpen(true);
+                        setMobileMenuOpen(false);
+                      }}
+                      className="kb-btn kb-btn-secondary"
+                    >
+                      Sign in
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRegisterModalOpen(true);
+                        setMobileMenuOpen(false);
+                      }}
+                      className="kb-btn kb-btn-primary"
+                    >
+                      Create account
+                    </button>
+                  </div>
                 )}
               </div>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
-          <div className="px-4 py-4 space-y-4">
-            {/* Authentication Menu */}
-            <div className="border-b border-gray-200 pb-4">
-              {isAuthenticated ? (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 px-2 py-2 text-sm font-medium text-gray-700">
-                    <User size={16} />
-                    {displayName}
-                  </div>
-                  <Link
-                    to="/library"
-                    className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <BookOpen size={16} />
-                    My Library
-                  </Link>
-                  <Link
-                    to="/orders"
-                    className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Package size={16} />
-                    My Orders
-                  </Link>
-                  {user?.role === "ADMIN" && (
-                    <Link
-                      to="/admin"
-                      className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <ShieldCheck size={16} />
-                      Admin Dashboard
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-2 py-2 text-sm text-red-600 hover:bg-red-50 rounded font-medium"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <button
-                    onClick={() => {
-                      setIsLoginModalOpen(true);
-                      setMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsRegisterModalOpen(true);
-                      setMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                  >
-                    Create Account
-                  </button>
-                </div>
-              )}
             </div>
-
-            {/* Categories */}
-            <div className="border-b border-gray-200 pb-4">
-              <button
-                onClick={() => setMobileCategoryOpen(!mobileCategoryOpen)}
-                className="flex items-center justify-between w-full px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded"
-              >
-                Categories
-                <ChevronDown
-                  size={16}
-                  className={`transform transition-transform ${
-                    mobileCategoryOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              {mobileCategoryOpen && (
-                <div className="mt-2 space-y-1">
-                  <Link
-                    to="/books"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    All Books
-                  </Link>
-                  {categories.map((category) => (
-                    <Link
-                      key={category}
-                      to={`/books?category=${category}`}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {category}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Wishlist */}
-            <Link
-              to="#"
-              className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Heart size={16} />
-              Wishlist
-            </Link>
           </div>
-        </div>
-      )}
+        )}
+      </motion.header>
 
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
-        onSignIn={(email, password) => {
-          // Handle sign in logic here
-          console.log("Sign in with:", email, password);
+        onSignIn={() => {
           setIsLoginModalOpen(false);
         }}
         onCreateAccount={() => {
-          // Open register modal and close login modal
           setIsLoginModalOpen(false);
           setIsRegisterModalOpen(true);
         }}
@@ -578,7 +531,6 @@ const Navbar = () => {
         isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
         onSignInClick={() => {
-          // Open login modal and close register modal
           setIsRegisterModalOpen(false);
           setIsLoginModalOpen(true);
         }}
@@ -588,13 +540,12 @@ const Navbar = () => {
         isOpen={isAddBookModalOpen}
         onClose={() => setIsAddBookModalOpen(false)}
         onSuccess={() => {
-          // Optionally refresh the book list or show a success message
           console.log("Book added successfully!");
         }}
       />
 
       <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-    </motion.header>
+    </>
   );
 };
 

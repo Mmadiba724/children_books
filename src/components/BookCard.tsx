@@ -1,114 +1,82 @@
 import { Link } from "react-router-dom";
-import { useState, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { ShoppingBag, Tablet } from "lucide-react";
 import type { Book } from "../types/book";
-import { getImageUrl } from "../utils/imageUtils";
 import { useCart } from "../context/CartContext";
 import { getCategoryColor } from "../utils/categoryColors";
-import { staggerItemVariants } from "../utils/animations";
+import { formatPrice } from "../utils/formatPrice";
+import BookCover from "./ui/BookCover";
 
+/**
+ * Catalogue card. The whole card is clickable through the title link
+ * (stretched link), while the add-to-cart button stays a separate,
+ * keyboard-reachable control instead of being nested inside the anchor.
+ */
 export default function BookCard({ book }: { readonly book: Book }) {
-    const { add } = useCart();
-    const [imageError, setImageError] = useState(false);
-    const [isHovered, setIsHovered] = useState(false);
-    const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const { add } = useCart();
 
-    const coverImage = getImageUrl(book.coverImageUrl);
-    const price = book.price || 0;
+  const isDigital = book.format === "DIGITAL";
+  const soldOut = !isDigital && (book.stockQuantity ?? 0) <= 0;
+  const category = book.categoryNames?.[0];
 
-    const handleQuickAdd = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        add(book);
-    };
+  return (
+    <article className="group relative flex h-full flex-col text-left motion-safe:animate-[kb-rise_0.45s_ease-out_both]">
+      <div className="relative px-1 pt-1">
+        <div className="transition-transform duration-300 ease-out group-hover:-translate-y-1.5 group-focus-within:-translate-y-1.5">
+          <BookCover
+            title={book.title}
+            coverImageUrl={book.coverImageUrl}
+            className="transition-shadow duration-300 group-hover:shadow-(--shadow-lift)"
+          />
+        </div>
+        {isDigital && (
+          <span className="kb-badge absolute top-3 left-3 bg-accent text-white shadow-sm">
+            <Tablet className="h-3 w-3" aria-hidden="true" />
+            Digital
+          </span>
+        )}
+        {soldOut && (
+          <span className="kb-badge absolute top-3 left-3 bg-ink text-white shadow-sm">
+            Sold out
+          </span>
+        )}
+      </div>
 
-    return (
-        <Link to={`/book/${book.id}`}>
-            <motion.article
-                ref={ref}
-                initial="hidden"
-                animate={isInView ? "visible" : "hidden"}
-                variants={staggerItemVariants}
-                whileHover={{ y: -8, scale: 1.02 }}
-                transition={{ duration: 0.3 }}
-                className="group flex flex-col bg-white shadow-xl hover:shadow-2xl rounded-lg h-full"
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-            >
-                {/* Book Cover with Overlay */}
-                <div className="relative mb-4 overflow-hidden rounded-t-lg">
-                    {!imageError && coverImage ? (
-                        <img
-                            src={coverImage}
-                            alt={book.title}
-                            className="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-105"
-                            onError={() => setImageError(true)}
-                        />
-                    ) : (
-                        <div className="w-full h-80 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                            <div className="text-center p-4">
-                                <svg
-                                    className="w-16 h-16 mx-auto mb-2 text-gray-300"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                    />
-                                </svg>
-                                <p className="text-sm text-gray-400 font-medium">
-                                    No Cover Available
-                                </p>
-                            </div>
-                        </div>
-                    )}
+      <div className="mt-4 flex flex-1 flex-col">
+        {category && (
+          <span
+            className={`kb-badge mb-2 w-fit border ${getCategoryColor(category)}`}
+          >
+            {category}
+          </span>
+        )}
+        <h3 className="line-clamp-2 font-display text-base leading-snug font-bold text-ink capitalize sm:text-lg">
+          <Link
+            to={`/book/${book.id}`}
+            className="rounded after:absolute after:inset-0 after:content-[''] hover:text-brand-dark"
+          >
+            {book.title}
+          </Link>
+        </h3>
+        <p className="mt-1 line-clamp-1 text-sm text-ink-soft">
+          by {book.author}
+        </p>
 
-                    {/* Quick Add Button Overlay */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: isHovered ? 1 : 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="absolute inset-0 bg-black/50 bg-opacity-40 flex items-center justify-center"
-                    >
-                        <motion.button
-                            onClick={handleQuickAdd}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="bg-white text-gray-800 font-bold py-3 px-8 hover:bg-gray-100 transition-colors duration-200 uppercase tracking-wide text-sm shadow-lg"
-                        >
-                            Add To Cart
-                        </motion.button>
-                    </motion.div>
-                </div>
-
-                {/* Book Info */}
-                <div className="text-center px-3 pb-4">
-                    <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 min-h-12 capitalize">
-                        {book.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-1">{book.author}</p>
-
-                    {/* Price and Category */}
-                    <div className="flex flex-col items-center gap-2 mt-2">
-                        <span className="text-base font-bold text-gray-900">
-                            UGX {price.toFixed(0)}
-                        </span>
-                        {book.categoryNames &&
-                            book.categoryNames.length > 0 && (
-                                <span
-                                    className={`text-xs font-medium px-3 py-1 border ${getCategoryColor(book.categoryNames[0])}`}
-                                >
-                                    {book.categoryNames[0]}
-                                </span>
-                            )}
-                    </div>
-                </div>
-            </motion.article>
-        </Link>
-    );
+        <div className="mt-auto flex flex-col gap-3 pt-3">
+          <span className="text-lg font-extrabold text-ink">
+            {formatPrice(book.price)}
+          </span>
+          <button
+            type="button"
+            disabled={soldOut}
+            aria-label={`Add ${book.title} to cart`}
+            onClick={() => add(book)}
+            className="kb-btn kb-btn-secondary kb-btn-sm relative z-10 w-full group-hover:border-brand"
+          >
+            <ShoppingBag className="h-4 w-4" aria-hidden="true" />
+            {soldOut ? "Sold out" : "Add to cart"}
+          </button>
+        </div>
+      </div>
+    </article>
+  );
 }

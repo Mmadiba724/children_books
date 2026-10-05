@@ -477,7 +477,7 @@ const AddBookModal = ({
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10"
+          className="absolute top-4 right-4 text-muted hover:text-ink-soft z-10"
           aria-label="Close modal"
           disabled={isLoading}
         >
@@ -485,14 +485,14 @@ const AddBookModal = ({
         </button>
 
         <div className="p-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+          <h2 className="text-2xl font-semibold text-ink mb-6">
             {editBook ? "Edit Book" : "Add New Book"}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Upload Status */}
             {isUploadingFiles && (
-              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded flex items-center gap-2">
+              <div className="bg-blue-50 border border-blue-200 text-accent-dark px-4 py-3 rounded flex items-center gap-2">
                 <Loader2 className="animate-spin" size={20} />
                 <span>Uploading files...</span>
               </div>
@@ -500,81 +500,81 @@ const AddBookModal = ({
 
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Title <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-ink-soft mb-1">
+                Title <span className="text-error">*</span>
               </label>
               <input
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-green-700 ${
-                  errors.title ? "border-red-500" : "border-gray-300"
+                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
+                  errors.title ? "border-error" : "border-line-strong"
                 }`}
                 placeholder="Enter book title"
               />
               {errors.title && (
-                <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+                <p className="text-error text-sm mt-1">{errors.title}</p>
               )}
             </div>
 
             {/* Author */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Author <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-ink-soft mb-1">
+                Author <span className="text-error">*</span>
               </label>
               <input
                 type="text"
                 name="author"
                 value={formData.author}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-green-700 ${
-                  errors.author ? "border-red-500" : "border-gray-300"
+                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
+                  errors.author ? "border-error" : "border-line-strong"
                 }`}
                 placeholder="Enter author name"
               />
               {errors.author && (
-                <p className="text-red-500 text-sm mt-1">{errors.author}</p>
+                <p className="text-error text-sm mt-1">{errors.author}</p>
               )}
             </div>
 
             {/* isbn */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                ISBN <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-ink-soft mb-1">
+                ISBN <span className="text-error">*</span>
               </label>
               <input
                 type="text"
                 name="isbn"
                 value={formData.isbn}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-green-700 ${
-                  errors.isbn ? "border-red-500" : "border-gray-300"
+                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
+                  errors.isbn ? "border-error" : "border-line-strong"
                 }`}
                 placeholder="Enter ISBN number"
               />
               {errors.isbn && (
-                <p className="text-red-500 text-sm mt-1">{errors.isbn}</p>
+                <p className="text-error text-sm mt-1">{errors.isbn}</p>
               )}
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-ink-soft mb-1">
+                Description <span className="text-error">*</span>
               </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={4}
-                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-green-700 ${
-                  errors.description ? "border-red-500" : "border-gray-300"
+                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
+                  errors.description ? "border-error" : "border-line-strong"
                 }`}
                 placeholder="Enter book description"
               />
               {errors.description && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-error text-sm mt-1">
                   {errors.description}
                 </p>
               )}
@@ -584,8 +584,8 @@ const AddBookModal = ({
             <div className="grid grid-cols-2 gap-4">
               {/* Price */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-ink-soft mb-1">
+                  Price <span className="text-error">*</span>
                 </label>
                 <input
                   type="number"
@@ -594,26 +594,26 @@ const AddBookModal = ({
                   onChange={handleInputChange}
                   step="0.01"
                   min="0"
-                  className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-green-700 ${
-                    errors.price ? "border-red-500" : "border-gray-300"
+                  className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
+                    errors.price ? "border-error" : "border-line-strong"
                   }`}
                   placeholder="0.00"
                 />
                 {errors.price && (
-                  <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+                  <p className="text-error text-sm mt-1">{errors.price}</p>
                 )}
               </div>
 
               {/* Format */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Format <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-ink-soft mb-1">
+                  Format <span className="text-error">*</span>
                 </label>
                 <select
                   name="format"
                   value={formData.format}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded focus:outline-none focus:border-green-700"
+                  className="w-full px-4 py-2 border-2 border-line-strong rounded focus:outline-none focus:border-accent"
                 >
                   <option value="DIGITAL">Digital</option>
                   <option value="PHYSICAL">Physical</option>
@@ -624,8 +624,8 @@ const AddBookModal = ({
             {/* Stock Quantity (only for physical books) */}
             {formData.format === "PHYSICAL" && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Stock Quantity <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-ink-soft mb-1">
+                  Stock Quantity <span className="text-error">*</span>
                 </label>
                 <input
                   type="number"
@@ -633,13 +633,13 @@ const AddBookModal = ({
                   value={formData.stockQuantity}
                   onChange={handleInputChange}
                   min="0"
-                  className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-green-700 ${
-                    errors.stockQuantity ? "border-red-500" : "border-gray-300"
+                  className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
+                    errors.stockQuantity ? "border-error" : "border-line-strong"
                   }`}
                   placeholder="0"
                 />
                 {errors.stockQuantity && (
-                  <p className="text-red-500 text-sm mt-1">
+                  <p className="text-error text-sm mt-1">
                     {errors.stockQuantity}
                   </p>
                 )}
@@ -648,12 +648,12 @@ const AddBookModal = ({
 
             {/* Categories */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Categories <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-ink-soft mb-2">
+                Categories <span className="text-error">*</span>
               </label>
-              <div className="border-2 border-gray-300 rounded p-3 max-h-32 overflow-y-auto">
+              <div className="border-2 border-line-strong rounded p-3 max-h-32 overflow-y-auto">
                 {categories.length === 0 ? (
-                  <p className="text-gray-500 text-sm">Loading categories...</p>
+                  <p className="text-muted text-sm">Loading categories...</p>
                 ) : (
                   <div className="space-y-2">
                     {categories.map((category) => (
@@ -669,9 +669,9 @@ const AddBookModal = ({
                           onChange={() =>
                             handleCategoryChange(Number.parseInt(category.id))
                           }
-                          className="w-4 h-4 rounded border-gray-300 cursor-pointer accent-green-700"
+                          className="w-4 h-4 rounded border-line-strong cursor-pointer accent-brand"
                         />
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-ink-soft">
                           {category.name}
                         </span>
                       </label>
@@ -680,17 +680,17 @@ const AddBookModal = ({
                 )}
               </div>
               {errors.categories && (
-                <p className="text-red-500 text-sm mt-1">{errors.categories}</p>
+                <p className="text-error text-sm mt-1">{errors.categories}</p>
               )}
             </div>
 
             {/* Cover Image Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cover Image <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-ink-soft mb-1">
+                Cover Image <span className="text-error">*</span>
               </label>
               <div className="flex items-center gap-4">
-                <label className="flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-green-700 transition">
+                <label className="flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed border-line-strong rounded cursor-pointer hover:border-brand transition">
                   <Upload size={20} className="mr-2" />
                   <span className="text-sm">
                     {coverImage ? coverImage.name : "Choose image file"}
@@ -711,18 +711,18 @@ const AddBookModal = ({
                 )}
               </div>
               {errors.coverImage && (
-                <p className="text-red-500 text-sm mt-1">{errors.coverImage}</p>
+                <p className="text-error text-sm mt-1">{errors.coverImage}</p>
               )}
             </div>
 
             {/* Book File Upload (only for digital books) */}
             {formData.format === "DIGITAL" && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Book File (PDF/EPUB) <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-ink-soft mb-1">
+                  Book File (PDF/EPUB) <span className="text-error">*</span>
                 </label>
                 <div className="flex items-center gap-4">
-                  <label className="flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-green-700 transition">
+                  <label className="flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed border-line-strong rounded cursor-pointer hover:border-brand transition">
                     <Upload size={20} className="mr-2" />
                     <span className="text-sm">
                       {bookFile ? bookFile.name : "Choose book file"}
@@ -735,16 +735,16 @@ const AddBookModal = ({
                     />
                   </label>
                   {existingFileId && !bookFile && (
-                    <div className="text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded border border-gray-200">
+                    <div className="text-sm text-ink-soft bg-cream px-4 py-2 rounded border border-line">
                       <p className="font-medium">Existing file:</p>
-                      <p className="text-gray-500 truncate max-w-xs">
+                      <p className="text-muted truncate max-w-xs">
                         {existingFileId}
                       </p>
                     </div>
                   )}
                 </div>
                 {errors.bookFile && (
-                  <p className="text-red-500 text-sm mt-1">{errors.bookFile}</p>
+                  <p className="text-error text-sm mt-1">{errors.bookFile}</p>
                 )}
               </div>
             )}
@@ -754,7 +754,7 @@ const AddBookModal = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 bg-brand hover:bg-brand-dark text-white font-semibold py-3 rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading && <Loader2 className="animate-spin" size={20} />}
                 {isLoading ? "Creating Book..." : "Create Book"}
@@ -763,7 +763,7 @@ const AddBookModal = ({
                 type="button"
                 onClick={handleClose}
                 disabled={isLoading}
-                className="flex-1 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 rounded transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 border-2 border-line-strong text-ink-soft hover:bg-cream font-semibold py-3 rounded transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>

@@ -47,18 +47,18 @@ export default function AboutPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white">
+      <div className="min-h-screen bg-cream">
         {/* Hero Section */}
         <motion.div
           initial="hidden"
           animate="visible"
           variants={slideUpVariants}
-          className="bg-gradient-to-r from-brand to-pink-600 text-white py-16"
+          className="bg-brand text-white py-16"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
-                About KidsBooks
+                About Book Jungle
               </h1>
               <p className="text-xl md:text-2xl text-brand-light max-w-3xl mx-auto">
                 A playful collection of stories, designed for early readers and
@@ -75,7 +75,7 @@ export default function AboutPage() {
             {/* Sidebar Navigation */}
             <aside className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">About</h3>
+                <h3 className="text-lg font-bold text-ink mb-4">About</h3>
                 <nav className="space-y-2">
                   {(
                     [
@@ -107,7 +107,7 @@ export default function AboutPage() {
                       className={`block py-2 px-3 rounded transition-colors ${
                         activeSection === id
                           ? "text-brand font-medium bg-brand-light"
-                          : "text-gray-700 hover:text-brand hover:bg-brand-light"
+                          : "text-ink-soft hover:text-brand hover:bg-brand-light"
                       }`}
                     >
                       {label}
@@ -118,7 +118,7 @@ export default function AboutPage() {
             </aside>
 
             {/* Main Content Area */}
-            <main className="lg:col-span-3">
+            <div className="lg:col-span-3">
               {/* Our Story Section */}
               <motion.section
                 id="our-story"
@@ -129,13 +129,13 @@ export default function AboutPage() {
                 variants={slideUpVariants}
                 className="mb-12"
               >
-                <div className="bg-white rounded-lg shadow-md p-8">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                <div className="bg-white rounded-3xl shadow-(--shadow-soft) p-8">
+                  <h2 className="text-3xl font-bold text-ink mb-6">
                     Our Story
                   </h2>
-                  <div className="prose max-w-none text-gray-700">
+                  <div className="prose max-w-none text-ink-soft">
                     <p className="text-lg leading-relaxed mb-4">
-                      KidsBooks began with a simple mission: to create
+                      Book Jungle began with a simple mission: to create
                       enchanting stories that spark young imaginations and
                       foster a lifelong love of reading. Founded by parents and
                       educators who believe in the power of storytelling, we've
@@ -170,13 +170,13 @@ export default function AboutPage() {
                 variants={slideUpVariants}
                 className="mb-12"
               >
-                <div className="bg-gradient-to-br from-brand-light to-pink-50 rounded-lg shadow-md p-8  border-2 border-brand-light">
+                <div className="bg-brand-light rounded-3xl shadow-(--shadow-soft) p-8  border-2 border-brand-light">
                   <div className="flex items-start gap-4 mb-4">
                     <div className="bg-brand rounded-full p-3">
                       <BookOpen className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                      <h2 className="text-3xl font-bold text-ink mb-2">
                         Our Mission
                       </h2>
                       <p className="text-xl text-brand-dark font-semibold">
@@ -184,7 +184,7 @@ export default function AboutPage() {
                       </p>
                     </div>
                   </div>
-                  <p className="text-lg text-gray-700 leading-relaxed">
+                  <p className="text-lg text-ink-soft leading-relaxed">
                     We believe every child deserves access to quality literature
                     that entertains, educates, and inspires. Our mission is to
                     make reading accessible, enjoyable, and meaningful for
@@ -204,8 +204,8 @@ export default function AboutPage() {
                 variants={slideUpVariants}
                 className="mb-12"
               >
-                <div className="bg-white rounded-lg shadow-md p-8">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-8">
+                <div className="bg-white rounded-3xl shadow-(--shadow-soft) p-8">
+                  <h2 className="text-3xl font-bold text-ink mb-8">
                     Our Values
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -214,10 +214,10 @@ export default function AboutPage() {
                         <Heart className="w-6 h-6 text-brand" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        <h3 className="text-xl font-bold text-ink mb-2">
                           Quality First
                         </h3>
-                        <p className="text-gray-700">
+                        <p className="text-ink-soft">
                           Every book is carefully reviewed to ensure
                           age-appropriate content, engaging narratives, and
                           beautiful illustrations.
@@ -230,10 +230,10 @@ export default function AboutPage() {
                         <Sparkles className="w-6 h-6 text-pink-600" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        <h3 className="text-xl font-bold text-ink mb-2">
                           Imagination & Creativity
                         </h3>
-                        <p className="text-gray-700">
+                        <p className="text-ink-soft">
                           We celebrate creativity and imagination, encouraging
                           children to explore new worlds through reading.
                         </p>
@@ -245,10 +245,10 @@ export default function AboutPage() {
                         <Users className="w-6 h-6 text-amber-600" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        <h3 className="text-xl font-bold text-ink mb-2">
                           Inclusivity
                         </h3>
-                        <p className="text-gray-700">
+                        <p className="text-ink-soft">
                           Our diverse collection represents different cultures,
                           backgrounds, and experiences to reflect the world
                           around us.
@@ -261,10 +261,10 @@ export default function AboutPage() {
                         <Shield className="w-6 h-6 text-emerald-600" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        <h3 className="text-xl font-bold text-ink mb-2">
                           Safety & Trust
                         </h3>
-                        <p className="text-gray-700">
+                        <p className="text-ink-soft">
                           Parents can trust that every book in our collection is
                           safe, appropriate, and enriching for young readers.
                         </p>
@@ -284,12 +284,12 @@ export default function AboutPage() {
                 variants={slideUpVariants}
                 className="mb-12"
               >
-                <div className="bg-white rounded-lg shadow-md p-8">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                <div className="bg-white rounded-3xl shadow-(--shadow-soft) p-8">
+                  <h2 className="text-3xl font-bold text-ink mb-6">
                     Our Team
                   </h2>
-                  <p className="text-lg text-gray-700 leading-relaxed mb-6">
-                    KidsBooks is powered by a passionate team of parents,
+                  <p className="text-lg text-ink-soft leading-relaxed mb-6">
+                    Book Jungle is powered by a passionate team of parents,
                     educators, writers, and book lovers. Our diverse team brings
                     decades of combined experience in children's literature,
                     education, and publishing. We work closely with authors,
@@ -297,13 +297,13 @@ export default function AboutPage() {
                     book meets our high standards.
                   </p>
                   <div className="bg-brand-light rounded-lg p-6 border-l-4 border-brand">
-                    <p className="text-gray-700 italic">
+                    <p className="text-ink-soft italic">
                       "We're not just selling books—we're nurturing the next
                       generation of readers, thinkers, and dreamers. Every story
                       we share is an investment in a child's future."
                     </p>
                     <p className="text-brand font-semibold mt-2">
-                      — The KidsBooks Team
+                      — The Book Jungle Team
                     </p>
                   </div>
                 </div>
@@ -319,42 +319,16 @@ export default function AboutPage() {
                 variants={slideUpVariants}
                 className="mb-12"
               >
-                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg shadow-md p-8 border-2 border-emerald-200">
+                <div className="bg-accent-light rounded-3xl shadow-(--shadow-soft) p-8 border-2 border-accent/30">
                   <div className="flex items-start gap-4 mb-6">
-                    <div className="bg-emerald-600 rounded-full p-3">
+                    <div className="bg-accent rounded-full p-3">
                       <Award className="w-6 h-6 text-white" />
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-900">
+                    <h2 className="text-3xl font-bold text-ink">
                       Our Impact
                     </h2>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div className="text-center">
-                      <div className="text-4xl font-extrabold text-emerald-600 mb-2">
-                        10K+
-                      </div>
-                      <div className="text-gray-700 font-medium">
-                        Happy Families
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-4xl font-extrabold text-emerald-600 mb-2">
-                        500+
-                      </div>
-                      <div className="text-gray-700 font-medium">
-                        Books in Collection
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-4xl font-extrabold text-emerald-600 mb-2">
-                        4.8★
-                      </div>
-                      <div className="text-gray-700 font-medium">
-                        Average Rating
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-lg text-gray-700 leading-relaxed">
+                  <p className="text-lg text-ink-soft leading-relaxed">
                     Through partnerships with schools and libraries, we've
                     helped bring quality literature to thousands of children.
                     Our commitment to literacy extends beyond sales—we regularly
@@ -365,11 +339,11 @@ export default function AboutPage() {
               </motion.section>
 
               {/* Call to Action */}
-              <section className="bg-gradient-to-r from-rose-600 to-pink-600 rounded-lg shadow-xl p-8 text-white text-center">
+              <section className="bg-ink rounded-lg shadow-xl p-8 text-white text-center">
                 <h2 className="text-3xl font-bold mb-4">
                   Join Our Reading Community
                 </h2>
-                <p className="text-xl text-rose-100 mb-6 max-w-2xl mx-auto">
+                <p className="text-xl text-white/80 mb-6 max-w-2xl mx-auto">
                   Discover stories that will inspire, educate, and delight young
                   readers in your family.
                 </p>
@@ -379,12 +353,12 @@ export default function AboutPage() {
                       behavior: "smooth",
                     })
                   }
-                  className="bg-white text-rose-600 font-bold px-8 py-3.5 rounded-full shadow-lg hover:bg-rose-50 transition-all duration-200 text-lg"
+                  className="bg-white text-brand font-bold px-8 py-3.5 rounded-full shadow-lg hover:bg-rose-50 transition-all duration-200 text-lg"
                 >
                   Browse Our Collection
                 </button>
               </section>
-            </main>
+            </div>
           </div>
         </div>
       </div>

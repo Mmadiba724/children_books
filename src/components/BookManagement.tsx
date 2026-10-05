@@ -30,7 +30,7 @@ function BooksGrid({
       {books.map((book) => (
         <div
           key={book.id}
-          className="bg-white rounded-lg shadow-md overflow-hidden border-2 border-gray-100 hover:border-brand-light transition-colors"
+          className="bg-white rounded-lg shadow-md overflow-hidden border-2 border-line-soft hover:border-brand-light transition-colors"
         >
           {/* Book Cover */}
           <div className="relative  bg-gray-200 flex items-center justify-center">
@@ -41,17 +41,17 @@ function BooksGrid({
                 className="w-full h-136 object-cover"
               />
             ) : (
-              <Image className="w-12 h-12 text-gray-400" />
+              <Image className="w-12 h-12 text-muted" />
             )}
           </div>
 
           {/* Book Info */}
           <div className="p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-1">
+            <h3 className="text-lg font-semibold text-ink mb-1 line-clamp-1">
               {book.title}
             </h3>
-            <p className="text-sm text-gray-600 mb-2">{book.author}</p>
-            <p className="text-sm text-gray-500 mb-2 line-clamp-2">
+            <p className="text-sm text-ink-soft mb-2">{book.author}</p>
+            <p className="text-sm text-muted mb-2 line-clamp-2">
               {book.description}
             </p>
 
@@ -62,7 +62,7 @@ function BooksGrid({
               <span
                 className={`text-xs px-2 py-1 rounded ${
                   book.format === "DIGITAL"
-                    ? "bg-blue-100 text-blue-700"
+                    ? "bg-blue-100 text-accent-dark"
                     : "bg-green-100 text-green-700"
                 }`}
               >
@@ -71,7 +71,7 @@ function BooksGrid({
             </div>
 
             {book.format === "PHYSICAL" && (
-              <p className="text-xs text-gray-500 mb-2">
+              <p className="text-xs text-muted mb-2">
                 Stock: {book.stockQuantity}
               </p>
             )}
@@ -81,7 +81,7 @@ function BooksGrid({
                 {book.categoryNames.map((cat) => (
                   <span
                     key={cat}
-                    className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded"
+                    className="text-xs px-2 py-1 bg-cream-deep text-ink-soft rounded"
                   >
                     {cat}
                   </span>
@@ -93,7 +93,7 @@ function BooksGrid({
             <div className="flex gap-2">
               <button
                 onClick={() => onEdit(book)}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-accent-dark bg-blue-50 hover:bg-blue-100 rounded transition-colors"
               >
                 <Pencil className="w-4 h-4" />
                 Edit
@@ -275,14 +275,14 @@ export default function BookManagement() {
     <div className="space-y-6">
       {/* Header with Add Button */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Manage Books</h2>
+        <h2 className="text-2xl font-bold text-ink">Manage Books</h2>
         <div className="flex gap-3">
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
               showFilters || hasActiveFilters
                 ? "bg-brand text-white hover:bg-brand-dark"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                : "bg-gray-200 text-ink-soft hover:bg-gray-300"
             }`}
           >
             <Filter className="w-4 h-4" />
@@ -318,14 +318,14 @@ export default function BookManagement() {
             label: "Digital",
             count: digitalCount,
             icon: <Monitor className="w-4 h-4" />,
-            activeClass: "bg-blue-600 text-white border-blue-600",
+            activeClass: "bg-brand text-white border-blue-600",
           },
           {
             value: "PHYSICAL",
             label: "Physical",
             count: physicalCount,
             icon: <BookOpen className="w-4 h-4" />,
-            activeClass: "bg-green-600 text-white border-green-600",
+            activeClass: "bg-brand text-white border-green-600",
           },
         ].map((tab) => (
           <button
@@ -334,7 +334,7 @@ export default function BookManagement() {
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all duration-150 ${
               filterFormat === tab.value
                 ? tab.activeClass
-                : "bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:bg-gray-50"
+                : "bg-white text-ink-soft border-line hover:border-gray-400 hover:bg-cream"
             }`}
           >
             {tab.icon}
@@ -343,7 +343,7 @@ export default function BookManagement() {
               className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                 filterFormat === tab.value
                   ? "bg-white/25 text-white"
-                  : "bg-gray-100 text-gray-700"
+                  : "bg-cream-deep text-ink-soft"
               }`}
             >
               {tab.count}
@@ -356,7 +356,7 @@ export default function BookManagement() {
       {showFilters && (
         <div className="bg-white rounded-lg shadow-md p-6 border-2 border-brand-light">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-ink">
               Filter & Sort Books
             </h3>
             {hasActiveFilters && (
@@ -375,7 +375,7 @@ export default function BookManagement() {
             <div>
               <label
                 htmlFor="filter-category"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-ink-soft mb-2"
               >
                 Category
               </label>
@@ -383,7 +383,7 @@ export default function BookManagement() {
                 id="filter-category"
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-brand focus:outline-none"
+                className="w-full px-3 py-2 border-2 border-line-strong rounded-lg focus:border-brand focus:outline-none"
               >
                 <option value="">All Categories</option>
                 {uniqueCategories.map((category) => (
@@ -398,7 +398,7 @@ export default function BookManagement() {
             <div>
               <label
                 htmlFor="filter-author"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-ink-soft mb-2"
               >
                 Author
               </label>
@@ -406,7 +406,7 @@ export default function BookManagement() {
                 id="filter-author"
                 value={filterAuthor}
                 onChange={(e) => setFilterAuthor(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-brand focus:outline-none"
+                className="w-full px-3 py-2 border-2 border-line-strong rounded-lg focus:border-brand focus:outline-none"
               >
                 <option value="">All Authors</option>
                 {uniqueAuthors.map((author) => (
@@ -421,7 +421,7 @@ export default function BookManagement() {
             <div>
               <label
                 htmlFor="sort-by"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-ink-soft mb-2"
               >
                 Sort By
               </label>
@@ -429,7 +429,7 @@ export default function BookManagement() {
                 id="sort-by"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-brand focus:outline-none"
+                className="w-full px-3 py-2 border-2 border-line-strong rounded-lg focus:border-brand focus:outline-none"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -444,14 +444,14 @@ export default function BookManagement() {
           </div>
 
           {/* Results Count */}
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-600">
+          <div className="mt-4 pt-4 border-t border-line">
+            <p className="text-sm text-ink-soft">
               Showing{" "}
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-ink">
                 {filteredAndSortedBooks.length}
               </span>{" "}
               of{" "}
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-ink">
                 {books.length}
               </span>{" "}
               {books.length === 1 ? "book" : "books"}
@@ -469,7 +469,7 @@ export default function BookManagement() {
 
       {!isLoading && filteredAndSortedBooks.length === 0 && (
         <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <p className="text-gray-500">
+          <p className="text-muted">
             {books.length === 0
               ? "No books found. Create your first book!"
               : "No books match the selected filters."}

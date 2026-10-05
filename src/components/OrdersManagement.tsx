@@ -54,7 +54,7 @@ const STATUS_TABS: {
   {
     value: "PAID",
     label: "Paid",
-    activeClass: "bg-green-600 text-white border-green-600",
+    activeClass: "bg-brand text-white border-green-600",
     dotClass: "bg-green-500",
   },
   {
@@ -188,9 +188,9 @@ export default function OrdersManagement() {
       case "FAILED":
         return "bg-orange-100 text-orange-800";
       case "CANCELLED":
-        return "bg-gray-200 text-gray-700";
+        return "bg-gray-200 text-ink-soft";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-cream-deep text-ink";
     }
   };
 
@@ -204,9 +204,9 @@ export default function OrdersManagement() {
       case "FAILED":
         return "bg-red-100 text-red-800";
       case "REFUNDED":
-        return "bg-gray-100 text-gray-800";
+        return "bg-cream-deep text-ink";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-cream-deep text-ink";
     }
   };
 
@@ -223,8 +223,8 @@ export default function OrdersManagement() {
     if (orders.length === 0) {
       return (
         <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-500">
+          <Package className="w-16 h-16 mx-auto text-muted mb-4" />
+          <p className="text-muted">
             {statusFilter === "ALL"
               ? "No orders found"
               : `No ${statusFilter.toLowerCase()} orders`}
@@ -238,20 +238,20 @@ export default function OrdersManagement() {
         {orders.map((order) => (
           <div
             key={order.id}
-            className="bg-white rounded-xl shadow-lg  border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-200"
+            className="bg-white rounded-xl shadow-lg  border border-line-soft overflow-hidden hover:shadow-xl transition-all duration-200"
           >
             {/* Header Section */}
-            <div className="bg-gradient-to-r from-rose-50 to-pink-50 px-6 py-4 border-b  border-gray-200">
+            <div className="bg-gradient-to-r from-rose-50 to-pink-50 px-6 py-4 border-b  border-line">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="bg-white p-2 rounded-lg shadow-sm">
                     <ShoppingBag className="w-5 h-5 text-brand" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">
+                    <h3 className="text-xl font-bold text-ink">
                       Order #{order.id}
                     </h3>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                    <div className="flex items-center gap-2 text-sm text-ink-soft mt-1">
                       <Clock className="w-4 h-4" />
                       <span>{formatLocalDateTime(order.createdAt)}</span>
                     </div>
@@ -280,29 +280,29 @@ export default function OrdersManagement() {
                 <div className="lg:col-span-2 space-y-6">
                   {/* Customer & Shipping Info */}
                   <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                    <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-blue-600" />
+                    <h4 className="font-bold text-ink mb-3 flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-accent-dark" />
                       Customer Information
                     </h4>
                     <div className="space-y-2">
                       {order.userEmail && (
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-600 min-w-[60px]">
+                          <span className="text-sm font-medium text-ink-soft min-w-[60px]">
                             Email:
                           </span>
-                          <span className="text-sm text-gray-900">
+                          <span className="text-sm text-ink">
                             {order.userEmail}
                           </span>
                         </div>
                       )}
                       {order.shippingAddress && (
                         <div className="flex items-start gap-2 pt-2 border-t border-blue-100">
-                          <MapPin className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                          <MapPin className="w-4 h-4 text-accent-dark mt-0.5 shrink-0" />
                           <div>
-                            <span className="text-sm font-medium text-gray-600 block">
+                            <span className="text-sm font-medium text-ink-soft block">
                               Shipping Address:
                             </span>
-                            <span className="text-sm text-gray-900">
+                            <span className="text-sm text-ink">
                               {order.shippingAddress}
                             </span>
                           </div>
@@ -313,7 +313,7 @@ export default function OrdersManagement() {
 
                   {/* Payment Information */}
                   <div className="bg-green-50 rounded-lg p-4 border border-green-100">
-                    <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    <h4 className="font-bold text-ink mb-3 flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-green-600" />
                       Payment Details
                     </h4>
@@ -321,11 +321,11 @@ export default function OrdersManagement() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <DollarSign className="w-4 h-4 text-green-600" />
-                          <span className="text-sm font-medium text-gray-600">
+                          <span className="text-sm font-medium text-ink-soft">
                             Total Amount:
                           </span>
                         </div>
-                        <span className="text-lg font-bold text-gray-900">
+                        <span className="text-lg font-bold text-ink">
                           ${order.totalAmount.toFixed(2)}
                         </span>
                       </div>
@@ -335,7 +335,7 @@ export default function OrdersManagement() {
                             <div className="bg-green-100 p-1.5 rounded">
                               <Hash className="w-4 h-4 text-green-700" />
                             </div>
-                            <span className="text-sm font-bold text-gray-900">
+                            <span className="text-sm font-bold text-ink">
                               Customer Input Mobile Money Transaction Number
                             </span>
                           </div>
@@ -361,7 +361,7 @@ export default function OrdersManagement() {
                   {/* Order Items */}
                   {order.items && order.items.length > 0 && (
                     <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
-                      <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                      <h4 className="font-bold text-ink mb-3 flex items-center gap-2">
                         <Package className="w-4 h-4 text-purple-600" />
                         Order Items ({order.items.length})
                       </h4>
@@ -372,24 +372,24 @@ export default function OrdersManagement() {
                             className="bg-white rounded-md p-3 flex items-start justify-between gap-3 border border-purple-100"
                           >
                             <div className="flex-1">
-                              <p className="font-semibold text-gray-900">
+                              <p className="font-semibold text-ink">
                                 {item.title || `Book #${item.bookId}`}
                               </p>
                               {item.author && (
-                                <p className="text-sm text-gray-600 mt-0.5">
+                                <p className="text-sm text-ink-soft mt-0.5">
                                   by {item.author}
                                 </p>
                               )}
                             </div>
                             <div className="text-right flex-shrink-0">
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-ink-soft">
                                 Qty:{" "}
-                                <span className="font-semibold text-gray-900">
+                                <span className="font-semibold text-ink">
                                   {item.quantity}
                                 </span>
                               </p>
                               {item.price && (
-                                <p className="font-bold text-gray-900 mt-1">
+                                <p className="font-bold text-ink mt-1">
                                   ${item.price.toFixed(2)}
                                 </p>
                               )}
@@ -403,11 +403,11 @@ export default function OrdersManagement() {
                   {/* Tracking Information */}
                   {order.trackingNumber && (
                     <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
-                      <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <h4 className="font-bold text-ink mb-2 flex items-center gap-2">
                         <Package className="w-4 h-4 text-indigo-600" />
                         Tracking Information
                       </h4>
-                      <p className="text-sm font-mono text-gray-900 bg-white px-3 py-2 rounded">
+                      <p className="text-sm font-mono text-ink bg-white px-3 py-2 rounded">
                         {order.trackingNumber}
                       </p>
                     </div>
@@ -419,8 +419,8 @@ export default function OrdersManagement() {
                   {order.status === "PENDING" ||
                   (order.transactionIdMatched === true &&
                     order.status !== "PAID") ? (
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 sticky top-4">
-                      <h4 className="font-bold text-gray-900 mb-4">
+                    <div className="bg-cream rounded-lg p-4 border border-line sticky top-4">
+                      <h4 className="font-bold text-ink mb-4">
                         Actions Required
                       </h4>
                       <div className="space-y-3">
@@ -443,7 +443,7 @@ export default function OrdersManagement() {
                               processingOrderId === order.id ||
                               !order.transactionId
                             }
-                            className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none"
+                            className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none"
                             title={
                               !order.transactionId
                                 ? "Transaction ID must be added first"
@@ -486,8 +486,8 @@ export default function OrdersManagement() {
                           )}
                         </button>
 
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <p className="text-xs text-gray-600 text-center leading-relaxed">
+                        <div className="mt-4 pt-4 border-t border-line">
+                          <p className="text-xs text-ink-soft text-center leading-relaxed">
                             Review the order details carefully before taking
                             action.
                           </p>
@@ -495,8 +495,8 @@ export default function OrdersManagement() {
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <h4 className="font-bold text-gray-900 mb-3">
+                    <div className="bg-cream rounded-lg p-4 border border-line">
+                      <h4 className="font-bold text-ink mb-3">
                         Order Status
                       </h4>
                       <div className="text-center py-4">
@@ -505,7 +505,7 @@ export default function OrdersManagement() {
                         >
                           {order.status}
                         </span>
-                        <p className="text-xs text-gray-600 mt-3">
+                        <p className="text-xs text-ink-soft mt-3">
                           {order.status === "PAID" &&
                             "Payment confirmed — books added to library"}
                           {order.status === "REJECTED" && (
@@ -525,7 +525,7 @@ export default function OrdersManagement() {
                             </span>
                           )}
                           {order.status === "CANCELLED" && (
-                            <span className="flex items-center justify-center gap-1 text-gray-600">
+                            <span className="flex items-center justify-center gap-1 text-ink-soft">
                               <Ban className="w-3 h-3" />
                               Order was cancelled
                             </span>
@@ -548,22 +548,22 @@ export default function OrdersManagement() {
       {/* Section Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">
+          <h2 className="text-2xl font-bold text-ink">
             Orders & Transactions
           </h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-ink-soft">
             Review orders and manage mobile-money transaction IDs
           </p>
         </div>
 
         {/* View Toggle */}
-        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl">
+        <div className="flex items-center gap-1 bg-cream-deep p-1 rounded-xl">
           <button
             onClick={() => setAdminView("orders")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               adminView === "orders"
-                ? "bg-white shadow text-rose-600"
-                : "text-gray-600 hover:text-gray-800"
+                ? "bg-white shadow text-brand"
+                : "text-ink-soft hover:text-ink"
             }`}
           >
             <ShoppingBag className="w-4 h-4" />
@@ -573,8 +573,8 @@ export default function OrdersManagement() {
             onClick={() => setAdminView("transactions")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               adminView === "transactions"
-                ? "bg-white shadow text-rose-600"
-                : "text-gray-600 hover:text-gray-800"
+                ? "bg-white shadow text-brand"
+                : "text-ink-soft hover:text-ink"
             }`}
           >
             <Hash className="w-4 h-4" />
@@ -590,7 +590,7 @@ export default function OrdersManagement() {
       {adminView === "orders" && (
         <>
           {/* Status Tabs */}
-          <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-4">
+          <div className="flex flex-wrap gap-2 border-b border-line pb-4">
             {STATUS_TABS.map((tab) => {
               const count = getTabCount(tab.value, metrics);
               const isActive = statusFilter === tab.value;
@@ -601,7 +601,7 @@ export default function OrdersManagement() {
                   className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all duration-150 flex items-center gap-2 ${
                     isActive
                       ? tab.activeClass
-                      : "bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:bg-gray-50"
+                      : "bg-white text-ink-soft border-line hover:border-gray-400 hover:bg-cream"
                   }`}
                 >
                   {tab.label}
@@ -610,7 +610,7 @@ export default function OrdersManagement() {
                       className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                         isActive
                           ? "bg-white/25 text-white"
-                          : "bg-gray-100 text-gray-700"
+                          : "bg-cream-deep text-ink-soft"
                       }`}
                     >
                       {count}
@@ -624,39 +624,39 @@ export default function OrdersManagement() {
           {/* Orders Stats */}
           {/* {metrics && (
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-              <div className="bg-white p-3 rounded-lg border-2 border-gray-100 text-center">
-                <p className="text-xs text-gray-500 mb-1">Total</p>
-                <p className="text-xl font-bold text-gray-800">
+              <div className="bg-white p-3 rounded-lg border-2 border-line-soft text-center">
+                <p className="text-xs text-muted mb-1">Total</p>
+                <p className="text-xl font-bold text-ink">
                   {metrics.totalOrders}
                 </p>
               </div>
               <div className="bg-yellow-50 p-3 rounded-lg border-2 border-yellow-100 text-center">
-                <p className="text-xs text-gray-500 mb-1">s</p>
+                <p className="text-xs text-muted mb-1">s</p>
                 <p className="text-xl font-bold text-yellow-700">
                   {metrics.countsByStatus?.PENDING ?? 0}
                 </p>
               </div>
               <div className="bg-green-50 p-3 rounded-lg border-2 border-green-100 text-center">
-                <p className="text-xs text-gray-500 mb-1">Paid</p>
+                <p className="text-xs text-muted mb-1">Paid</p>
                 <p className="text-xl font-bold text-green-700">
                   {metrics.countsByStatus?.PAID ?? 0}
                 </p>
               </div>
               <div className="bg-red-50 p-3 rounded-lg border-2 border-red-100 text-center">
-                <p className="text-xs text-gray-500 mb-1">Rejected</p>
+                <p className="text-xs text-muted mb-1">Rejected</p>
                 <p className="text-xl font-bold text-red-700">
                   {metrics.countsByStatus?.REJECTED ?? 0}
                 </p>
               </div>
               <div className="bg-orange-50 p-3 rounded-lg border-2 border-orange-100 text-center">
-                <p className="text-xs text-gray-500 mb-1">Failed</p>
+                <p className="text-xs text-muted mb-1">Failed</p>
                 <p className="text-xl font-bold text-orange-600">
                   {metrics.countsByStatus?.FAILED ?? 0}
                 </p>
               </div>
-              <div className="bg-gray-100 p-3 rounded-lg border-2 border-gray-200 text-center">
-                <p className="text-xs text-gray-500 mb-1">Cancelled</p>
-                <p className="text-xl font-bold text-gray-600">
+              <div className="bg-cream-deep p-3 rounded-lg border-2 border-line text-center">
+                <p className="text-xs text-muted mb-1">Cancelled</p>
+                <p className="text-xl font-bold text-ink-soft">
                   {metrics.countsByStatus?.CANCELLED ?? 0}
                 </p>
               </div>
@@ -665,11 +665,11 @@ export default function OrdersManagement() {
 
           {/* Orders count for current tab */}
           {!isLoading && (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-muted">
               <TrendingUp className="w-4 h-4" />
               <span>
                 Showing{" "}
-                <span className="font-semibold text-gray-800">
+                <span className="font-semibold text-ink">
                   {orders.length}
                 </span>{" "}
                 {statusFilter === "ALL"

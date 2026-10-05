@@ -107,7 +107,18 @@ export default function CheckoutPage() {
       nav("/?orderCreated=true");
     } catch (error) {
       console.error("Failed to create order:", error);
-      toast.error("Failed to create order. Please try again.");
+
+      // Handle order creation errors - extract message from error response
+      let errorMessage = "Failed to create order. Please try again.";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error && typeof error === "object" && "message" in error) {
+        // ErrorResponse object from handleError utility
+        errorMessage = (error as { message?: string }).message || errorMessage;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -122,19 +133,19 @@ export default function CheckoutPage() {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-cream py-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Checkout Steps */}
           <div className="lg:col-span-2 space-y-6">
-{/* Step 1: Shipping Options */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            {/* Step 1: Shipping Options */}
+            <div className="bg-white rounded-lg shadow-sm border border-line p-6">
               <div className="flex items-center gap-3 mb-4">
                 <CheckCircle className="text-green-600" size={24} />
                 <h2 className="text-lg font-bold">1. SHIPPING OPTIONS</h2>
                 {currentStep > 2 && (
-                  <button className="ml-auto text-blue-600 hover:underline text-sm font-semibold">
+                  <button className="ml-auto text-accent-dark hover:underline text-sm font-semibold">
                     Edit
                   </button>
                 )}
@@ -152,7 +163,7 @@ export default function CheckoutPage() {
                         className="accent-blue-600"
                       />
                       <span className="font-semibold">Within Kampala</span>
-                      <span className="ml-auto font-bold text-gray-900">
+                      <span className="ml-auto font-bold text-ink">
                         UGX 10,000
                       </span>
                     </label>
@@ -167,7 +178,7 @@ export default function CheckoutPage() {
                       />
                       <span className="font-semibold">Outside Kampala</span>
                       <span className="ml-auto font-bold text-orange-600">
-                        Negotiated
+                        To be Negotiated
                       </span>
                     </label>
                   </div>
@@ -177,14 +188,14 @@ export default function CheckoutPage() {
                       You will be contacted with the final amount.
                     </p>
                   )}
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-ink-soft">
                     Estimated delivery: 5-7 business days
                   </p>
                 </div>
               ) : (
                 <div>
                   <p className="font-semibold">eBook</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-ink-soft">
                     Available Immediately in Your Digital Library (Pre-orders
                     will be available on their release dates.)
                   </p>
@@ -193,10 +204,12 @@ export default function CheckoutPage() {
             </div>
 
             {/* Step 2: Shipping Address */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-line p-6">
               <div className="flex items-center gap-3 mb-4">
                 <CheckCircle className="text-green-600" size={24} />
-                <h2 className="text-lg font-bold">2. SHIPPING ADDRESS DESCRIPTION</h2>
+                <h2 className="text-lg font-bold">
+                  2. SHIPPING ADDRESS DESCRIPTION
+                </h2>
               </div>
               {hasPhysicalBooks ? (
                 showAddressForm ? (
@@ -206,7 +219,7 @@ export default function CheckoutPage() {
                       onChange={(e) => setShippingAddress(e.target.value)}
                       rows={3}
                       placeholder="Enter your complete shipping address"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-300 resize-none"
+                      className="w-full p-3 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent/40 focus:border-accent resize-none"
                     />
                     <button
                       onClick={() => {
@@ -215,7 +228,7 @@ export default function CheckoutPage() {
                           setCurrentStep(2);
                         }
                       }}
-                      className="mt-2 text-blue-600 hover:underline text-sm font-semibold"
+                      className="mt-2 text-accent-dark hover:underline text-sm font-semibold"
                     >
                       Save Address
                     </button>
@@ -224,7 +237,7 @@ export default function CheckoutPage() {
                       <h3 className="font-semibold mb-2">
                         Select delivery location on map
                       </h3>
-                      <div className="h-72 rounded-lg overflow-hidden border border-gray-200">
+                      <div className="h-72 rounded-lg overflow-hidden border border-line">
                         <Map
                           selectedLocation={shippingCoords}
                           onSelectLocation={(coords) =>
@@ -233,7 +246,7 @@ export default function CheckoutPage() {
                         />
                       </div>
                       {shippingCoords && (
-                        <p className="mt-2 text-sm text-gray-600">
+                        <p className="mt-2 text-sm text-ink-soft">
                           Selected location: {shippingCoords.lat.toFixed(6)},{" "}
                           {shippingCoords.lng.toFixed(6)}
                         </p>
@@ -246,7 +259,7 @@ export default function CheckoutPage() {
                       <p
                         className={
                           shippingAddress || shippingCoords
-                            ? "text-gray-700"
+                            ? "text-ink-soft"
                             : "text-red-600 font-semibold"
                         }
                       >
@@ -258,7 +271,7 @@ export default function CheckoutPage() {
                     </div>
                     <button
                       onClick={() => setShowAddressForm(true)}
-                      className="text-blue-600 hover:underline text-sm font-semibold flex items-center gap-1"
+                      className="text-accent-dark hover:underline text-sm font-semibold flex items-center gap-1"
                     >
                       <Edit size={16} />
                       Edit
@@ -267,18 +280,16 @@ export default function CheckoutPage() {
                 )
               ) : (
                 <div>
-                  <p className="font-semibold text-gray-900">
+                  <p className="font-semibold text-ink">
                     Electronic delivery
                   </p>
-                  <p className="text-blue-600">{userEmail}</p>
+                  <p className="text-accent-dark">{userEmail}</p>
                 </div>
               )}
             </div>
 
-            
-
             {/* Step 3: Payment Details */}
-            {/*<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">*/}
+            {/*<div className="bg-white rounded-lg shadow-sm border border-line p-6">*/}
             {/*    <div className="flex items-center gap-3 mb-4">*/}
             {/*        <CheckCircle*/}
             {/*            className="text-green-600"*/}
@@ -288,12 +299,12 @@ export default function CheckoutPage() {
             {/*            3. PAYMENT DETAILS*/}
             {/*        </h2>*/}
             {/*        {currentStep > 3 && (*/}
-            {/*            <button className="ml-auto text-blue-600 hover:underline text-sm font-semibold">*/}
+            {/*            <button className="ml-auto text-accent-dark hover:underline text-sm font-semibold">*/}
             {/*                Edit*/}
             {/*            </button>*/}
             {/*        )}*/}
             {/*    </div>*/}
-            {/*    <div className="text-gray-700">*/}
+            {/*    <div className="text-ink-soft">*/}
             {/*        <p className="text-sm">*/}
             {/*            Payment will be processed upon order*/}
             {/*            approval*/}
@@ -302,13 +313,13 @@ export default function CheckoutPage() {
             {/*</div>*/}
 
             {/* Step 4: Review Order */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-line p-6">
               <h2 className="text-lg font-bold mb-4">4. REVIEW ORDER</h2>
 
               {hasPhysicalBooks ? (
-                <p className="text-sm text-gray-600 mb-4">STANDARD SHIPPING</p>
+                <p className="text-sm text-ink-soft mb-4">STANDARD SHIPPING</p>
               ) : (
-                <p className="text-sm text-blue-600 font-semibold mb-4">
+                <p className="text-sm text-accent-dark font-semibold mb-4">
                   DELIVERED ELECTRONICALLY
                 </p>
               )}
@@ -317,7 +328,7 @@ export default function CheckoutPage() {
                 {state.items.map((item) => (
                   <div
                     key={item.book.id}
-                    className="flex gap-4 pb-4 border-b border-gray-200 last:border-0"
+                    className="flex gap-4 pb-4 border-b border-line last:border-0"
                   >
                     <img
                       src={getImageUrl(item.book.coverImageUrl)}
@@ -325,26 +336,26 @@ export default function CheckoutPage() {
                       className="w-20 h-28 object-cover rounded"
                     />
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">
+                      <h3 className="font-semibold text-ink mb-1">
                         {item.book.title}
                       </h3>
-                      <p className="text-sm text-gray-600 mb-1">
+                      <p className="text-sm text-ink-soft mb-1">
                         by {item.book.author}
                       </p>
-                      <p className="text-sm text-gray-500 mb-2">
+                      <p className="text-sm text-muted mb-2">
                         {item.book.format}
                       </p>
                       {!hasPhysicalBooks && (
-                        <p className="text-xs text-gray-600 mb-2">
+                        <p className="text-xs text-ink-soft mb-2">
                           Available Immediately in Your Digital Library
                         </p>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-ink">
                         UGX {((item.book.price * 100) / 100).toFixed(0)}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-ink-soft">
                         Qty: {item.quantity}
                       </p>
                       <p className="font-bold mt-2">
@@ -363,12 +374,12 @@ export default function CheckoutPage() {
 
           {/* Right Column - Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-4">
+            <div className="bg-white rounded-lg shadow-sm border border-line p-6 sticky top-4">
               <h2 className="text-lg font-bold mb-4">Order Summary</h2>
 
-              <div className="space-y-3 mb-4 pb-4 border-b border-gray-200">
+              <div className="space-y-3 mb-4 pb-4 border-b border-line">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-700">
+                  <span className="text-ink-soft">
                     Subtotal ({state.items.length}{" "}
                     {state.items.length === 1 ? "item" : "items"})
                   </span>
@@ -377,14 +388,14 @@ export default function CheckoutPage() {
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-700">Shipping</span>
+                  <span className="text-ink-soft">Shipping</span>
                   <span
                     className={`font-semibold ${
                       shippingNegotiated
                         ? "text-orange-600"
                         : shippingCents === 0
                           ? "text-green-600"
-                          : "text-gray-900"
+                          : "text-ink"
                     }`}
                   >
                     {shippingNegotiated
@@ -407,24 +418,24 @@ export default function CheckoutPage() {
 
               {/* Mobile Money Payment Instructions */}
               <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h3 className="font-bold text-sm text-gray-900 mb-2">
+                <h3 className="font-bold text-sm text-ink mb-2">
                   Mobile Money Payment
                 </h3>
-                <p className="text-xs text-gray-700 mb-2">
+                <p className="text-xs text-ink-soft mb-2">
                   Please send UGX{" "}
                   {shippingNegotiated
                     ? `${(subtotal / 100).toFixed(0)} (+ negotiated shipping)`
                     : (total / 100).toFixed(0)}{" "}
                   by dialing *185# and follow the prompts to pay to:
                 </p>
-                <div className="text-sm font-semibold text-gray-900 mb-1">
+                <div className="text-sm font-semibold text-ink mb-1">
                   MTN: 0772 123 456
                 </div>
                 <div>OR</div>
-                <div className="text-sm font-semibold text-gray-900 mb-3">
+                <div className="text-sm font-semibold text-ink mb-3">
                   Airtel: 0752 123 456
                 </div>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-ink-soft">
                   After completing the payment, enter your transaction number
                   below.
                 </p>
@@ -434,7 +445,7 @@ export default function CheckoutPage() {
               <div className="mb-4">
                 <label
                   htmlFor="transactionNumber"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
+                  className="block text-sm font-semibold text-ink-soft mb-2"
                 >
                   Transaction Number *
                 </label>
@@ -444,7 +455,7 @@ export default function CheckoutPage() {
                   value={transactionNumber}
                   onChange={(e) => setTransactionNumber(e.target.value)}
                   placeholder="Enter mobile money transaction number"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-300"
+                  className="w-full p-3 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent/40 focus:border-accent"
                   required
                 />
               </div>
@@ -459,18 +470,18 @@ export default function CheckoutPage() {
                   (hasPhysicalBooks && !shippingLocation) ||
                   !transactionNumber.trim()
                 }
-                className="w-full bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 text-white font-bold py-3 rounded transition-colors mb-4"
+                className="w-full bg-brand hover:bg-brand-dark disabled:bg-gray-400 text-white font-bold py-3 rounded transition-colors mb-4"
               >
                 {loading ? "Processing..." : "Submit Order"}
               </button>
 
-              <p className="text-xs text-gray-600 text-center">
+              <p className="text-xs text-ink-soft text-center">
                 This site is protected by reCAPTCHA and the Google{" "}
                 <a
                   href="https://policies.google.com/privacy"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 underline"
+                  className="text-accent-dark underline"
                 >
                   Privacy Policy
                 </a>{" "}
@@ -479,7 +490,7 @@ export default function CheckoutPage() {
                   href="https://policies.google.com/terms"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 underline"
+                  className="text-accent-dark underline"
                 >
                   Terms of Service
                 </a>{" "}

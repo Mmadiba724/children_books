@@ -243,7 +243,7 @@ const CategoryModal = ({
                 {/* Close button */}
                 <button
                     onClick={handleClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10"
+                    className="absolute top-4 right-4 text-muted hover:text-ink-soft z-10"
                     aria-label="Close modal"
                     disabled={isLoading}
                 >
@@ -251,7 +251,7 @@ const CategoryModal = ({
                 </button>
 
                 <div className="p-8">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+                    <h2 className="text-2xl font-semibold text-ink mb-6">
                         {editCategory ? "Edit Category" : "Add New Category"}
                     </h2>
 
@@ -260,10 +260,10 @@ const CategoryModal = ({
                         <div>
                             <label
                                 htmlFor="category-name"
-                                className="block text-sm font-medium text-gray-700 mb-1"
+                                className="block text-sm font-medium text-ink-soft mb-1"
                             >
                                 Category Name{" "}
-                                <span className="text-red-500">*</span>
+                                <span className="text-error">*</span>
                             </label>
                             <input
                                 id="category-name"
@@ -271,15 +271,15 @@ const CategoryModal = ({
                                 name="name"
                                 value={formData.name}
                                 onChange={handleInputChange}
-                                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-green-700 ${
+                                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
                                     errors.name
-                                        ? "border-red-500"
-                                        : "border-gray-300"
+                                        ? "border-error"
+                                        : "border-line-strong"
                                 }`}
                                 placeholder="Enter category name"
                             />
                             {errors.name && (
-                                <p className="text-red-500 text-sm mt-1">
+                                <p className="text-error text-sm mt-1">
                                     {errors.name}
                                 </p>
                             )}
@@ -289,7 +289,7 @@ const CategoryModal = ({
                         <div>
                             <label
                                 htmlFor="category-description"
-                                className="block text-sm font-medium text-gray-700 mb-1"
+                                className="block text-sm font-medium text-ink-soft mb-1"
                             >
                                 Description
                             </label>
@@ -299,15 +299,15 @@ const CategoryModal = ({
                                 value={formData.description}
                                 onChange={handleInputChange}
                                 rows={4}
-                                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-green-700 ${
+                                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
                                     errors.description
-                                        ? "border-red-500"
-                                        : "border-gray-300"
+                                        ? "border-error"
+                                        : "border-line-strong"
                                 }`}
                                 placeholder="Enter category description (optional)"
                             />
                             {errors.description && (
-                                <p className="text-red-500 text-sm mt-1">
+                                <p className="text-error text-sm mt-1">
                                     {errors.description}
                                 </p>
                             )}
@@ -318,7 +318,7 @@ const CategoryModal = ({
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="flex items-center gap-2 px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                                className="flex items-center gap-2 px-6 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                             >
                                 {isLoading && (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -333,7 +333,7 @@ const CategoryModal = ({
                                 type="button"
                                 onClick={handleClose}
                                 disabled={isLoading}
-                                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:bg-gray-100 transition-colors"
+                                className="px-6 py-2 bg-gray-200 text-ink-soft rounded-lg hover:bg-gray-300 disabled:bg-cream-deep transition-colors"
                             >
                                 Cancel
                             </button>

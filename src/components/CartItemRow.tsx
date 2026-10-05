@@ -20,7 +20,7 @@ export default function CartItemRow({
             />
             <div className="flex-1">
                 <div className="font-bold">{item.book.title}</div>
-                <div className="text-sm text-gray-600">{item.book.author}</div>
+                <div className="text-sm text-ink-soft">{item.book.author}</div>
                 <div className="mt-2">${(item.book.price ?? 0).toFixed(0)}</div>
             </div>
             <div className="flex items-center space-x-2">
@@ -45,7 +45,7 @@ export default function CartItemRow({
                 </div>
                 <button
                     onClick={() => remove(item.book.id)}
-                    className="text-red-500 underline"
+                    className="text-error underline"
                 >
                     Remove
                 </button>

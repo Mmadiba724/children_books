@@ -31,24 +31,25 @@ export default function AddReviewForm({ onAdd }: Readonly<AddReviewFormProps>) {
         <form onSubmit={submit} className="space-y-3">
             <button
                 type="button"
+                aria-controls="review-form"
                 onClick={() => {
                     const form = document.getElementById("review-form");
                     if (form) form.classList.toggle("hidden");
                 }}
-                className="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-900 font-normal py-2 px-4 rounded text-sm transition-colors"
+                className="kb-btn kb-btn-secondary w-full"
             >
                 Write a customer review
             </button>
 
             <div
                 id="review-form"
-                className="hidden bg-gray-50 border border-gray-300 rounded p-4"
+                className="hidden rounded-2xl bg-cream-deep/60 p-4"
             >
                 <div className="space-y-3">
                     <div>
                         <label
                             htmlFor="review-name"
-                            className="block text-sm font-medium text-gray-700 mb-1"
+                            className="mb-1 block text-sm font-bold text-ink"
                         >
                             Your name
                         </label>
@@ -58,14 +59,14 @@ export default function AddReviewForm({ onAdd }: Readonly<AddReviewFormProps>) {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Enter your name"
-                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="kb-input"
                         />
                     </div>
 
                     <div>
                         <label
                             htmlFor="review-rating"
-                            className="block text-sm font-medium text-gray-700 mb-1"
+                            className="mb-1 block text-sm font-bold text-ink"
                         >
                             Rating
                         </label>
@@ -73,7 +74,7 @@ export default function AddReviewForm({ onAdd }: Readonly<AddReviewFormProps>) {
                             id="review-rating"
                             value={rating}
                             onChange={(e) => setRating(Number(e.target.value))}
-                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="kb-input"
                         >
                             {[5, 4, 3, 2, 1].map((r) => (
                                 <option key={r} value={r}>
@@ -86,7 +87,7 @@ export default function AddReviewForm({ onAdd }: Readonly<AddReviewFormProps>) {
                     <div>
                         <label
                             htmlFor="review-text"
-                            className="block text-sm font-medium text-gray-700 mb-1"
+                            className="mb-1 block text-sm font-bold text-ink"
                         >
                             Your review
                         </label>
@@ -97,19 +98,19 @@ export default function AddReviewForm({ onAdd }: Readonly<AddReviewFormProps>) {
                             onChange={(e) => setText(e.target.value)}
                             placeholder="What did you like or dislike? What did you use this product for?"
                             rows={4}
-                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="kb-input"
                         />
                     </div>
 
                     <button
                         type="submit"
-                        className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-medium py-2 px-6 rounded text-sm transition-colors"
+                        className="kb-btn kb-btn-primary w-full"
                     >
-                        Submit
+                        Post review
                     </button>
 
                     {success && (
-                        <div className="text-sm text-green-600 font-medium">
+                        <div role="status" className="text-sm font-bold text-success">
                             Thanks for your review!
                         </div>
                     )}

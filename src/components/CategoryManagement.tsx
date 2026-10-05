@@ -64,7 +64,7 @@ export default function CategoryManagement() {
     <div className="space-y-6">
       {/* Header with Add Button */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Manage Categories</h2>
+        <h2 className="text-2xl font-bold text-ink">Manage Categories</h2>
         <button
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors"
@@ -81,7 +81,7 @@ export default function CategoryManagement() {
         </div>
       ) : categories.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <p className="text-gray-500">
+          <p className="text-muted">
             No categories found. Create your first category!
           </p>
         </div>
@@ -90,12 +90,12 @@ export default function CategoryManagement() {
           {categories.map((category) => (
             <div
               key={category.id}
-              className="bg-white rounded-lg shadow-md p-4 border-2 border-gray-100 hover:border-brand-light transition-colors"
+              className="bg-white rounded-lg shadow-md p-4 border-2 border-line-soft hover:border-brand-light transition-colors"
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800">
+                    <h3 className="text-lg font-semibold text-ink">
                       {category.name}
                     </h3>
                     <span
@@ -108,7 +108,7 @@ export default function CategoryManagement() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(category)}
-                    className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    className="p-1 text-accent-dark hover:bg-blue-50 rounded transition-colors"
                     title="Edit category"
                   >
                     <Pencil className="w-4 h-4" />
@@ -124,13 +124,13 @@ export default function CategoryManagement() {
               </div>
 
               {category.description && (
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-sm text-ink-soft mb-2">
                   {category.description}
                 </p>
               )}
 
               {category.createdAt && (
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-muted">
                   Created: {formatLocalDate(category.createdAt)}
                 </p>
               )}

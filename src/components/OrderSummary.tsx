@@ -14,19 +14,19 @@ export default function OrderSummary({
     return (
         <aside className="bg-white p-4 rounded shadow">
             <div className="mb-3">
-                <div className="text-sm text-gray-600">Subtotal</div>
+                <div className="text-sm text-ink-soft">Subtotal</div>
                 <div className="text-xl font-semibold">
                     Ugx {" "} {(subtotal / 100).toFixed(0)}
                 </div>
             </div>
             <div className="mb-3">
-                <div className="text-sm text-gray-600">Tax (7%)</div>
+                <div className="text-sm text-ink-soft">Tax (7%)</div>
                 <div className="text-xl font-semibold">
                     Ugx {" "} {(tax / 100).toFixed(0)}
                 </div>
             </div>
             <div className="mb-4">
-                <div className="text-sm text-gray-600">Total</div>
+                <div className="text-sm text-ink-soft">Total</div>
                 <div className="text-2xl font-bold">
                     Ugx {" "} {(total / 100).toFixed(0)}
                 </div>
