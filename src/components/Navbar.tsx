@@ -24,6 +24,7 @@ import {
 import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
 import AddBookModal from "./AddBookModal";
+import CategorySelect from "./CategorySelect";
 import CartSidebar from "./CartSidebar";
 import { navbarVariants } from "../utils/animations";
 
@@ -330,23 +331,13 @@ const Navbar = () => {
     <form
       onSubmit={handleSearch}
       role="search"
-      className="flex min-h-11 w-full items-stretch overflow-hidden rounded-full border-2 border-accent/60 bg-white transition-colors focus-within:border-accent focus-within:ring-3 focus-within:ring-accent/20"
+      className="flex min-h-11 w-full items-stretch rounded-full border-2 border-accent/60 bg-white transition-colors focus-within:border-accent focus-within:ring-3 focus-within:ring-accent/20"
     >
-      <label htmlFor="nav-category" className="sr-only">
-        Search in category
-      </label>
-      <select
-        id="nav-category"
+      <CategorySelect
         value={searchCategory}
-        onChange={(e) => setSearchCategory(e.target.value)}
-        className="hidden max-w-36 cursor-pointer truncate border-r-2 border-accent/60 bg-cream-deep/60 pr-2 pl-4 text-sm font-bold text-ink-soft focus:outline-none md:block"
-      >
-        {["All", ...categories].map((cat) => (
-          <option key={cat} value={cat}>
-            {cat}
-          </option>
-        ))}
-      </select>
+        options={["All", ...categories]}
+        onChange={setSearchCategory}
+      />
       <label htmlFor="nav-search" className="sr-only">
         Search books, authors or categories
       </label>
