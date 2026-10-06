@@ -9,6 +9,9 @@ import { cartSessionManager } from "../config/api";
 import { CheckCircle, Edit } from "lucide-react";
 import { getImageUrl } from "../utils/imageUtils";
 import Map from "../components/googlemaps";
+import OrderCompleteModal, {
+  type CompletedOrder,
+} from "../components/OrderCompleteModal";
 
 export default function CheckoutPage() {
   const { state, subtotalCents, clear } = useCart();
@@ -20,6 +23,9 @@ export default function CheckoutPage() {
     lat: number;
     lng: number;
   } | null>(null);
+  const [completedOrder, setCompletedOrder] = useState<CompletedOrder | null>(
+    null,
+  );
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [transactionNumber, setTransactionNumber] = useState("");
@@ -52,12 +58,12 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Check if cart is empty
-    if (state.items.length === 0) {
+    // Check if cart is empty (it is emptied on purpose once an order is placed)
+    if (state.items.length === 0 && !completedOrder) {
       // toast.error("Your cart is empty");
       nav("/cart");
     }
-  }, [nav, state.items.length]);
+  }, [nav, state.items.length, completedOrder]);
 
   const handleSubmitOrder = async () => {
     setLoading(true);
@@ -80,6 +86,7 @@ export default function CheckoutPage() {
         totalAmount: (subtotal + shippingCents) / 100, // subtotal + shipping (converted from cents to dollars)
         transactionId: transactionNumber.trim(),
         shippingAddress: shippingAddressForOrder,
+        includeShipping: hasPhysicalBooks && shippingLocation === "kampala",
       };
 
       console.log("Order payload being sent:", orderPayload);
@@ -87,6 +94,15 @@ export default function CheckoutPage() {
       // Create order in backend
       const orderResponse = await orderService.createOrder(orderPayload);
       console.log("[Checkout] ✅ Order created:", orderResponse.data.id);
+
+      // Show the order-complete modal before the cart is emptied, so the
+      // empty-cart redirect below doesn't fire first
+      setCompletedOrder({
+        id: orderResponse.data.id,
+        hasPhysical: hasPhysicalBooks,
+        hasDigital: state.items.some((i) => i.book.format !== "PHYSICAL"),
+        outsideKampala: hasPhysicalBooks && shippingLocation === "outside",
+      });
 
       // Clear cart after successful order creation
       await clear();
@@ -98,13 +114,6 @@ export default function CheckoutPage() {
         "[Checkout] ✅ Cart session cleared - ready for new shopping session",
       );
 
-      // Show success message
-      toast.success(
-        `Order #${orderResponse.data.id} created successfully! ${hasPhysicalBooks ? "Awaiting approval." : "Digital items will be available after approval."}`,
-      );
-
-      // Navigate to home or order confirmation
-      nav("/?orderCreated=true");
     } catch (error) {
       console.error("Failed to create order:", error);
 
@@ -123,6 +132,17 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
+
+  if (completedOrder)
+    return (
+      <div className="min-h-screen bg-cream">
+        <OrderCompleteModal
+          order={completedOrder}
+          onViewOrders={() => nav("/orders")}
+          onBrowse={() => nav("/books")}
+        />
+      </div>
+    );
 
   if (state.items.length === 0)
     return (

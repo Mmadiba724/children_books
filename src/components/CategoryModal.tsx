@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import categoryService, { type Category } from "../services/categoryService";
 import authService from "../services/authService";
 import tokenStorage from "../utils/tokenStorage";
+import { adminBtn, adminInput } from "./admin/adminStyles";
 
 interface CategoryModalProps {
     isOpen: boolean;
@@ -237,110 +238,145 @@ const CategoryModal = ({
 
     if (!isOpen) return null;
 
+    const inputCls = (hasError?: string) =>
+        `${adminInput} ${hasError ? "border-error focus:border-error" : ""}`;
+
     return (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 my-8 relative">
-                {/* Close button */}
-                <button
-                    onClick={handleClose}
-                    className="absolute top-4 right-4 text-muted hover:text-ink-soft z-10"
-                    aria-label="Close modal"
-                    disabled={isLoading}
-                >
-                    <X size={24} />
-                </button>
-
-                <div className="p-8">
-                    <h2 className="text-2xl font-semibold text-ink mb-6">
-                        {editCategory ? "Edit Category" : "Add New Category"}
-                    </h2>
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Category Name */}
-                        <div>
-                            <label
-                                htmlFor="category-name"
-                                className="block text-sm font-medium text-ink-soft mb-1"
-                            >
-                                Category Name{" "}
-                                <span className="text-error">*</span>
-                            </label>
-                            <input
-                                id="category-name"
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
-                                    errors.name
-                                        ? "border-error"
-                                        : "border-line-strong"
-                                }`}
-                                placeholder="Enter category name"
-                            />
-                            {errors.name && (
-                                <p className="text-error text-sm mt-1">
-                                    {errors.name}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Category Description */}
-                        <div>
-                            <label
-                                htmlFor="category-description"
-                                className="block text-sm font-medium text-ink-soft mb-1"
-                            >
-                                Description
-                            </label>
-                            <textarea
-                                id="category-description"
-                                name="description"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                rows={4}
-                                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
-                                    errors.description
-                                        ? "border-error"
-                                        : "border-line-strong"
-                                }`}
-                                placeholder="Enter category description (optional)"
-                            />
-                            {errors.description && (
-                                <p className="text-error text-sm mt-1">
-                                    {errors.description}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Submit Buttons */}
-                        <div className="flex gap-3 pt-4">
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="flex items-center gap-2 px-6 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                            >
-                                {isLoading && (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                )}
-                                {isLoading
-                                    ? "Saving..."
-                                    : editCategory
-                                      ? "Update Category"
-                                      : "Create Category"}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleClose}
-                                disabled={isLoading}
-                                className="px-6 py-2 bg-gray-200 text-ink-soft rounded-lg hover:bg-gray-300 disabled:bg-cream-deep transition-colors"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
+        <div
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/50 p-4 sm:items-center"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="category-modal-title"
+        >
+            <form
+                onSubmit={handleSubmit}
+                className="relative w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-xl"
+            >
+                <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
+                    <div>
+                        <h2
+                            id="category-modal-title"
+                            className="font-display text-xl font-bold text-ink"
+                        >
+                            {editCategory ? "Edit category" : "Add a category"}
+                        </h2>
+                        <p className="text-sm text-ink-soft">
+                            Fields marked{" "}
+                            <span className="text-error">*</span> are required.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className={adminBtn.icon}
+                        aria-label="Close"
+                        disabled={isLoading}
+                    >
+                        <X size={20} />
+                    </button>
                 </div>
-            </div>
+
+                <div className="space-y-4 px-6 py-6">
+                    <div>
+                        <label
+                            htmlFor="category-name"
+                            className="mb-1 block text-sm font-semibold text-ink"
+                        >
+                            Name{" "}
+                            <span className="text-error" aria-hidden="true">
+                                *
+                            </span>
+                        </label>
+                        <input
+                            id="category-name"
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            aria-invalid={Boolean(errors.name)}
+                            aria-describedby={
+                                errors.name ? "category-name-err" : undefined
+                            }
+                            className={inputCls(errors.name)}
+                            placeholder="e.g. Bedtime stories"
+                        />
+                        {errors.name && (
+                            <p
+                                id="category-name-err"
+                                role="alert"
+                                className="mt-1 text-xs font-medium text-error"
+                            >
+                                {errors.name}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="category-description"
+                            className="mb-1 block text-sm font-semibold text-ink"
+                        >
+                            Description
+                        </label>
+                        <textarea
+                            id="category-description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleInputChange}
+                            rows={4}
+                            aria-invalid={Boolean(errors.description)}
+                            aria-describedby={
+                                errors.description
+                                    ? "category-description-err"
+                                    : "category-description-help"
+                            }
+                            className={inputCls(errors.description)}
+                            placeholder="Optional"
+                        />
+                        {errors.description ? (
+                            <p
+                                id="category-description-err"
+                                role="alert"
+                                className="mt-1 text-xs font-medium text-error"
+                            >
+                                {errors.description}
+                            </p>
+                        ) : (
+                            <p
+                                id="category-description-help"
+                                className="mt-1 text-xs text-muted"
+                            >
+                                A short note about what belongs on this shelf.
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex justify-end gap-2 border-t border-line px-6 py-4">
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        disabled={isLoading}
+                        className={adminBtn.secondary}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className={adminBtn.primary}
+                    >
+                        {isLoading && (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        )}
+                        {isLoading
+                            ? "Saving..."
+                            : editCategory
+                              ? "Save changes"
+                              : "Create category"}
+                    </button>
+                </div>
+            </form>
         </div>
     );
 };

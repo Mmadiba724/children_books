@@ -6,10 +6,15 @@ import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  /** When set, signed-in users without this role are sent home. */
+  requireRole?: "ADMIN";
 }
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+export default function ProtectedRoute({
+  children,
+  requireRole,
+}: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -26,6 +31,16 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, [isAuthenticated, isLoading, navigate, location]);
 
+  const roleDenied =
+    !isLoading && isAuthenticated && !!requireRole && user?.role !== requireRole;
+
+  useEffect(() => {
+    if (roleDenied) {
+      toast.error("You don't have permission to view that page");
+      navigate("/", { replace: true });
+    }
+  }, [roleDenied, navigate]);
+
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
@@ -36,7 +51,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   // If not authenticated, return null (redirect will happen via useEffect)
-  if (!isAuthenticated) {
+  if (!isAuthenticated || roleDenied) {
     return null;
   }
 

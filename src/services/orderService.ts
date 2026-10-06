@@ -48,6 +48,13 @@ export interface AdminOrderMetrics {
   verificationTimes?: Record<string, unknown>;
 }
 
+// totals are null when the API response carries no paging metadata
+export interface AdminOrdersPage {
+  orders: Order[];
+  totalElements: number | null;
+  totalPages: number | null;
+}
+
 // Payload for creating an order - matches new API format
 interface CreateOrderPayload {
   items: Array<{
@@ -57,6 +64,7 @@ interface CreateOrderPayload {
   totalAmount: number;
   transactionId: string;
   shippingAddress: string;
+  includeShipping: boolean;
 }
 
 interface CreateOrderResponse {
@@ -230,6 +238,35 @@ const orderService = {
       if (data && Array.isArray(data.content)) return data.content;
       if (Array.isArray(data)) return data;
       return response.data || [];
+    } catch (error) {
+      throw handleError(error as Error, { serviceName: "OrderService" });
+    }
+  },
+
+  // Get one page of admin orders along with paging totals (requires admin authentication)
+  getAdminOrdersPage: async (
+    status?: string,
+    page = 0,
+    size = 10,
+  ): Promise<AdminOrdersPage> => {
+    try {
+      const response = await apiClient.get("/api/v1/admin/orders", {
+        params: {
+          ...(status && { status }),
+          page,
+          size,
+        },
+      });
+      const data = response.data.data;
+      if (data && Array.isArray(data.content)) {
+        return {
+          orders: data.content,
+          totalElements: data.totalElements ?? null,
+          totalPages: data.totalPages ?? null,
+        };
+      }
+      const orders: Order[] = Array.isArray(data) ? data : [];
+      return { orders, totalElements: null, totalPages: null };
     } catch (error) {
       throw handleError(error as Error, { serviceName: "OrderService" });
     }

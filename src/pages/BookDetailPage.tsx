@@ -1,9 +1,10 @@
 import { Link, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
 import { ChevronRight } from "lucide-react";
 import BookCard from "../components/BookCard";
 import BookDetailsColumn from "../components/BookDetailsColumn";
 import ReviewsList from "../components/ReviewsList";
-import AddReviewForm from "../components/AddReviewForm";
+import ReviewForm from "../components/ReviewForm";
 import PageTransition from "../components/PageTransition";
 import BookCover from "../components/ui/BookCover";
 import RatingStars from "../components/ui/RatingStars";
@@ -13,6 +14,8 @@ import bookService from "../services/bookService";
 import categoryService from "../services/categoryService";
 import type { Book } from "../types/book";
 import { useBookReviews } from "../hooks/useBookReviews";
+import { useAuth } from "../context/AuthContext";
+import { OPEN_LOGIN_EVENT } from "../context/WishlistContext";
 import { useState, useEffect, useCallback } from "react";
 
 function DetailSkeleton() {
@@ -42,7 +45,9 @@ export default function BookDetailPage() {
   const [reloadKey, setReloadKey] = useState(0);
   const [similarBooks, setSimilarBooks] = useState<Book[]>([]);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
-  const { addReview, getReviewsForBook } = useBookReviews();
+  const reviewData = useBookReviews(id);
+  const { isAuthenticated } = useAuth();
+  const [reviewFormOpen, setReviewFormOpen] = useState(false);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -187,11 +192,13 @@ export default function BookDetailPage() {
     );
   }
 
-  const bookReviews = getReviewsForBook(String(book.id));
+  const { summary, reviews, totalElements, myReview } = reviewData;
+  const reviewCount = summary?.reviewCount ?? 0;
   const rating =
-    bookReviews.length > 0
-      ? bookReviews.reduce((sum, r) => sum + r.rating, 0) / bookReviews.length
-      : null;
+    summary && summary.reviewCount > 0 ? summary.averageRating : null;
+  // The API only returns an average, so the per-star breakdown is computed
+  // from the loaded reviews and shown once they are all loaded.
+  const allReviewsLoaded = reviews.length > 0 && reviews.length >= totalElements;
   const firstCategory = book.categoryNames?.[0];
 
   return (
@@ -244,7 +251,7 @@ export default function BookDetailPage() {
           <BookDetailsColumn
             book={book}
             rating={rating}
-            reviewCount={bookReviews.length}
+            reviewCount={reviewCount}
           />
         </section>
 
@@ -286,8 +293,8 @@ export default function BookDetailPage() {
                     <RatingStars value={rating} />
                   </div>
                   <p className="mt-1 text-sm text-ink-soft">
-                    Based on {bookReviews.length}{" "}
-                    {bookReviews.length === 1 ? "review" : "reviews"}
+                    Based on {reviewCount}{" "}
+                    {reviewCount === 1 ? "review" : "reviews"}
                   </p>
                 </div>
               ) : (
@@ -296,14 +303,14 @@ export default function BookDetailPage() {
                 </p>
               )}
 
-              <div className="space-y-2" hidden={bookReviews.length === 0}>
+              <div className="space-y-2" hidden={!allReviewsLoaded}>
                 {[5, 4, 3, 2, 1].map((stars) => {
-                  const count = bookReviews.filter(
+                  const count = reviews.filter(
                     (r) => r.rating === stars,
                   ).length;
                   const percentage =
-                    bookReviews.length > 0
-                      ? Math.round((count / bookReviews.length) * 100)
+                    reviews.length > 0
+                      ? Math.round((count / reviews.length) * 100)
                       : 0;
                   return (
                     <div
@@ -334,15 +341,92 @@ export default function BookDetailPage() {
                 <h3 className="font-display text-lg font-bold">
                   Share your thoughts
                 </h3>
-                <p className="mt-1 mb-4 text-sm text-ink-soft">
-                  Reviews are saved on this device.
-                </p>
-                <AddReviewForm onAdd={(r) => addReview(String(book.id), r)} />
+                {!isAuthenticated ? (
+                  <>
+                    <p className="mt-1 mb-4 text-sm text-ink-soft">
+                      Sign in to rate this book and tell other families what
+                      you thought.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        window.dispatchEvent(new CustomEvent(OPEN_LOGIN_EVENT))
+                      }
+                      className="kb-btn kb-btn-secondary w-full"
+                    >
+                      Sign in to write a review
+                    </button>
+                  </>
+                ) : reviewFormOpen ? (
+                  <div id="review-form" className="mt-3">
+                    <ReviewForm
+                      initial={myReview}
+                      saving={reviewData.saving}
+                      onCancel={() => setReviewFormOpen(false)}
+                      onSubmit={async (input) => {
+                        const error = await reviewData.save(input);
+                        if (!error) {
+                          setReviewFormOpen(false);
+                          toast.success(
+                            myReview
+                              ? "Your review was updated"
+                              : "Thanks for your review!",
+                          );
+                        }
+                        return error;
+                      }}
+                    />
+                  </div>
+                ) : myReview ? (
+                  <>
+                    <p className="mt-1 mb-4 text-sm text-ink-soft">
+                      You've reviewed this book. You can change it any time.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setReviewFormOpen(true)}
+                      className="kb-btn kb-btn-secondary w-full"
+                    >
+                      Edit your review
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="mt-1 mb-4 text-sm text-ink-soft">
+                      Read it with your little one? Tell other families what
+                      you thought.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setReviewFormOpen(true)}
+                      className="kb-btn kb-btn-primary w-full"
+                    >
+                      Write a review
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
             <div className="lg:col-span-2">
-              <ReviewsList bookReviews={bookReviews} />
+              <ReviewsList
+                reviews={reviews}
+                myReview={myReview}
+                loading={reviewData.loading}
+                error={reviewData.error}
+                hasMore={reviewData.hasMore}
+                loadingMore={reviewData.loadingMore}
+                saving={reviewData.saving}
+                onLoadMore={reviewData.loadMore}
+                onRetry={reviewData.reload}
+                onEdit={() => {
+                  setReviewFormOpen(true);
+                  document
+                    .getElementById("reviews-title")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+                onDelete={reviewData.remove}
+              />
             </div>
           </div>
         </section>

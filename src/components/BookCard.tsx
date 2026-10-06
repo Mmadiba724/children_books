@@ -5,6 +5,7 @@ import { useCart } from "../context/CartContext";
 import { getCategoryColor } from "../utils/categoryColors";
 import { formatPrice } from "../utils/formatPrice";
 import BookCover from "./ui/BookCover";
+import WishlistButton from "./WishlistButton";
 
 /**
  * Catalogue card. The whole card is clickable through the title link
@@ -39,6 +40,7 @@ export default function BookCard({ book }: { readonly book: Book }) {
             Sold out
           </span>
         )}
+        <WishlistButton book={book} />
       </div>
 
       <div className="mt-4 flex flex-1 flex-col">

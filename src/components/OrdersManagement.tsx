@@ -1,19 +1,16 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CheckCircle,
-  XCircle,
-  Loader2,
-  Package,
-  Clock,
-  Mail,
-  MapPin,
-  CreditCard,
+  CloudOff,
+  Eye,
   Hash,
+  Loader2,
+  MapPin,
+  Package,
+  SearchX,
   ShoppingBag,
-  DollarSign,
-  AlertTriangle,
-  Ban,
-  TrendingUp,
+  X,
+  XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import orderService, {
@@ -22,6 +19,19 @@ import orderService, {
 } from "../services/orderService";
 import { formatLocalDateTime } from "../utils/dateUtils";
 import TransactionManagement from "./TransactionManagement";
+import AdminPageHeader from "./admin/AdminPageHeader";
+import AdminToolbar from "./admin/AdminToolbar";
+import { fetchAllPages } from "./admin/fetchAll";
+import { adminBtn, adminInput } from "./admin/adminStyles";
+import {
+  AdminCard,
+  ConfirmDialog,
+  InlineState,
+  Pagination,
+  StatusBadge,
+  TableSkeleton,
+  type BadgeTone,
+} from "./admin/ui";
 
 type AdminView = "orders" | "transactions";
 
@@ -33,49 +43,31 @@ type StatusFilter =
   | "FAILED"
   | "CANCELLED";
 
-const STATUS_TABS: {
-  value: StatusFilter;
-  label: string;
-  activeClass: string;
-  dotClass: string;
-}[] = [
-  {
-    value: "ALL",
-    label: "All Orders",
-    activeClass: "bg-gray-800 text-white border-gray-800",
-    dotClass: "bg-gray-400",
-  },
-  {
-    value: "PENDING",
-    label: "Pending",
-    activeClass: "bg-yellow-500 text-white border-yellow-500",
-    dotClass: "bg-yellow-400",
-  },
-  {
-    value: "PAID",
-    label: "Paid",
-    activeClass: "bg-brand text-white border-green-600",
-    dotClass: "bg-green-500",
-  },
-  {
-    value: "REJECTED",
-    label: "Rejected",
-    activeClass: "bg-red-600 text-white border-red-600",
-    dotClass: "bg-red-500",
-  },
-  {
-    value: "FAILED",
-    label: "Failed",
-    activeClass: "bg-orange-500 text-white border-orange-500",
-    dotClass: "bg-orange-400",
-  },
-  {
-    value: "CANCELLED",
-    label: "Cancelled",
-    activeClass: "bg-gray-500 text-white border-gray-500",
-    dotClass: "bg-gray-400",
-  },
+const PAGE_SIZE = 8;
+
+const STATUS_TABS: { value: StatusFilter; label: string }[] = [
+  { value: "ALL", label: "All" },
+  { value: "PENDING", label: "Pending" },
+  { value: "PAID", label: "Paid" },
+  { value: "REJECTED", label: "Rejected" },
+  { value: "FAILED", label: "Failed" },
+  { value: "CANCELLED", label: "Cancelled" },
 ];
+
+const ORDER_TONES: Record<string, BadgeTone> = {
+  PENDING: "warning",
+  PAID: "success",
+  REJECTED: "error",
+  FAILED: "error",
+  CANCELLED: "neutral",
+};
+
+const PAYMENT_TONES: Record<string, BadgeTone> = {
+  COMPLETED: "success",
+  PENDING: "warning",
+  FAILED: "error",
+  REFUNDED: "neutral",
+};
 
 const getTabCount = (
   tab: StatusFilter,
@@ -86,532 +78,664 @@ const getTabCount = (
   return metrics.countsByStatus?.[tab];
 };
 
+type PendingAction = { kind: "approve" | "reject"; orderId: number } | null;
+
+const needsReview = (order: Order) =>
+  order.status === "PENDING" ||
+  (order.transactionIdMatched === true && order.status !== "PAID");
+
+const itemsSummary = (order: Order) => {
+  const items = order.items ?? [];
+  if (items.length === 0) return "-";
+  const first = items[0].title || `Book #${items[0].bookId}`;
+  return items.length === 1 ? first : `${first} +${items.length - 1} more`;
+};
+
+function ProofBadge({ order }: { readonly order: Order }) {
+  if (!order.transactionId) return <span className="text-xs text-muted">-</span>;
+  return order.transactionIdMatched === true ? (
+    <StatusBadge tone="success">Verified</StatusBadge>
+  ) : (
+    <StatusBadge tone="warning">Awaiting</StatusBadge>
+  );
+}
+
+function ReviewButtons({
+  order,
+  processing,
+  onApprove,
+  onReject,
+  full = false,
+}: {
+  readonly order: Order;
+  readonly processing: boolean;
+  readonly onApprove: (id: number) => void;
+  readonly onReject: (id: number) => void;
+  readonly full?: boolean;
+}) {
+  return (
+    <>
+      {order.transactionIdMatched === true && (
+        <button
+          type="button"
+          onClick={() => onApprove(order.id)}
+          disabled={processing || !order.transactionId}
+          className={`${adminBtn.primary} ${full ? "w-full" : "px-3 py-1.5"}`}
+          aria-label={`Approve order ${order.id}`}
+        >
+          {processing ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          ) : (
+            <CheckCircle className="h-4 w-4" aria-hidden="true" />
+          )}
+          Approve
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={() => onReject(order.id)}
+        disabled={processing}
+        className={`${adminBtn.secondary} text-error ${full ? "w-full" : "px-3 py-1.5"}`}
+        aria-label={`Reject order ${order.id}`}
+      >
+        <XCircle className="h-4 w-4" aria-hidden="true" />
+        Reject
+      </button>
+    </>
+  );
+}
+
+function OrderDetails({
+  order,
+  processing,
+  onApprove,
+  onReject,
+}: {
+  readonly order: Order;
+  readonly processing: boolean;
+  readonly onApprove: (id: number) => void;
+  readonly onReject: (id: number) => void;
+}) {
+  const heading =
+    "mb-2 flex items-center gap-2 text-xs font-semibold tracking-wide text-muted uppercase";
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-2">
+        <StatusBadge tone={ORDER_TONES[order.status] ?? "neutral"}>
+          {order.status}
+        </StatusBadge>
+        {order.paymentStatus && (
+          <StatusBadge tone={PAYMENT_TONES[order.paymentStatus] ?? "neutral"}>
+            Payment {order.paymentStatus.toLowerCase()}
+          </StatusBadge>
+        )}
+        <span className="ml-auto font-display text-lg font-bold text-ink">
+          {Number(order.totalAmount).toLocaleString()}
+        </span>
+      </div>
+
+      {order.userEmail && (
+        <p className="text-sm text-ink-soft">
+          Customer: <span className="font-semibold text-ink">{order.userEmail}</span>
+        </p>
+      )}
+
+      {order.items && order.items.length > 0 && (
+        <section aria-label="Items">
+          <h3 className={heading}>
+            <Package className="h-4 w-4" aria-hidden="true" />
+            Items ({order.items.length})
+          </h3>
+          <ul className="divide-y divide-line-soft rounded-lg border border-line">
+            {order.items.map((item, idx) => (
+              <li
+                key={idx}
+                className="flex items-start justify-between gap-3 px-4 py-2.5"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-ink">
+                    {item.title || `Book #${item.bookId}`}
+                  </p>
+                  {item.author && (
+                    <p className="truncate text-xs text-muted">by {item.author}</p>
+                  )}
+                </div>
+                <div className="shrink-0 text-right text-sm">
+                  <p className="text-ink-soft">x{item.quantity}</p>
+                  {item.price ? (
+                    <p className="font-semibold text-ink">
+                      {item.price.toLocaleString()}
+                    </p>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {order.shippingAddress && (
+        <section aria-label="Shipping">
+          <h3 className={heading}>
+            <MapPin className="h-4 w-4" aria-hidden="true" />
+            Shipping address
+          </h3>
+          <p className="text-sm text-ink">{order.shippingAddress}</p>
+        </section>
+      )}
+
+      {order.transactionId && (
+        <section aria-label="Payment proof">
+          <h3 className={heading}>
+            <Hash className="h-4 w-4" aria-hidden="true" />
+            Transaction ID (entered by customer)
+          </h3>
+          <div className="flex flex-wrap items-center gap-3">
+            <code className="rounded-md bg-cream-deep px-3 py-1.5 font-mono text-sm font-bold break-all text-ink">
+              {order.transactionId}
+            </code>
+            {order.transactionIdMatched === true ? (
+              <StatusBadge tone="success">Payment proof verified</StatusBadge>
+            ) : (
+              <StatusBadge tone="warning">Awaiting verification</StatusBadge>
+            )}
+          </div>
+        </section>
+      )}
+
+      {order.trackingNumber && (
+        <section aria-label="Tracking">
+          <h3 className={heading}>Tracking number</h3>
+          <code className="rounded-md bg-cream-deep px-3 py-1.5 font-mono text-sm text-ink">
+            {order.trackingNumber}
+          </code>
+        </section>
+      )}
+
+      {order.status === "REJECTED" && order.rejectionReason && (
+        <p className="rounded-lg bg-error-light px-4 py-3 text-sm text-error">
+          Rejected: <span className="italic">"{order.rejectionReason}"</span>
+        </p>
+      )}
+
+      {needsReview(order) && (
+        <section
+          aria-label="Review"
+          className="space-y-3 rounded-lg border border-line bg-cream/60 p-4"
+        >
+          {order.transactionIdMatched !== true && (
+            <p className="rounded-md bg-warning-light px-3 py-2 text-xs text-warning">
+              Waiting for payment. The transaction ID must be verified before
+              this order can be approved.
+            </p>
+          )}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <ReviewButtons
+              order={order}
+              processing={processing}
+              onApprove={onApprove}
+              onReject={onReject}
+              full
+            />
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function OrderDrawer({
+  order,
+  processing,
+  onClose,
+  onApprove,
+  onReject,
+}: {
+  readonly order: Order;
+  readonly processing: boolean;
+  readonly onClose: () => void;
+  readonly onApprove: (id: number) => void;
+  readonly onReject: (id: number) => void;
+}) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseRef.current();
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+      previous?.focus();
+    };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-40">
+      <button
+        type="button"
+        aria-label="Close order details"
+        tabIndex={-1}
+        onClick={onClose}
+        className="absolute inset-0 bg-ink/50"
+      />
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="order-drawer-title"
+        className="absolute inset-y-0 right-0 flex w-full max-w-lg flex-col bg-white shadow-xl"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
+          <div>
+            <h2
+              id="order-drawer-title"
+              className="font-display text-xl font-bold text-ink"
+            >
+              Order #{order.id}
+            </h2>
+            <p className="text-xs text-muted">
+              {formatLocalDateTime(order.createdAt)}
+            </p>
+          </div>
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={onClose}
+            className={adminBtn.icon}
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          <OrderDetails
+            order={order}
+            processing={processing}
+            onApprove={onApprove}
+            onReject={onReject}
+          />
+        </div>
+      </aside>
+    </div>
+  );
+}
+
 export default function OrdersManagement() {
   const [adminView, setAdminView] = useState<AdminView>("orders");
   const [orders, setOrders] = useState<Order[]>([]);
   const [metrics, setMetrics] = useState<AdminOrderMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [processingOrderId, setProcessingOrderId] = useState<number | null>(
     null,
   );
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("PENDING");
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState("");
+  const [proofFilter, setProofFilter] = useState("");
+  const [pending, setPending] = useState<PendingAction>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  // Fetch orders for the current status tab
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await orderService.getAllAdminOrders(
-        statusFilter === "ALL" ? undefined : statusFilter,
-      );
-      setOrders(data);
+      setLoadFailed(false);
+      // Load every page for this status so search and filters cover all orders
+      const all = await fetchAllPages<Order>(async (p, size) => {
+        const result = await orderService.getAdminOrdersPage(
+          statusFilter === "ALL" ? undefined : statusFilter,
+          p,
+          size,
+        );
+        return { items: result.orders, totalPages: result.totalPages };
+      });
+      setOrders(all);
     } catch (error) {
+      setLoadFailed(true);
       toast.error("Failed to load orders");
       console.error("Error fetching orders:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [statusFilter]);
 
-  // Fetch metrics summary for tab counts
-  const fetchMetrics = async () => {
+  // Metrics are non-critical: tab counts just won't show if this fails
+  const fetchMetrics = useCallback(async () => {
     try {
-      const data = await orderService.getSummaryMetrics();
-      setMetrics(data);
+      setMetrics(await orderService.getSummaryMetrics());
     } catch (error) {
-      // Non-critical — tab counts just won't show
       console.error("Error fetching order metrics:", error);
     }
-  };
-
-  useEffect(() => {
-    fetchMetrics();
   }, []);
 
   useEffect(() => {
+    fetchMetrics();
+  }, [fetchMetrics]);
+
+  useEffect(() => {
     fetchOrders();
-  }, [statusFilter]);
+  }, [fetchOrders]);
 
-  // Handle approve order
-  const handleApproveOrder = async (orderId: number) => {
-    if (!globalThis.confirm("Are you sure you want to approve this order?")) {
-      return;
-    }
+  const changeStatus = (next: StatusFilter) => {
+    setStatusFilter(next);
+    setPage(0);
+    setSelectedId(null);
+  };
 
+  const runAction = async (reason: string) => {
+    if (!pending) return;
+    const { kind, orderId } = pending;
+    setPending(null);
     setProcessingOrderId(orderId);
-
     try {
-      await orderService.approveOrder(orderId);
-      toast.success("Order approved successfully");
-      fetchOrders();
+      if (kind === "approve") {
+        await orderService.approveOrder(orderId);
+        toast.success("Order approved successfully");
+      } else {
+        await orderService.rejectOrder(orderId, reason || undefined);
+        toast.success("Order rejected successfully");
+      }
+      setSelectedId(null);
       fetchMetrics();
+      fetchOrders();
     } catch (error) {
-      toast.error("Failed to approve order");
-      console.error("Error approving order:", error);
+      toast.error(
+        kind === "approve" ? "Failed to approve order" : "Failed to reject order",
+      );
+      console.error(`Error during ${kind}:`, error);
     } finally {
       setProcessingOrderId(null);
     }
   };
 
-  // Handle reject order
-  const handleRejectOrder = async (orderId: number) => {
-    const reason = globalThis.prompt("Reason for rejection (optional):", "");
-    if (reason === null) return; // user cancelled the prompt
+  const selected = orders.find((o) => o.id === selectedId) ?? null;
 
-    if (!globalThis.confirm("Are you sure you want to reject this order?")) {
-      return;
-    }
-
-    setProcessingOrderId(orderId);
-
-    try {
-      await orderService.rejectOrder(orderId, reason.trim() || undefined);
-      toast.success("Order rejected successfully");
-      fetchOrders();
-      fetchMetrics();
-    } catch (error) {
-      toast.error("Failed to reject order");
-      console.error("Error rejecting order:", error);
-    } finally {
-      setProcessingOrderId(null);
-    }
-  };
-
-  // Get status badge color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "bg-yellow-100 text-yellow-800";
-      case "PAID":
-        return "bg-green-100 text-green-800";
-      case "REJECTED":
-        return "bg-red-100 text-red-800";
-      case "FAILED":
-        return "bg-orange-100 text-orange-800";
-      case "CANCELLED":
-        return "bg-gray-200 text-ink-soft";
-      default:
-        return "bg-cream-deep text-ink";
-    }
-  };
-
-  // Get payment status badge color
-  const getPaymentStatusColor = (status?: string) => {
-    switch (status) {
-      case "COMPLETED":
-        return "bg-green-100 text-green-800";
-      case "PENDING":
-        return "bg-yellow-100 text-yellow-800";
-      case "FAILED":
-        return "bg-red-100 text-red-800";
-      case "REFUNDED":
-        return "bg-cream-deep text-ink";
-      default:
-        return "bg-cream-deep text-ink";
-    }
-  };
-
-  // Render orders content based on loading and filtered state
-  const renderOrdersContent = () => {
-    if (isLoading) {
+  const visible = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return orders.filter((o) => {
+      if (proofFilter === "VERIFIED" && o.transactionIdMatched !== true)
+        return false;
+      if (
+        proofFilter === "AWAITING" &&
+        !(o.transactionId && o.transactionIdMatched !== true)
+      )
+        return false;
+      if (proofFilter === "NONE" && o.transactionId) return false;
+      if (!q) return true;
       return (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-brand animate-spin" />
-        </div>
+        String(o.id).includes(q) ||
+        (o.userEmail ?? "").toLowerCase().includes(q) ||
+        (o.transactionId ?? "").toLowerCase().includes(q) ||
+        (o.items ?? []).some((i) =>
+          (i.title ?? "").toLowerCase().includes(q),
+        )
       );
-    }
+    });
+  }, [orders, search, proofFilter]);
 
-    if (orders.length === 0) {
-      return (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <Package className="w-16 h-16 mx-auto text-muted mb-4" />
-          <p className="text-muted">
-            {statusFilter === "ALL"
-              ? "No orders found"
-              : `No ${statusFilter.toLowerCase()} orders`}
-          </p>
-        </div>
-      );
-    }
+  const total = visible.length;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount - 1);
+  const pageItems = visible.slice(
+    safePage * PAGE_SIZE,
+    (safePage + 1) * PAGE_SIZE,
+  );
 
-    return (
-      <div className="space-y-6">
-        {orders.map((order) => (
-          <div
-            key={order.id}
-            className="bg-white rounded-xl shadow-lg  border border-line-soft overflow-hidden hover:shadow-xl transition-all duration-200"
-          >
-            {/* Header Section */}
-            <div className="bg-gradient-to-r from-rose-50 to-pink-50 px-6 py-4 border-b  border-line">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="bg-white p-2 rounded-lg shadow-sm">
-                    <ShoppingBag className="w-5 h-5 text-brand" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-ink">
-                      Order #{order.id}
-                    </h3>
-                    <div className="flex items-center gap-2 text-sm text-ink-soft mt-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{formatLocalDateTime(order.createdAt)}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <span
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide ${getStatusColor(order.status)}`}
-                  >
-                    {order.status}
-                  </span>
-                  {order.paymentStatus && (
-                    <span
-                      className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide ${getPaymentStatusColor(order.paymentStatus)}`}
-                    >
-                      {order.paymentStatus}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
+  const hasFilters = Boolean(search || proofFilter);
+  const clearFilters = () => {
+    setSearch("");
+    setProofFilter("");
+    setPage(0);
+  };
 
-            <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Information */}
-                <div className="lg:col-span-2 space-y-6">
-                  {/* Customer & Shipping Info */}
-                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                    <h4 className="font-bold text-ink mb-3 flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-accent-dark" />
-                      Customer Information
-                    </h4>
-                    <div className="space-y-2">
-                      {order.userEmail && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-ink-soft min-w-[60px]">
-                            Email:
-                          </span>
-                          <span className="text-sm text-ink">
-                            {order.userEmail}
-                          </span>
-                        </div>
-                      )}
-                      {order.shippingAddress && (
-                        <div className="flex items-start gap-2 pt-2 border-t border-blue-100">
-                          <MapPin className="w-4 h-4 text-accent-dark mt-0.5 shrink-0" />
-                          <div>
-                            <span className="text-sm font-medium text-ink-soft block">
-                              Shipping Address:
-                            </span>
-                            <span className="text-sm text-ink">
-                              {order.shippingAddress}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+  const approve = (orderId: number) => setPending({ kind: "approve", orderId });
+  const reject = (orderId: number) => setPending({ kind: "reject", orderId });
 
-                  {/* Payment Information */}
-                  <div className="bg-green-50 rounded-lg p-4 border border-green-100">
-                    <h4 className="font-bold text-ink mb-3 flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-green-600" />
-                      Payment Details
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="w-4 h-4 text-green-600" />
-                          <span className="text-sm font-medium text-ink-soft">
-                            Total Amount:
-                          </span>
-                        </div>
-                        <span className="text-lg font-bold text-ink">
-                          ${order.totalAmount.toFixed(2)}
-                        </span>
-                      </div>
-                      {order.transactionId && (
-                        <div className="pt-3 border-t-2 border-green-200 bg-white rounded-lg p-3 shadow-sm">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="bg-green-100 p-1.5 rounded">
-                              <Hash className="w-4 h-4 text-green-700" />
-                            </div>
-                            <span className="text-sm font-bold text-ink">
-                              Customer Input Mobile Money Transaction Number
-                            </span>
-                          </div>
-                          <div className="bg-green-50 px-3 py-2 rounded border-2 border-green-200">
-                            <span className="text-base font-mono font-bold text-green-900 block text-center">
-                              {order.transactionId}
-                            </span>
-                          </div>
-                          {order.transactionIdMatched === true ? (
-                            <p className="text-xs text-green-700 mt-2 text-center font-medium">
-                              ✓ Payment Proof Verified
-                            </p>
-                          ) : (
-                            <p className="text-xs text-orange-600 mt-2 text-center font-medium">
-                              ⏳ Awaiting Payment Verification
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Order Items */}
-                  {order.items && order.items.length > 0 && (
-                    <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
-                      <h4 className="font-bold text-ink mb-3 flex items-center gap-2">
-                        <Package className="w-4 h-4 text-purple-600" />
-                        Order Items ({order.items.length})
-                      </h4>
-                      <div className="space-y-3">
-                        {order.items.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-white rounded-md p-3 flex items-start justify-between gap-3 border border-purple-100"
-                          >
-                            <div className="flex-1">
-                              <p className="font-semibold text-ink">
-                                {item.title || `Book #${item.bookId}`}
-                              </p>
-                              {item.author && (
-                                <p className="text-sm text-ink-soft mt-0.5">
-                                  by {item.author}
-                                </p>
-                              )}
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                              <p className="text-sm text-ink-soft">
-                                Qty:{" "}
-                                <span className="font-semibold text-ink">
-                                  {item.quantity}
-                                </span>
-                              </p>
-                              {item.price && (
-                                <p className="font-bold text-ink mt-1">
-                                  ${item.price.toFixed(2)}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Tracking Information */}
-                  {order.trackingNumber && (
-                    <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
-                      <h4 className="font-bold text-ink mb-2 flex items-center gap-2">
-                        <Package className="w-4 h-4 text-indigo-600" />
-                        Tracking Information
-                      </h4>
-                      <p className="text-sm font-mono text-ink bg-white px-3 py-2 rounded">
-                        {order.trackingNumber}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Action Section */}
-                <div className="lg:col-span-1">
-                  {order.status === "PENDING" ||
-                  (order.transactionIdMatched === true &&
-                    order.status !== "PAID") ? (
-                    <div className="bg-cream rounded-lg p-4 border border-line sticky top-4">
-                      <h4 className="font-bold text-ink mb-4">
-                        Actions Required
-                      </h4>
-                      <div className="space-y-3">
-                        {!order.transactionIdMatched ? (
-                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                            <p className="text-sm font-medium text-yellow-800 mb-2">
-                              ⏳ Waiting for Payment
-                            </p>
-                            <p className="text-xs text-yellow-700">
-                              Transaction ID must be added before approving this
-                              order.
-                            </p>
-                          </div>
-                        ) : null}
-
-                        {order.transactionIdMatched === true && (
-                          <button
-                            onClick={() => handleApproveOrder(order.id)}
-                            disabled={
-                              processingOrderId === order.id ||
-                              !order.transactionId
-                            }
-                            className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none"
-                            title={
-                              !order.transactionId
-                                ? "Transaction ID must be added first"
-                                : "Approve this order"
-                            }
-                          >
-                            {processingOrderId === order.id ? (
-                              <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>Processing...</span>
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="w-5 h-5" />
-                                <span>
-                                  {!order.transactionId
-                                    ? "Waiting for Payment confirmation"
-                                    : "Approve Order"}
-                                </span>
-                              </>
-                            )}
-                          </button>
-                        )}
-
-                        <button
-                          onClick={() => handleRejectOrder(order.id)}
-                          disabled={processingOrderId === order.id}
-                          className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                        >
-                          {processingOrderId === order.id ? (
-                            <>
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                              <span>Processing...</span>
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="w-5 h-5" />
-                              <span>Reject Order</span>
-                            </>
-                          )}
-                        </button>
-
-                        <div className="mt-4 pt-4 border-t border-line">
-                          <p className="text-xs text-ink-soft text-center leading-relaxed">
-                            Review the order details carefully before taking
-                            action.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-cream rounded-lg p-4 border border-line">
-                      <h4 className="font-bold text-ink mb-3">
-                        Order Status
-                      </h4>
-                      <div className="text-center py-4">
-                        <span
-                          className={`inline-flex px-4 py-2 rounded-full text-sm font-bold ${getStatusColor(order.status)}`}
-                        >
-                          {order.status}
-                        </span>
-                        <p className="text-xs text-ink-soft mt-3">
-                          {order.status === "PAID" &&
-                            "Payment confirmed — books added to library"}
-                          {order.status === "REJECTED" && (
-                            <>
-                              Order was rejected
-                              {order.rejectionReason && (
-                                <span className="block mt-1 italic text-red-600">
-                                  "{order.rejectionReason}"
-                                </span>
-                              )}
-                            </>
-                          )}
-                          {order.status === "FAILED" && (
-                            <span className="flex items-center justify-center gap-1 text-orange-600">
-                              <AlertTriangle className="w-3 h-3" />
-                              Payment failed
-                            </span>
-                          )}
-                          {order.status === "CANCELLED" && (
-                            <span className="flex items-center justify-center gap-1 text-ink-soft">
-                              <Ban className="w-3 h-3" />
-                              Order was cancelled
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+  let content;
+  if (isLoading) {
+    content = <TableSkeleton rows={6} cols={4} />;
+  } else if (loadFailed) {
+    content = (
+      <InlineState
+        tone="error"
+        icon={<CloudOff className="h-6 w-6" />}
+        title="We couldn't load the orders"
+        message="Check your connection and try again."
+        action={
+          <button type="button" className={adminBtn.primary} onClick={fetchOrders}>
+            Try again
+          </button>
+        }
+      />
     );
-  };
+  } else if (orders.length > 0 && visible.length === 0) {
+    content = (
+      <InlineState
+        icon={<SearchX className="h-6 w-6" />}
+        title="No orders match"
+        message="Try a different search or clear the filters."
+        action={
+          <button type="button" className={adminBtn.secondary} onClick={clearFilters}>
+            Clear filters
+          </button>
+        }
+      />
+    );
+  } else if (orders.length === 0) {
+    content = (
+      <InlineState
+        icon={<Package className="h-6 w-6" />}
+        title={
+          statusFilter === "ALL"
+            ? "No orders yet"
+            : `No ${statusFilter.toLowerCase()} orders`
+        }
+        message="New orders will show up here as customers check out."
+      />
+    );
+  } else {
+    content = (
+      <>
+        {/* Table on md+ */}
+        <div className="hidden overflow-x-auto md:block">
+          <table className="min-w-full text-left text-sm">
+            <thead className="border-b border-line bg-cream/60 text-xs font-semibold tracking-wide text-muted uppercase">
+              <tr>
+                <th scope="col" className="px-5 py-3">Order</th>
+                <th scope="col" className="px-3 py-3">Customer</th>
+                <th scope="col" className="px-3 py-3">Items</th>
+                <th scope="col" className="px-3 py-3">Total</th>
+                <th scope="col" className="px-3 py-3">Status</th>
+                <th scope="col" className="px-3 py-3">Payment ID</th>
+                <th scope="col" className="px-5 py-3">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line-soft">
+              {pageItems.map((order) => {
+                const processing = processingOrderId === order.id;
+                return (
+                  <tr key={order.id} className="hover:bg-cream/50">
+                    <td className="px-5 py-3 whitespace-nowrap">
+                      <p className="font-semibold text-ink">#{order.id}</p>
+                      <p className="text-xs text-muted">
+                        {formatLocalDateTime(order.createdAt)}
+                      </p>
+                    </td>
+                    <td className="max-w-[12rem] truncate px-3 py-3 text-ink-soft">
+                      {order.userEmail ?? "-"}
+                    </td>
+                    <td className="max-w-[14rem] truncate px-3 py-3 text-ink-soft">
+                      {itemsSummary(order)}
+                    </td>
+                    <td className="px-3 py-3 font-semibold whitespace-nowrap text-ink">
+                      {Number(order.totalAmount).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex flex-col items-start gap-1">
+                        <StatusBadge tone={ORDER_TONES[order.status] ?? "neutral"}>
+                          {order.status}
+                        </StatusBadge>
+                        {order.paymentStatus && (
+                          <StatusBadge
+                            tone={PAYMENT_TONES[order.paymentStatus] ?? "neutral"}
+                          >
+                            Pay: {order.paymentStatus.toLowerCase()}
+                          </StatusBadge>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3">
+                      <ProofBadge order={order} />
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        {needsReview(order) && (
+                          <ReviewButtons
+                            order={order}
+                            processing={processing}
+                            onApprove={approve}
+                            onReject={reject}
+                          />
+                        )}
+                        <button
+                          type="button"
+                          className={adminBtn.icon}
+                          onClick={() => setSelectedId(order.id)}
+                          aria-label={`View order ${order.id}`}
+                          title="View details"
+                        >
+                          <Eye className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Cards below md */}
+        <ul className="divide-y divide-line-soft md:hidden">
+          {pageItems.map((order) => (
+            <li key={order.id}>
+              <button
+                type="button"
+                onClick={() => setSelectedId(order.id)}
+                className="block w-full p-4 text-left hover:bg-cream/50 focus-visible:outline-2 focus-visible:outline-brand"
+                aria-label={`View order ${order.id}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-ink">Order #{order.id}</p>
+                    <p className="truncate text-xs text-muted">
+                      {order.userEmail ?? "Customer"} ·{" "}
+                      {formatLocalDateTime(order.createdAt)}
+                    </p>
+                  </div>
+                  <span className="shrink-0 font-semibold text-ink">
+                    {Number(order.totalAmount).toLocaleString()}
+                  </span>
+                </div>
+                <p className="mt-1 truncate text-sm text-ink-soft">
+                  {itemsSummary(order)}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <StatusBadge tone={ORDER_TONES[order.status] ?? "neutral"}>
+                    {order.status}
+                  </StatusBadge>
+                  <ProofBadge order={order} />
+                </div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Section Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-ink">
-            Orders & Transactions
-          </h2>
-          <p className="text-sm text-ink-soft">
-            Review orders and manage mobile-money transaction IDs
-          </p>
-        </div>
-
-        {/* View Toggle */}
-        <div className="flex items-center gap-1 bg-cream-deep p-1 rounded-xl">
-          <button
-            onClick={() => setAdminView("orders")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              adminView === "orders"
-                ? "bg-white shadow text-brand"
-                : "text-ink-soft hover:text-ink"
-            }`}
+    <>
+      <AdminPageHeader
+        title="Orders"
+        description="Review orders and manage mobile-money transaction IDs."
+        actions={
+          <div
+            role="group"
+            aria-label="View"
+            className="inline-flex rounded-lg bg-cream-deep p-1"
           >
-            <ShoppingBag className="w-4 h-4" />
-            Orders
-          </button>
-          <button
-            onClick={() => setAdminView("transactions")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              adminView === "transactions"
-                ? "bg-white shadow text-brand"
-                : "text-ink-soft hover:text-ink"
-            }`}
-          >
-            <Hash className="w-4 h-4" />
-            Transaction IDs
-          </button>
-        </div>
-      </div>
+            {(
+              [
+                { id: "orders", label: "Orders", icon: ShoppingBag },
+                { id: "transactions", label: "Transaction IDs", icon: Hash },
+              ] as const
+            ).map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={adminView === id}
+                onClick={() => setAdminView(id)}
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-brand ${
+                  adminView === id
+                    ? "bg-white text-ink shadow-sm"
+                    : "text-ink-soft hover:text-ink"
+                }`}
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                {label}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
-      {/* Transactions View */}
-      {adminView === "transactions" && <TransactionManagement />}
+      {adminView === "transactions" && (
+        <TransactionManagement
+          onStored={() => {
+            // New IDs can match pending orders, so refresh the orders table now
+            fetchOrders();
+            fetchMetrics();
+          }}
+        />
+      )}
 
-      {/* Orders View */}
       {adminView === "orders" && (
         <>
-          {/* Status Tabs */}
-          <div className="flex flex-wrap gap-2 border-b border-line pb-4">
+          <div
+            role="tablist"
+            aria-label="Order status"
+            className="mb-4 flex flex-wrap gap-2"
+          >
             {STATUS_TABS.map((tab) => {
               const count = getTabCount(tab.value, metrics);
               const isActive = statusFilter === tab.value;
               return (
                 <button
                   key={tab.value}
-                  onClick={() => setStatusFilter(tab.value)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all duration-150 flex items-center gap-2 ${
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => changeStatus(tab.value)}
+                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
                     isActive
-                      ? tab.activeClass
-                      : "bg-white text-ink-soft border-line hover:border-gray-400 hover:bg-cream"
+                      ? "border-ink bg-ink text-white"
+                      : "border-line-strong bg-white text-ink-soft hover:bg-cream"
                   }`}
                 >
                   {tab.label}
                   {count !== undefined && (
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                        isActive
-                          ? "bg-white/25 text-white"
-                          : "bg-cream-deep text-ink-soft"
-                      }`}
+                      className={`text-xs ${isActive ? "text-white/80" : "text-muted"}`}
                     >
                       {count}
                     </span>
@@ -621,68 +745,78 @@ export default function OrdersManagement() {
             })}
           </div>
 
-          {/* Orders Stats */}
-          {/* {metrics && (
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-              <div className="bg-white p-3 rounded-lg border-2 border-line-soft text-center">
-                <p className="text-xs text-muted mb-1">Total</p>
-                <p className="text-xl font-bold text-ink">
-                  {metrics.totalOrders}
-                </p>
-              </div>
-              <div className="bg-yellow-50 p-3 rounded-lg border-2 border-yellow-100 text-center">
-                <p className="text-xs text-muted mb-1">s</p>
-                <p className="text-xl font-bold text-yellow-700">
-                  {metrics.countsByStatus?.PENDING ?? 0}
-                </p>
-              </div>
-              <div className="bg-green-50 p-3 rounded-lg border-2 border-green-100 text-center">
-                <p className="text-xs text-muted mb-1">Paid</p>
-                <p className="text-xl font-bold text-green-700">
-                  {metrics.countsByStatus?.PAID ?? 0}
-                </p>
-              </div>
-              <div className="bg-red-50 p-3 rounded-lg border-2 border-red-100 text-center">
-                <p className="text-xs text-muted mb-1">Rejected</p>
-                <p className="text-xl font-bold text-red-700">
-                  {metrics.countsByStatus?.REJECTED ?? 0}
-                </p>
-              </div>
-              <div className="bg-orange-50 p-3 rounded-lg border-2 border-orange-100 text-center">
-                <p className="text-xs text-muted mb-1">Failed</p>
-                <p className="text-xl font-bold text-orange-600">
-                  {metrics.countsByStatus?.FAILED ?? 0}
-                </p>
-              </div>
-              <div className="bg-cream-deep p-3 rounded-lg border-2 border-line text-center">
-                <p className="text-xs text-muted mb-1">Cancelled</p>
-                <p className="text-xl font-bold text-ink-soft">
-                  {metrics.countsByStatus?.CANCELLED ?? 0}
-                </p>
-              </div>
-            </div>
-          )} */}
-
-          {/* Orders count for current tab */}
-          {!isLoading && (
-            <div className="flex items-center gap-2 text-sm text-muted">
-              <TrendingUp className="w-4 h-4" />
-              <span>
-                Showing{" "}
-                <span className="font-semibold text-ink">
-                  {orders.length}
-                </span>{" "}
-                {statusFilter === "ALL"
-                  ? "orders"
-                  : `${statusFilter.toLowerCase()} order${orders.length !== 1 ? "s" : ""}`}
-              </span>
-            </div>
-          )}
-
-          {/* Orders List */}
-          {renderOrdersContent()}
+          <AdminCard>
+            {!isLoading && !loadFailed && orders.length > 0 && (
+              <AdminToolbar
+                search={search}
+                onSearch={(v) => {
+                  setSearch(v);
+                  setPage(0);
+                }}
+                placeholder="Search order #, customer, book or transaction ID"
+                label="Search orders"
+                hasFilters={hasFilters}
+                onClear={clearFilters}
+              >
+                <select
+                  value={proofFilter}
+                  onChange={(e) => {
+                    setProofFilter(e.target.value);
+                    setPage(0);
+                  }}
+                  aria-label="Filter by payment proof"
+                  className={`${adminInput} lg:w-52`}
+                >
+                  <option value="">Any payment proof</option>
+                  <option value="VERIFIED">Verified</option>
+                  <option value="AWAITING">Awaiting verification</option>
+                  <option value="NONE">No transaction ID</option>
+                </select>
+              </AdminToolbar>
+            )}
+            {content}
+            {!isLoading && !loadFailed && visible.length > 0 && (
+              <Pagination
+                page={safePage}
+                pageCount={pageCount}
+                total={total}
+                pageSize={PAGE_SIZE}
+                onChange={setPage}
+              />
+            )}
+          </AdminCard>
         </>
       )}
-    </div>
+
+      {selected && (
+        <OrderDrawer
+          order={selected}
+          processing={processingOrderId === selected.id}
+          // Esc inside the confirm dialog should only dismiss the dialog
+          onClose={() => {
+            if (!pending) setSelectedId(null);
+          }}
+          onApprove={approve}
+          onReject={reject}
+        />
+      )}
+
+      <ConfirmDialog
+        open={pending !== null}
+        tone={pending?.kind === "reject" ? "danger" : "primary"}
+        title={
+          pending?.kind === "reject" ? "Reject this order?" : "Approve this order?"
+        }
+        message={
+          pending?.kind === "reject"
+            ? `Order #${pending.orderId} will be marked as rejected.`
+            : `Order #${pending?.orderId} will be marked as paid and the books added to the customer's library.`
+        }
+        reasonLabel={pending?.kind === "reject" ? "Reason (optional)" : undefined}
+        confirmLabel={pending?.kind === "reject" ? "Reject order" : "Approve order"}
+        onConfirm={runAction}
+        onCancel={() => setPending(null)}
+      />
+    </>
   );
 }

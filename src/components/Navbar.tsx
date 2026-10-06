@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { OPEN_LOGIN_EVENT, useWishlist } from "../context/WishlistContext";
 import categoryService from "../services/categoryService";
 import toast from "react-hot-toast";
 import logo from "/logo-main.png";
@@ -15,6 +16,7 @@ import {
   ShieldCheck,
   BookOpen,
   Package,
+  Heart,
   Menu,
   X,
   LogOut,
@@ -57,6 +59,7 @@ const AccountMenu = ({
   onClose: () => void;
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
+  const { count: wishlistCount } = useWishlist();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -120,6 +123,20 @@ const AccountMenu = ({
                 <Package className="h-4 w-4" aria-hidden="true" />
                 My orders
               </Link>
+              <Link
+                to="/wishlist"
+                role="menuitem"
+                className={menuItem}
+                onClick={onToggle}
+              >
+                <Heart className="h-4 w-4" aria-hidden="true" />
+                Wishlist
+                {wishlistCount > 0 && (
+                  <span className="ml-auto rounded-full bg-brand-light px-2 py-0.5 text-xs font-extrabold text-brand-dark">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
               {userRole === "ADMIN" && (
                 <Link
                   to="/admin"
@@ -181,6 +198,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const { isAuthenticated, logout, user } = useAuth();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -226,6 +244,13 @@ const Navbar = () => {
     fetchCategories();
   }, []);
 
+  // Lets any page ask for the sign-in modal (e.g. hearting a book while signed out)
+  useEffect(() => {
+    const open = () => setIsLoginModalOpen(true);
+    window.addEventListener(OPEN_LOGIN_EVENT, open);
+    return () => window.removeEventListener(OPEN_LOGIN_EVENT, open);
+  }, []);
+
   // Close the mobile drawer whenever the route changes, and on Escape
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -251,6 +276,35 @@ const Navbar = () => {
     }
     navigate(`/books?${params.toString()}`);
   };
+
+  const wishlistBadge = wishlistCount > 0 && (
+    <span
+      aria-hidden="true"
+      className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-cream bg-brand px-1 text-xs font-extrabold text-white"
+    >
+      {wishlistCount}
+    </span>
+  );
+  const wishlistLabel = `Wishlist, ${wishlistCount} ${wishlistCount === 1 ? "book" : "books"}`;
+  const wishlistClass = "kb-btn kb-btn-secondary relative !min-h-11 !px-3.5";
+  const wishlistButton = isAuthenticated ? (
+    <Link to="/wishlist" aria-label={wishlistLabel} className={wishlistClass}>
+      <Heart className="h-5 w-5" aria-hidden="true" />
+      {wishlistBadge}
+    </Link>
+  ) : (
+    <button
+      type="button"
+      aria-label="Wishlist, sign in to use it"
+      className={wishlistClass}
+      onClick={() => {
+        toast("Sign in to save books to your wishlist");
+        setIsLoginModalOpen(true);
+      }}
+    >
+      <Heart className="h-5 w-5" aria-hidden="true" />
+    </button>
+  );
 
   const cartButton = (
     <button
@@ -369,6 +423,7 @@ const Navbar = () => {
                 onClose={() => setAccountMenuOpen(false)}
               />
             </div>
+            {wishlistButton}
             {cartButton}
           </div>
         </div>
@@ -436,6 +491,15 @@ const Navbar = () => {
                     <Link to="/orders" className={menuItem}>
                       <Package className="h-4 w-4" aria-hidden="true" />
                       My orders
+                    </Link>
+                    <Link to="/wishlist" className={menuItem}>
+                      <Heart className="h-4 w-4" aria-hidden="true" />
+                      Wishlist
+                      {wishlistCount > 0 && (
+                        <span className="ml-auto rounded-full bg-brand-light px-2 py-0.5 text-xs font-extrabold text-brand-dark">
+                          {wishlistCount}
+                        </span>
+                      )}
                     </Link>
                     {user?.role === "ADMIN" && (
                       <Link to="/admin" className={menuItem}>

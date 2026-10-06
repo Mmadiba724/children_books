@@ -21,6 +21,9 @@ import type { Book } from "../types/book";
 const FEATURED_COUNT = 8;
 // A "new arrivals" shelf only adds value once there are more books than the grid shows.
 const MIN_BOOKS_FOR_RAIL = 5;
+// A category earns its own carousel once it has this many books; show the biggest few.
+const MIN_BOOKS_FOR_CATEGORY_RAIL = 5;
+const CATEGORY_RAIL_COUNT = 3;
 
 const values = [
   {
@@ -81,6 +84,22 @@ export default function CatalogPage() {
       (a, b) => b.count - a.count || a.name.localeCompare(b.name),
     );
   }, [allBooks]);
+
+  const categoryRails = useMemo(
+    () =>
+      categories
+        .filter((c) => c.count >= MIN_BOOKS_FOR_CATEGORY_RAIL)
+        .slice(0, CATEGORY_RAIL_COUNT)
+        .map(({ name }) => ({
+          name,
+          books: allBooks
+            .filter((b) => b.categoryNames?.includes(name))
+            .sort((a, b) =>
+              (b.createdAt ?? "").localeCompare(a.createdAt ?? ""),
+            ),
+        })),
+    [categories, allBooks],
+  );
 
   const newest = useMemo(
     () =>
@@ -217,6 +236,32 @@ export default function CatalogPage() {
             </div>
           </section>
         )}
+
+        {!isFiltered &&
+          !loading &&
+          categoryRails.map(({ name, books: categoryBooks }) => (
+            <section
+              key={name}
+              aria-labelledby={`rail-${name}`}
+              className="kb-container py-12 md:py-16"
+            >
+              <SectionHeading
+                id={`rail-${name}`}
+                eyebrow="Category"
+                title={name}
+                action={
+                  <Link
+                    to={`/books?category=${encodeURIComponent(name)}`}
+                    className="kb-btn kb-btn-quiet kb-btn-sm"
+                  >
+                    See all {categoryBooks.length}{" "}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                }
+              />
+              <BookRail books={categoryBooks} label={`${name} books`} />
+            </section>
+          ))}
 
         <section
           id="catalog-grid"

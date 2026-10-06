@@ -11,6 +11,7 @@ import authService from "../services/authService";
 import tokenStorage from "../utils/tokenStorage";
 import type { Book } from "../types/book";
 import { getImageUrl } from "../utils/imageUtils";
+import { adminBtn, adminInput } from "./admin/adminStyles";
 
 interface Category {
   id: string;
@@ -471,306 +472,347 @@ const AddBookModal = ({
 
   if (!isOpen) return null;
 
+  const inputCls = (hasError?: string) =>
+    `${adminInput} ${hasError ? "border-error focus:border-error" : ""}`;
+
+  const fieldError = (id: string, message?: string) =>
+    message ? (
+      <p id={id} role="alert" className="mt-1 text-xs font-medium text-error">
+        {message}
+      </p>
+    ) : null;
+
+  const section = (title: string, hint: string) => (
+    <div className="mb-4">
+      <h3 className="font-display text-base font-bold text-ink">{title}</h3>
+      <p className="text-xs text-muted">{hint}</p>
+    </div>
+  );
+
+  const label = "mb-1 block text-sm font-semibold text-ink";
+  const required = (
+    <span className="text-error" aria-hidden="true">
+      {" "}
+      *
+    </span>
+  );
+  const dropzone =
+    "flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-line-strong px-4 py-6 text-sm font-semibold text-ink-soft transition-colors hover:border-brand hover:bg-cream focus-within:border-brand";
+
   return (
-    <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl mx-4 my-8 relative">
-        {/* Close button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-muted hover:text-ink-soft z-10"
-          aria-label="Close modal"
-          disabled={isLoading}
-        >
-          <X size={24} />
-        </button>
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/50 p-4 sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="book-modal-title"
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-xl"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
+          <div>
+            <h2
+              id="book-modal-title"
+              className="font-display text-xl font-bold text-ink"
+            >
+              {editBook ? "Edit book" : "Add a new book"}
+            </h2>
+            <p className="text-sm text-ink-soft">
+              Fields marked <span className="text-error">*</span> are required.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className={adminBtn.icon}
+            aria-label="Close"
+            disabled={isLoading}
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-        <div className="p-8">
-          <h2 className="text-2xl font-semibold text-ink mb-6">
-            {editBook ? "Edit Book" : "Add New Book"}
-          </h2>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Upload Status */}
-            {isUploadingFiles && (
-              <div className="bg-blue-50 border border-blue-200 text-accent-dark px-4 py-3 rounded flex items-center gap-2">
-                <Loader2 className="animate-spin" size={20} />
-                <span>Uploading files...</span>
-              </div>
-            )}
-
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-ink-soft mb-1">
-                Title <span className="text-error">*</span>
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
-                  errors.title ? "border-error" : "border-line-strong"
-                }`}
-                placeholder="Enter book title"
-              />
-              {errors.title && (
-                <p className="text-error text-sm mt-1">{errors.title}</p>
-              )}
+        {/* Body */}
+        <div className="flex-1 space-y-8 overflow-y-auto px-6 py-6">
+          {isUploadingFiles && (
+            <div
+              role="status"
+              className="flex items-center gap-2 rounded-lg bg-info/10 px-4 py-3 text-sm font-semibold text-info"
+            >
+              <Loader2 className="animate-spin" size={18} />
+              Uploading files...
             </div>
+          )}
 
-            {/* Author */}
-            <div>
-              <label className="block text-sm font-medium text-ink-soft mb-1">
-                Author <span className="text-error">*</span>
-              </label>
-              <input
-                type="text"
-                name="author"
-                value={formData.author}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
-                  errors.author ? "border-error" : "border-line-strong"
-                }`}
-                placeholder="Enter author name"
-              />
-              {errors.author && (
-                <p className="text-error text-sm mt-1">{errors.author}</p>
-              )}
-            </div>
-
-            {/* isbn */}
-            <div>
-              <label className="block text-sm font-medium text-ink-soft mb-1">
-                ISBN <span className="text-error">*</span>
-              </label>
-              <input
-                type="text"
-                name="isbn"
-                value={formData.isbn}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
-                  errors.isbn ? "border-error" : "border-line-strong"
-                }`}
-                placeholder="Enter ISBN number"
-              />
-              {errors.isbn && (
-                <p className="text-error text-sm mt-1">{errors.isbn}</p>
-              )}
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-ink-soft mb-1">
-                Description <span className="text-error">*</span>
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={4}
-                className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
-                  errors.description ? "border-error" : "border-line-strong"
-                }`}
-                placeholder="Enter book description"
-              />
-              {errors.description && (
-                <p className="text-error text-sm mt-1">
-                  {errors.description}
-                </p>
-              )}
-            </div>
-
-            {/* Price and Format Row */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Price */}
-              <div>
-                <label className="block text-sm font-medium text-ink-soft mb-1">
-                  Price <span className="text-error">*</span>
+          {/* Details */}
+          <section aria-label="Book details">
+            {section("Details", "What readers and search will see.")}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label htmlFor="book-title" className={label}>
+                  Title{required}
                 </label>
                 <input
+                  id="book-title"
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  aria-invalid={Boolean(errors.title)}
+                  aria-describedby={errors.title ? "book-title-err" : undefined}
+                  className={inputCls(errors.title)}
+                  placeholder="e.g. The Sleepy Little Fox"
+                />
+                {fieldError("book-title-err", errors.title)}
+              </div>
+              <div>
+                <label htmlFor="book-author" className={label}>
+                  Author{required}
+                </label>
+                <input
+                  id="book-author"
+                  type="text"
+                  name="author"
+                  value={formData.author}
+                  onChange={handleInputChange}
+                  aria-invalid={Boolean(errors.author)}
+                  aria-describedby={
+                    errors.author ? "book-author-err" : undefined
+                  }
+                  className={inputCls(errors.author)}
+                  placeholder="Author name"
+                />
+                {fieldError("book-author-err", errors.author)}
+              </div>
+              <div>
+                <label htmlFor="book-isbn" className={label}>
+                  ISBN{required}
+                </label>
+                <input
+                  id="book-isbn"
+                  type="text"
+                  name="isbn"
+                  value={formData.isbn}
+                  onChange={handleInputChange}
+                  aria-invalid={Boolean(errors.isbn)}
+                  aria-describedby={errors.isbn ? "book-isbn-err" : undefined}
+                  className={inputCls(errors.isbn)}
+                  placeholder="978-..."
+                />
+                {fieldError("book-isbn-err", errors.isbn)}
+              </div>
+              <div className="sm:col-span-2">
+                <label htmlFor="book-description" className={label}>
+                  Description{required}
+                </label>
+                <textarea
+                  id="book-description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows={4}
+                  aria-invalid={Boolean(errors.description)}
+                  aria-describedby={
+                    errors.description ? "book-description-err" : undefined
+                  }
+                  className={inputCls(errors.description)}
+                  placeholder="A short summary shown on the book page"
+                />
+                {fieldError("book-description-err", errors.description)}
+              </div>
+            </div>
+          </section>
+
+          {/* Pricing & availability */}
+          <section aria-label="Pricing and availability">
+            {section(
+              "Pricing & availability",
+              "How the book is sold and how many copies you hold.",
+            )}
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <label htmlFor="book-price" className={label}>
+                  Price{required}
+                </label>
+                <input
+                  id="book-price"
                   type="number"
                   name="price"
                   value={formData.price}
                   onChange={handleInputChange}
                   step="0.01"
                   min="0"
-                  className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
-                    errors.price ? "border-error" : "border-line-strong"
-                  }`}
+                  aria-invalid={Boolean(errors.price)}
+                  aria-describedby={errors.price ? "book-price-err" : undefined}
+                  className={inputCls(errors.price)}
                   placeholder="0.00"
                 />
-                {errors.price && (
-                  <p className="text-error text-sm mt-1">{errors.price}</p>
-                )}
+                {fieldError("book-price-err", errors.price)}
               </div>
-
-              {/* Format */}
               <div>
-                <label className="block text-sm font-medium text-ink-soft mb-1">
-                  Format <span className="text-error">*</span>
+                <label htmlFor="book-format" className={label}>
+                  Format{required}
                 </label>
                 <select
+                  id="book-format"
                   name="format"
                   value={formData.format}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border-2 border-line-strong rounded focus:outline-none focus:border-accent"
+                  className={adminInput}
                 >
                   <option value="DIGITAL">Digital</option>
                   <option value="PHYSICAL">Physical</option>
                 </select>
               </div>
+              {formData.format === "PHYSICAL" && (
+                <div>
+                  <label htmlFor="book-stock" className={label}>
+                    Stock quantity{required}
+                  </label>
+                  <input
+                    id="book-stock"
+                    type="number"
+                    name="stockQuantity"
+                    value={formData.stockQuantity}
+                    onChange={handleInputChange}
+                    min="0"
+                    aria-invalid={Boolean(errors.stockQuantity)}
+                    aria-describedby={
+                      errors.stockQuantity ? "book-stock-err" : undefined
+                    }
+                    className={inputCls(errors.stockQuantity)}
+                    placeholder="0"
+                  />
+                  {fieldError("book-stock-err", errors.stockQuantity)}
+                </div>
+              )}
             </div>
+          </section>
 
-            {/* Stock Quantity (only for physical books) */}
-            {formData.format === "PHYSICAL" && (
-              <div>
-                <label className="block text-sm font-medium text-ink-soft mb-1">
-                  Stock Quantity <span className="text-error">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="stockQuantity"
-                  value={formData.stockQuantity}
-                  onChange={handleInputChange}
-                  min="0"
-                  className={`w-full px-4 py-2 border-2 rounded focus:outline-none focus:border-accent ${
-                    errors.stockQuantity ? "border-error" : "border-line-strong"
-                  }`}
-                  placeholder="0"
-                />
-                {errors.stockQuantity && (
-                  <p className="text-error text-sm mt-1">
-                    {errors.stockQuantity}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Categories */}
-            <div>
-              <label className="block text-sm font-medium text-ink-soft mb-2">
-                Categories <span className="text-error">*</span>
-              </label>
-              <div className="border-2 border-line-strong rounded p-3 max-h-32 overflow-y-auto">
-                {categories.length === 0 ? (
-                  <p className="text-muted text-sm">Loading categories...</p>
-                ) : (
-                  <div className="space-y-2">
-                    {categories.map((category) => (
+          {/* Categories */}
+          <section aria-label="Categories">
+            {section("Categories", "Pick every shelf this book belongs on.")}
+            <fieldset
+              className={`rounded-lg border p-3 ${errors.categories ? "border-error" : "border-line-strong"}`}
+            >
+              <legend className="sr-only">Categories (required)</legend>
+              {categories.length === 0 ? (
+                <p className="text-sm text-muted">Loading categories...</p>
+              ) : (
+                <div className="grid max-h-40 gap-1 overflow-y-auto sm:grid-cols-2">
+                  {categories.map((category) => {
+                    const id = Number.parseInt(category.id);
+                    return (
                       <label
                         key={category.id}
-                        className="flex items-center gap-2 cursor-pointer"
+                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 hover:bg-cream"
                       >
                         <input
                           type="checkbox"
-                          checked={formData.categoryIds.includes(
-                            Number.parseInt(category.id),
-                          )}
-                          onChange={() =>
-                            handleCategoryChange(Number.parseInt(category.id))
-                          }
-                          className="w-4 h-4 rounded border-line-strong cursor-pointer accent-brand"
+                          checked={formData.categoryIds.includes(id)}
+                          onChange={() => handleCategoryChange(id)}
+                          className="h-4 w-4 cursor-pointer rounded border-line-strong accent-brand"
                         />
                         <span className="text-sm text-ink-soft">
                           {category.name}
                         </span>
                       </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {errors.categories && (
-                <p className="text-error text-sm mt-1">{errors.categories}</p>
+                    );
+                  })}
+                </div>
               )}
-            </div>
+            </fieldset>
+            {fieldError("book-cat-err", errors.categories)}
+          </section>
 
-            {/* Cover Image Upload */}
-            <div>
-              <label className="block text-sm font-medium text-ink-soft mb-1">
-                Cover Image <span className="text-error">*</span>
-              </label>
-              <div className="flex items-center gap-4">
-                <label className="flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed border-line-strong rounded cursor-pointer hover:border-brand transition">
-                  <Upload size={20} className="mr-2" />
-                  <span className="text-sm">
-                    {coverImage ? coverImage.name : "Choose image file"}
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCoverImageChange}
-                    className="hidden"
-                  />
-                </label>
-                {coverImagePreview && (
-                  <img
-                    src={coverImagePreview}
-                    alt="Cover preview"
-                    className="w-16 h-20 object-cover rounded border"
-                  />
-                )}
-              </div>
-              {errors.coverImage && (
-                <p className="text-error text-sm mt-1">{errors.coverImage}</p>
-              )}
-            </div>
-
-            {/* Book File Upload (only for digital books) */}
-            {formData.format === "DIGITAL" && (
+          {/* Files */}
+          <section aria-label="Files and cover">
+            {section(
+              "Cover & files",
+              formData.format === "DIGITAL"
+                ? "Upload cover art and the readable file (PDF or EPUB)."
+                : "Upload the cover art shown in the catalogue.",
+            )}
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-ink-soft mb-1">
-                  Book File (PDF/EPUB) <span className="text-error">*</span>
-                </label>
-                <div className="flex items-center gap-4">
-                  <label className="flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed border-line-strong rounded cursor-pointer hover:border-brand transition">
-                    <Upload size={20} className="mr-2" />
-                    <span className="text-sm">
-                      {bookFile ? bookFile.name : "Choose book file"}
+                <p className={label}>Cover image{required}</p>
+                <div className="flex items-stretch gap-4">
+                  <label className={dropzone}>
+                    <Upload size={18} aria-hidden="true" />
+                    <span className="truncate">
+                      {coverImage ? coverImage.name : "Choose an image"}
                     </span>
                     <input
                       type="file"
-                      accept=".pdf,.epub,application/pdf,application/epub+zip"
-                      onChange={handleBookFileChange}
-                      className="hidden"
+                      accept="image/*"
+                      onChange={handleCoverImageChange}
+                      className="sr-only"
                     />
                   </label>
-                  {existingFileId && !bookFile && (
-                    <div className="text-sm text-ink-soft bg-cream px-4 py-2 rounded border border-line">
-                      <p className="font-medium">Existing file:</p>
-                      <p className="text-muted truncate max-w-xs">
-                        {existingFileId}
-                      </p>
-                    </div>
+                  {coverImagePreview && (
+                    <img
+                      src={coverImagePreview}
+                      alt="Cover preview"
+                      className="h-24 w-[4.5rem] shrink-0 rounded-md border border-line object-cover"
+                    />
                   )}
                 </div>
-                {errors.bookFile && (
-                  <p className="text-error text-sm mt-1">{errors.bookFile}</p>
-                )}
+                {fieldError("book-cover-err", errors.coverImage)}
               </div>
-            )}
 
-            {/* Submit Buttons */}
-            <div className="flex gap-4 mt-6">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="flex-1 bg-brand hover:bg-brand-dark text-white font-semibold py-3 rounded transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isLoading && <Loader2 className="animate-spin" size={20} />}
-                {isLoading ? "Creating Book..." : "Create Book"}
-              </button>
-              <button
-                type="button"
-                onClick={handleClose}
-                disabled={isLoading}
-                className="flex-1 border-2 border-line-strong text-ink-soft hover:bg-cream font-semibold py-3 rounded transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
+              {formData.format === "DIGITAL" && (
+                <div>
+                  <p className={label}>Book file (PDF / EPUB){required}</p>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+                    <label className={dropzone}>
+                      <Upload size={18} aria-hidden="true" />
+                      <span className="truncate">
+                        {bookFile ? bookFile.name : "Choose a file"}
+                      </span>
+                      <input
+                        type="file"
+                        accept=".pdf,.epub,application/pdf,application/epub+zip"
+                        onChange={handleBookFileChange}
+                        className="sr-only"
+                      />
+                    </label>
+                    {existingFileId && !bookFile && (
+                      <div className="min-w-0 rounded-lg border border-line bg-cream px-4 py-3 text-sm sm:max-w-xs">
+                        <p className="font-semibold text-ink-soft">
+                          Existing file
+                        </p>
+                        <p className="truncate text-muted">{existingFileId}</p>
+                      </div>
+                    )}
+                  </div>
+                  {fieldError("book-file-err", errors.bookFile)}
+                </div>
+              )}
             </div>
-          </form>
+          </section>
         </div>
-      </div>
+
+        {/* Sticky footer */}
+        <div className="flex justify-end gap-2 border-t border-line bg-white px-6 py-4">
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={isLoading}
+            className={adminBtn.secondary}
+          >
+            Cancel
+          </button>
+          <button type="submit" disabled={isLoading} className={adminBtn.primary}>
+            {isLoading && <Loader2 className="animate-spin" size={16} />}
+            {(() => {
+              if (isLoading) return editBook ? "Saving..." : "Creating...";
+              return editBook ? "Save changes" : "Create book";
+            })()}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

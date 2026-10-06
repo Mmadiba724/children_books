@@ -1,114 +1,133 @@
-import { useState, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Loader2,
-  Plus,
-  Pencil,
-  Trash2,
-  Image,
-  Filter,
-  X,
-  Monitor,
   BookOpen,
+  CloudOff,
+  Pencil,
+  Plus,
+  Search,
+  SearchX,
+  Trash2,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import bookService from "../services/bookService";
 import type { Book } from "../types/book";
 import AddBookModal from "./AddBookModal";
-import { getImageUrl } from "../utils/imageUtils";
+import AdminPageHeader from "./admin/AdminPageHeader";
+import BookThumb from "./admin/BookThumb";
+import {
+  AdminCard,
+  ConfirmDialog,
+  InlineState,
+  Pagination,
+  StatusBadge,
+  TableSkeleton,
+} from "./admin/ui";
+import { adminBtn, adminInput } from "./admin/adminStyles";
+import { formatLocalDate } from "../utils/dateUtils";
 
-function BooksGrid({
-  books,
+const PAGE_SIZE = 8;
+
+const SORTS = [
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "title-asc", label: "Title (A-Z)" },
+  { value: "title-desc", label: "Title (Z-A)" },
+  { value: "author-asc", label: "Author (A-Z)" },
+  { value: "author-desc", label: "Author (Z-A)" },
+  { value: "price-asc", label: "Price (low-high)" },
+  { value: "price-desc", label: "Price (high-low)" },
+] as const;
+
+const FORMAT_TABS = [
+  { value: "", label: "All" },
+  { value: "PHYSICAL", label: "Print" },
+  { value: "DIGITAL", label: "Digital" },
+] as const;
+
+function time(value: string | undefined) {
+  return new Date(value ?? 0).getTime();
+}
+
+function sortBooks(list: Book[], sortBy: string) {
+  const out = [...list];
+  switch (sortBy) {
+    case "oldest":
+      return out.sort((a, b) => time(a.createdAt) - time(b.createdAt));
+    case "title-asc":
+      return out.sort((a, b) => a.title.localeCompare(b.title));
+    case "title-desc":
+      return out.sort((a, b) => b.title.localeCompare(a.title));
+    case "author-asc":
+      return out.sort((a, b) => a.author.localeCompare(b.author));
+    case "author-desc":
+      return out.sort((a, b) => b.author.localeCompare(a.author));
+    case "price-asc":
+      return out.sort((a, b) => a.price - b.price);
+    case "price-desc":
+      return out.sort((a, b) => b.price - a.price);
+    default:
+      return out.sort((a, b) => time(b.createdAt) - time(a.createdAt));
+  }
+}
+
+function StockBadge({ book }: { readonly book: Book }) {
+  if (book.format === "DIGITAL") return <StatusBadge tone="info">Digital</StatusBadge>;
+  if (book.stockQuantity <= 0) return <StatusBadge tone="error">Out of stock</StatusBadge>;
+  if (book.stockQuantity <= 5)
+    return <StatusBadge tone="warning">{book.stockQuantity} left</StatusBadge>;
+  return <StatusBadge tone="success">{book.stockQuantity} in stock</StatusBadge>;
+}
+
+function CategoryChips({ names }: { readonly names?: string[] }) {
+  if (!names || names.length === 0)
+    return <span className="text-xs text-muted">-</span>;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {names.slice(0, 2).map((n) => (
+        <span
+          key={n}
+          className="rounded-md bg-cream-deep px-2 py-0.5 text-xs font-medium text-ink-soft"
+        >
+          {n}
+        </span>
+      ))}
+      {names.length > 2 && (
+        <span className="px-1 text-xs text-muted">+{names.length - 2}</span>
+      )}
+    </div>
+  );
+}
+
+function RowActions({
+  book,
   onEdit,
   onDelete,
-}: Readonly<{
-  books: Book[];
-  onEdit: (book: Book) => void;
-  onDelete: (book: Book) => void;
-}>) {
+}: {
+  readonly book: Book;
+  readonly onEdit: (b: Book) => void;
+  readonly onDelete: (b: Book) => void;
+}) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {books.map((book) => (
-        <div
-          key={book.id}
-          className="bg-white rounded-lg shadow-md overflow-hidden border-2 border-line-soft hover:border-brand-light transition-colors"
-        >
-          {/* Book Cover */}
-          <div className="relative  bg-gray-200 flex items-center justify-center">
-            {book.coverImageUrl ? (
-              <img
-                src={getImageUrl(book.coverImageUrl)}
-                alt={book.title}
-                className="w-full h-136 object-cover"
-              />
-            ) : (
-              <Image className="w-12 h-12 text-muted" />
-            )}
-          </div>
-
-          {/* Book Info */}
-          <div className="p-4">
-            <h3 className="text-lg font-semibold text-ink mb-1 line-clamp-1">
-              {book.title}
-            </h3>
-            <p className="text-sm text-ink-soft mb-2">{book.author}</p>
-            <p className="text-sm text-muted mb-2 line-clamp-2">
-              {book.description}
-            </p>
-
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-lg font-bold text-brand">
-                Ugx {book.price.toFixed(0)}
-              </span>
-              <span
-                className={`text-xs px-2 py-1 rounded ${
-                  book.format === "DIGITAL"
-                    ? "bg-blue-100 text-accent-dark"
-                    : "bg-green-100 text-green-700"
-                }`}
-              >
-                {book.format}
-              </span>
-            </div>
-
-            {book.format === "PHYSICAL" && (
-              <p className="text-xs text-muted mb-2">
-                Stock: {book.stockQuantity}
-              </p>
-            )}
-
-            {book.categoryNames && book.categoryNames.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-3">
-                {book.categoryNames.map((cat) => (
-                  <span
-                    key={cat}
-                    className="text-xs px-2 py-1 bg-cream-deep text-ink-soft rounded"
-                  >
-                    {cat}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => onEdit(book)}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-accent-dark bg-blue-50 hover:bg-blue-100 rounded transition-colors"
-              >
-                <Pencil className="w-4 h-4" />
-                Edit
-              </button>
-              <button
-                onClick={() => onDelete(book)}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      ))}
+    <div className="flex justify-end gap-1">
+      <button
+        type="button"
+        className={adminBtn.icon}
+        onClick={() => onEdit(book)}
+        aria-label={`Edit ${book.title}`}
+        title="Edit"
+      >
+        <Pencil className="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        className={`${adminBtn.icon} hover:bg-error-light hover:text-error`}
+        onClick={() => onDelete(book)}
+        aria-label={`Delete ${book.title}`}
+        title="Delete"
+      >
+        <Trash2 className="h-4 w-4" aria-hidden="true" />
+      </button>
     </div>
   );
 }
@@ -116,148 +135,93 @@ function BooksGrid({
 export default function BookManagement() {
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Book | null>(null);
 
-  // Filter and sort state
-  const [filterCategory, setFilterCategory] = useState<string>("");
-  const [filterAuthor, setFilterAuthor] = useState<string>("");
-  const [filterFormat, setFilterFormat] = useState<string>("");
-  const [sortBy, setSortBy] = useState<string>("newest");
+  const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterFormat, setFilterFormat] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [page, setPage] = useState(0);
 
-  // Fetch books
-  const fetchBooks = async () => {
+  const fetchBooks = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await bookService.getAllBooks();
-      setBooks(data);
+      setLoadFailed(false);
+      setBooks(await bookService.getAllBooks());
     } catch (error) {
+      setLoadFailed(true);
       toast.error("Failed to load books");
       console.error("Error fetching books:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchBooks();
-  }, []);
+  }, [fetchBooks]);
 
-  // Digital / Physical counts for tabs
-  const digitalCount = useMemo(
-    () => books.filter((b) => b.format === "DIGITAL").length,
-    [books],
-  );
-  const physicalCount = useMemo(
-    () => books.filter((b) => b.format === "PHYSICAL").length,
-    [books],
-  );
+  const formatCount = (f: string) =>
+    f ? books.filter((b) => b.format === f).length : books.length;
 
-  // Get unique categories from all books
-  const uniqueCategories = useMemo(() => {
-    const categories = new Set<string>();
-    books.forEach((book) => {
-      book.categoryNames?.forEach((cat) => categories.add(cat));
-    });
-    return Array.from(categories).sort((a, b) => a.localeCompare(b));
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    books.forEach((b) => b.categoryNames?.forEach((c) => set.add(c)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [books]);
 
-  // Get unique authors from all books
-  const uniqueAuthors = useMemo(() => {
-    const authors = new Set<string>();
-    books.forEach((book) => {
-      if (book.author) authors.add(book.author);
+  const visible = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const filtered = books.filter((b) => {
+      if (filterFormat && b.format !== filterFormat) return false;
+      if (filterCategory && !b.categoryNames?.includes(filterCategory))
+        return false;
+      if (
+        q &&
+        !b.title.toLowerCase().includes(q) &&
+        !b.author.toLowerCase().includes(q) &&
+        !b.isbn?.toLowerCase().includes(q)
+      )
+        return false;
+      return true;
     });
-    return Array.from(authors).sort((a, b) => a.localeCompare(b));
-  }, [books]);
+    return sortBooks(filtered, sortBy);
+  }, [books, search, filterCategory, filterFormat, sortBy]);
 
-  // Filter and sort books
-  const filteredAndSortedBooks = useMemo(() => {
-    let result = [...books];
+  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount - 1);
+  const pageItems = visible.slice(
+    safePage * PAGE_SIZE,
+    (safePage + 1) * PAGE_SIZE,
+  );
 
-    // Apply filters
-    if (filterCategory) {
-      result = result.filter((book) =>
-        book.categoryNames?.includes(filterCategory),
-      );
-    }
-
-    if (filterAuthor) {
-      result = result.filter((book) => book.author === filterAuthor);
-    }
-
-    if (filterFormat) {
-      result = result.filter((book) => book.format === filterFormat);
-    }
-
-    // Apply sorting
-    switch (sortBy) {
-      case "newest":
-        result.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        );
-        break;
-      case "oldest":
-        result.sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-        );
-        break;
-      case "title-asc":
-        result.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case "title-desc":
-        result.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      case "price-asc":
-        result.sort((a, b) => a.price - b.price);
-        break;
-      case "price-desc":
-        result.sort((a, b) => b.price - a.price);
-        break;
-      case "author-asc":
-        result.sort((a, b) => a.author.localeCompare(b.author));
-        break;
-      case "author-desc":
-        result.sort((a, b) => b.author.localeCompare(a.author));
-        break;
-      default:
-        break;
-    }
-
-    return result;
-  }, [books, filterCategory, filterAuthor, filterFormat, sortBy]);
-
-  // Clear all filters (format / tab is kept intentionally)
+  const hasFilters = Boolean(search || filterCategory || filterFormat);
   const clearFilters = () => {
+    setSearch("");
     setFilterCategory("");
-    setFilterAuthor("");
-    setSortBy("newest");
+    setFilterFormat("");
+    setPage(0);
   };
 
-  // Check if any filters are active (format is controlled by tabs, not flags here)
-  const hasActiveFilters =
-    filterCategory || filterAuthor || sortBy !== "newest";
-
-  // Handle edit button click
   const handleEdit = (book: Book) => {
     setEditingBook(book);
     setIsAddModalOpen(true);
   };
 
-  // Handle delete
-  const handleDelete = async (book: Book) => {
-    if (
-      !globalThis.confirm(`Are you sure you want to delete "${book.title}"?`)
-    ) {
-      return;
-    }
+  const handleModalClose = () => {
+    setIsAddModalOpen(false);
+    setEditingBook(null);
+  };
 
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
     try {
-      await bookService.deleteBook(String(book.id));
+      await bookService.deleteBook(String(pendingDelete.id));
       toast.success("Book deleted successfully");
+      setPendingDelete(null);
       fetchBooks();
     } catch (error) {
       toast.error("Failed to delete book");
@@ -265,241 +229,292 @@ export default function BookManagement() {
     }
   };
 
-  // Handle modal close
-  const handleModalClose = () => {
-    setIsAddModalOpen(false);
-    setEditingBook(null);
-  };
+  let body;
+  if (isLoading) {
+    body = <TableSkeleton rows={6} cols={4} />;
+  } else if (loadFailed) {
+    body = (
+      <InlineState
+        tone="error"
+        icon={<CloudOff className="h-6 w-6" />}
+        title="We couldn't load the books"
+        message="Check your connection and try again."
+        action={
+          <button type="button" className={adminBtn.primary} onClick={fetchBooks}>
+            Try again
+          </button>
+        }
+      />
+    );
+  } else if (books.length === 0) {
+    body = (
+      <InlineState
+        icon={<BookOpen className="h-6 w-6" />}
+        title="No books yet"
+        message="Add your first book to start building the catalogue."
+        action={
+          <button
+            type="button"
+            className={adminBtn.primary}
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Add book
+          </button>
+        }
+      />
+    );
+  } else if (visible.length === 0) {
+    body = (
+      <InlineState
+        icon={<SearchX className="h-6 w-6" />}
+        title="No books match"
+        message="Try a different search or clear the filters."
+        action={
+          <button type="button" className={adminBtn.secondary} onClick={clearFilters}>
+            Clear filters
+          </button>
+        }
+      />
+    );
+  } else {
+    body = (
+      <>
+        {/* Table on md+ */}
+        <div className="hidden overflow-x-auto md:block">
+          <table className="min-w-full text-left text-sm">
+            <thead className="border-b border-line bg-cream/60 text-xs font-semibold tracking-wide text-muted uppercase">
+              <tr>
+                <th scope="col" className="px-5 py-3">Book</th>
+                <th scope="col" className="px-3 py-3">Categories</th>
+                <th scope="col" className="px-3 py-3">Price</th>
+                <th scope="col" className="px-3 py-3">Availability</th>
+                <th scope="col" className="px-3 py-3">Added</th>
+                <th scope="col" className="px-5 py-3">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line-soft">
+              {pageItems.map((book) => (
+                <tr key={book.id} className="hover:bg-cream/50">
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <BookThumb
+                        title={book.title}
+                        coverImageUrl={book.coverImageUrl}
+                      />
+                      <div className="min-w-0">
+                        <p className="max-w-xs truncate font-semibold text-ink">
+                          {book.title}
+                        </p>
+                        <p className="max-w-xs truncate text-xs text-muted">
+                          {book.author}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3">
+                    <CategoryChips names={book.categoryNames} />
+                  </td>
+                  <td className="px-3 py-3 font-semibold whitespace-nowrap text-ink">
+                    UGX {Number(book.price).toLocaleString()}
+                  </td>
+                  <td className="px-3 py-3">
+                    <StockBadge book={book} />
+                  </td>
+                  <td className="px-3 py-3 whitespace-nowrap text-muted">
+                    {formatLocalDate(book.createdAt)}
+                  </td>
+                  <td className="px-5 py-3">
+                    <RowActions
+                      book={book}
+                      onEdit={handleEdit}
+                      onDelete={setPendingDelete}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Cards below md */}
+        <ul className="divide-y divide-line-soft md:hidden">
+          {pageItems.map((book) => (
+            <li key={book.id} className="flex gap-3 p-4">
+              <BookThumb
+                title={book.title}
+                coverImageUrl={book.coverImageUrl}
+                className="h-20 w-14"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold text-ink">{book.title}</p>
+                <p className="truncate text-xs text-muted">{book.author}</p>
+                <p className="mt-1 text-sm font-semibold text-ink">
+                  UGX {Number(book.price).toLocaleString()}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <StockBadge book={book} />
+                  <CategoryChips names={book.categoryNames} />
+                </div>
+              </div>
+              <RowActions
+                book={book}
+                onEdit={handleEdit}
+                onDelete={setPendingDelete}
+              />
+            </li>
+          ))}
+        </ul>
+
+        <Pagination
+          page={safePage}
+          pageCount={pageCount}
+          total={visible.length}
+          pageSize={PAGE_SIZE}
+          onChange={setPage}
+        />
+      </>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header with Add Button */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-ink">Manage Books</h2>
-        <div className="flex gap-3">
+    <>
+      <AdminPageHeader
+        title="Books"
+        description={
+          books.length > 0
+            ? `${books.length} ${books.length === 1 ? "title" : "titles"} in the catalogue`
+            : "Manage the catalogue, stock and cover art."
+        }
+        actions={
           <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              showFilters || hasActiveFilters
-                ? "bg-brand text-white hover:bg-brand-dark"
-                : "bg-gray-200 text-ink-soft hover:bg-gray-300"
-            }`}
-          >
-            <Filter className="w-4 h-4" />
-            Filter & Sort
-            {hasActiveFilters && (
-              <span className="bg-white text-brand text-xs px-2 py-0.5 rounded-full font-semibold">
-                Active
-              </span>
-            )}
-          </button>
-          <button
+            type="button"
+            className={adminBtn.primary}
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            Add Book
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Add book
           </button>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Format Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {[
-          {
-            value: "",
-            label: "All Books",
-            count: books.length,
-            icon: null,
-            activeClass: "bg-gray-800 text-white border-gray-800",
-          },
-          {
-            value: "DIGITAL",
-            label: "Digital",
-            count: digitalCount,
-            icon: <Monitor className="w-4 h-4" />,
-            activeClass: "bg-brand text-white border-blue-600",
-          },
-          {
-            value: "PHYSICAL",
-            label: "Physical",
-            count: physicalCount,
-            icon: <BookOpen className="w-4 h-4" />,
-            activeClass: "bg-brand text-white border-green-600",
-          },
-        ].map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setFilterFormat(tab.value)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all duration-150 ${
-              filterFormat === tab.value
-                ? tab.activeClass
-                : "bg-white text-ink-soft border-line hover:border-gray-400 hover:bg-cream"
-            }`}
-          >
-            {tab.icon}
-            {tab.label}
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                filterFormat === tab.value
-                  ? "bg-white/25 text-white"
-                  : "bg-cream-deep text-ink-soft"
-              }`}
+      <AdminCard>
+        {/* Toolbar */}
+        <div className="space-y-3 border-b border-line p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="relative flex-1">
+              <Search
+                className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted"
+                aria-hidden="true"
+              />
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(0);
+                }}
+                placeholder="Search title, author or ISBN"
+                aria-label="Search books"
+                className={`${adminInput} pl-9`}
+              />
+            </div>
+            <select
+              value={filterCategory}
+              onChange={(e) => {
+                setFilterCategory(e.target.value);
+                setPage(0);
+              }}
+              aria-label="Filter by category"
+              className={`${adminInput} lg:w-48`}
             >
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
+              <option value="">All categories</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              aria-label="Sort books"
+              className={`${adminInput} lg:w-48`}
+            >
+              {SORTS.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      {/* Filter and Sort Panel */}
-      {showFilters && (
-        <div className="bg-white rounded-lg shadow-md p-6 border-2 border-brand-light">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-ink">
-              Filter & Sort Books
-            </h3>
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="flex items-center gap-2 text-sm text-brand hover:text-brand-dark"
-              >
-                <X className="w-4 h-4" />
-                Clear All
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div
+              role="group"
+              aria-label="Format"
+              className="inline-flex rounded-lg bg-cream-deep p-1"
+            >
+              {FORMAT_TABS.map((tab) => {
+                const on = filterFormat === tab.value;
+                return (
+                  <button
+                    key={tab.value}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => {
+                      setFilterFormat(tab.value);
+                      setPage(0);
+                    }}
+                    className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-brand ${
+                      on
+                        ? "bg-white text-ink shadow-sm"
+                        : "text-ink-soft hover:text-ink"
+                    }`}
+                  >
+                    {tab.label}{" "}
+                    <span className="text-xs text-muted">
+                      {formatCount(tab.value)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {hasFilters && (
+              <button type="button" className={adminBtn.ghost} onClick={clearFilters}>
+                <X className="h-4 w-4" aria-hidden="true" />
+                Clear filters
               </button>
             )}
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Category Filter */}
-            <div>
-              <label
-                htmlFor="filter-category"
-                className="block text-sm font-medium text-ink-soft mb-2"
-              >
-                Category
-              </label>
-              <select
-                id="filter-category"
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-line-strong rounded-lg focus:border-brand focus:outline-none"
-              >
-                <option value="">All Categories</option>
-                {uniqueCategories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Author Filter */}
-            <div>
-              <label
-                htmlFor="filter-author"
-                className="block text-sm font-medium text-ink-soft mb-2"
-              >
-                Author
-              </label>
-              <select
-                id="filter-author"
-                value={filterAuthor}
-                onChange={(e) => setFilterAuthor(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-line-strong rounded-lg focus:border-brand focus:outline-none"
-              >
-                <option value="">All Authors</option>
-                {uniqueAuthors.map((author) => (
-                  <option key={author} value={author}>
-                    {author}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Sort By */}
-            <div>
-              <label
-                htmlFor="sort-by"
-                className="block text-sm font-medium text-ink-soft mb-2"
-              >
-                Sort By
-              </label>
-              <select
-                id="sort-by"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-line-strong rounded-lg focus:border-brand focus:outline-none"
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="title-asc">Title (A-Z)</option>
-                <option value="title-desc">Title (Z-A)</option>
-                <option value="author-asc">Author (A-Z)</option>
-                <option value="author-desc">Author (Z-A)</option>
-                <option value="price-asc">Price (Low-High)</option>
-                <option value="price-desc">Price (High-Low)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Results Count */}
-          <div className="mt-4 pt-4 border-t border-line">
-            <p className="text-sm text-ink-soft">
-              Showing{" "}
-              <span className="font-semibold text-ink">
-                {filteredAndSortedBooks.length}
-              </span>{" "}
-              of{" "}
-              <span className="font-semibold text-ink">
-                {books.length}
-              </span>{" "}
-              {books.length === 1 ? "book" : "books"}
-            </p>
-          </div>
         </div>
-      )}
 
-      {/* Books List */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-brand animate-spin" />
-        </div>
-      ) : null}
+        {body}
+      </AdminCard>
 
-      {!isLoading && filteredAndSortedBooks.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <p className="text-muted">
-            {books.length === 0
-              ? "No books found. Create your first book!"
-              : "No books match the selected filters."}
-          </p>
-          {hasActiveFilters && books.length > 0 && (
-            <button
-              onClick={clearFilters}
-              className="mt-4 px-4 py-2 text-brand hover:text-brand-dark font-medium"
-            >
-              Clear Filters
-            </button>
-          )}
-        </div>
-      )}
-
-      {!isLoading && filteredAndSortedBooks.length > 0 && (
-        <BooksGrid
-          books={filteredAndSortedBooks}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      )}
-
-      {/* Add/Edit Book Modal */}
       <AddBookModal
         isOpen={isAddModalOpen}
         onClose={handleModalClose}
         onSuccess={fetchBooks}
         editBook={editingBook}
       />
-    </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        tone="danger"
+        title="Delete this book?"
+        message={
+          <>
+            <span className="font-semibold">{pendingDelete?.title}</span> will
+            be removed from the catalogue. This can't be undone.
+          </>
+        }
+        confirmLabel="Delete book"
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
+    </>
   );
 }

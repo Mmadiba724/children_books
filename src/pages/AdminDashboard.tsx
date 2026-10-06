@@ -1,90 +1,35 @@
-import { useState } from "react";
-import CategoryManagement from "../components/CategoryManagement";
+import { useSearchParams } from "react-router-dom";
+import AdminLayout from "../components/admin/AdminLayout";
+import AdminOverview from "../components/admin/AdminOverview";
+import {
+  isAdminSection,
+  type AdminSection,
+} from "../components/admin/sections";
 import BookManagement from "../components/BookManagement";
+import CategoryManagement from "../components/CategoryManagement";
 import OrdersManagement from "../components/OrdersManagement";
 import UserManagement from "../components/UserManagement";
-import { GaugeCircle } from "lucide-react";
 
-type TabType = "categories" | "books" | "orders" | "users";
-
+/**
+ * Admin console. Sections are tab state kept in ?section= so a refresh or the
+ * back button lands on the same section while the route stays /admin.
+ */
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<TabType>("orders");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const raw = searchParams.get("section");
+  const active: AdminSection = isAdminSection(raw) ? raw : "overview";
+
+  const navigate = (section: AdminSection) => {
+    setSearchParams(section === "overview" ? {} : { section });
+  };
 
   return (
-    <div className="min-h-screen bg-brand-light py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8 flex flex-col items-center justify-center gap-2 w-full">
-          <div className="flex items-center gap-3 mb-2">
-            <GaugeCircle className="w-8 h-8 text-brand" />
-            <h1 className="text-3xl font-bold text-ink">
-              Admin Dashboard
-            </h1>
-          </div>
-          <p className="text-ink-soft">
-            Manage your bookstore's categories, books, orders, and users
-          </p>
-        </div>
-
-        {/* Tabs Navigation */}
-        <div className="bg-white rounded-lg shadow-md mb-6">
-          <div className="border-b border-line">
-            <div className="flex flex-wrap -mb-px">
-              <button
-                onClick={() => setActiveTab("orders")}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === "orders"
-                    ? "border-brand text-brand"
-                    : "border-transparent text-muted hover:text-ink-soft hover:border-line-strong"
-                }`}
-              >
-                Orders
-              </button>
-
-              <button
-                onClick={() => setActiveTab("books")}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === "books"
-                    ? "border-brand text-brand"
-                    : "border-transparent text-muted hover:text-ink-soft hover:border-line-strong"
-                }`}
-              >
-                Books
-              </button>
-
-              <button
-                onClick={() => setActiveTab("categories")}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === "categories"
-                    ? "border-brand text-brand"
-                    : "border-transparent text-muted hover:text-ink-soft hover:border-line-strong"
-                }`}
-              >
-                Categories
-              </button>
-
-              <button
-                onClick={() => setActiveTab("users")}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === "users"
-                    ? "border-brand text-brand"
-                    : "border-transparent text-muted hover:text-ink-soft hover:border-line-strong"
-                }`}
-              >
-                Users
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Tab Content */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          {activeTab === "categories" && <CategoryManagement />}
-          {activeTab === "books" && <BookManagement />}
-          {activeTab === "orders" && <OrdersManagement />}
-          {activeTab === "users" && <UserManagement />}
-        </div>
-      </div>
-    </div>
+    <AdminLayout active={active} onNavigate={navigate}>
+      {active === "overview" && <AdminOverview onNavigate={navigate} />}
+      {active === "orders" && <OrdersManagement />}
+      {active === "books" && <BookManagement />}
+      {active === "categories" && <CategoryManagement />}
+      {active === "users" && <UserManagement />}
+    </AdminLayout>
   );
 }

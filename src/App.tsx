@@ -1,4 +1,10 @@
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+  useLocation,
+} from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { MotionConfig } from "framer-motion";
 import Footer from "./components/Footer";
@@ -16,6 +22,8 @@ import AllBooksPage from "./pages/AllBooksPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
+import WishlistPage from "./pages/WishlistPage";
 import { AuthProvider } from "./context/AuthContext";
 
 // /search used to be a separate results page; everything now lives in /books.
@@ -29,10 +37,25 @@ function LegacySearchRedirect() {
   return <Navigate to={`/books${qs ? `?${qs}` : ""}`} replace />;
 }
 
+// Public site chrome. Admin pages render outside this and bring their own shell.
+function PublicLayout() {
+  return (
+    <>
+      <Navbar />
+      <ScrollToTop />
+      <main id="main" tabIndex={-1} className="outline-none">
+        <Outlet />
+      </main>
+      <Footer />
+    </>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
+        <WishlistProvider>
         <MotionConfig reducedMotion="user">
           <div className="min-h-screen bg-cream">
             <a
@@ -52,10 +75,16 @@ function App() {
                 },
               }}
             />
-            <Navbar />
-            <ScrollToTop />
-            <main id="main" tabIndex={-1} className="outline-none">
-              <Routes>
+            <Routes>
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireRole="ADMIN">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route element={<PublicLayout />}>
                 <Route path="/" element={<CatalogPage />} />
                 <Route path="/books" element={<AllBooksPage />} />
                 <Route path="/search" element={<LegacySearchRedirect />} />
@@ -72,6 +101,14 @@ function App() {
                   }
                 />
                 <Route
+                  path="/wishlist"
+                  element={
+                    <ProtectedRoute>
+                      <WishlistPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/orders"
                   element={
                     <ProtectedRoute>
@@ -79,20 +116,12 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
                 <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </main>
-            <Footer />
+              </Route>
+            </Routes>
           </div>
         </MotionConfig>
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   );

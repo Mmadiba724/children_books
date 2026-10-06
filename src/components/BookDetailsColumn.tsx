@@ -14,6 +14,7 @@ import { formatLocalDate } from "../utils/dateUtils";
 import { formatPrice } from "../utils/formatPrice";
 import { getCategoryColor } from "../utils/categoryColors";
 import RatingStars from "./ui/RatingStars";
+import WishlistButton from "./WishlistButton";
 
 type BookDetailsColumnProps = {
   book: Book;
@@ -175,6 +176,7 @@ export default function BookDetailsColumn({
             <ShoppingBag className="h-5 w-5" aria-hidden="true" />
             {inStock ? (adding ? "Adding…" : "Add to cart") : "Out of stock"}
           </button>
+          <WishlistButton book={book} variant="full" />
         </div>
 
         {isDigital && (
