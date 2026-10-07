@@ -60,7 +60,7 @@ const AccountMenu = ({
   onClose: () => void;
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
-  const { count: wishlistCount } = useWishlist();
+//   const { count: wishlistCount } = useWishlist();
 
   useEffect(() => {
     if (!isOpen) return;
