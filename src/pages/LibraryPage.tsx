@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Loader2, Download, Calendar, Library } from "lucide-react";
+import { BookOpen, Calendar, Library } from "lucide-react";
 import toast from "react-hot-toast";
 import libraryService, { type LibraryBook } from "../services/libraryService";
 import { parseLocalDate, formatLocalDate } from "../utils/dateUtils";
@@ -15,7 +15,6 @@ const LibraryPage = () => {
   const [books, setBooks] = useState<LibraryBook[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
-  const [loadingBookId, setLoadingBookId] = useState<string | null>(null);
 
   useEffect(() => {
     loadLibrary();
@@ -33,41 +32,6 @@ const LibraryPage = () => {
       toast.error("Failed to load your library");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleReadBook = async (bookId: number, title: string) => {
-    try {
-      setLoadingBookId(String(bookId));
-      const { url } = await libraryService.getBookReadUrl(String(bookId));
-      if (url) {
-        window.open(url, "_blank");
-      } else {
-        toast.error("Book reading URL not available");
-      }
-    } catch (error) {
-      console.error("Failed to get read URL:", error);
-      toast.error(`Failed to open ${title}`);
-    } finally {
-      setLoadingBookId(null);
-    }
-  };
-
-  const handleDownloadBook = async (bookId: number, title: string) => {
-    try {
-      setLoadingBookId(String(bookId));
-      const { url } = await libraryService.getBookDownloadUrl(String(bookId));
-      if (url) {
-        window.open(url, "_blank");
-        toast.success(`Downloading ${title}`);
-      } else {
-        toast.error("Download URL not available");
-      }
-    } catch (error) {
-      console.error("Failed to download book:", error);
-      toast.error(`Failed to download ${title}`);
-    } finally {
-      setLoadingBookId(null);
     }
   };
 
@@ -129,13 +93,10 @@ const LibraryPage = () => {
 
         <ul className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 md:gap-x-6 lg:grid-cols-4">
           {books.map((book) => {
-            const busy = loadingBookId === String(book.bookId);
             return (
               <li key={book.id} className="flex flex-col text-left">
-                <button
-                  type="button"
-                  onClick={() => handleReadBook(book.bookId, book.bookTitle)}
-                  disabled={busy}
+                <Link
+                  to={`/library/${book.bookId}/read`}
                   aria-label={`Read ${book.bookTitle}`}
                   className="group block rounded-xl px-1 pt-1 text-left"
                 >
@@ -146,7 +107,7 @@ const LibraryPage = () => {
                       className="transition-shadow duration-300 group-hover:shadow-(--shadow-lift)"
                     />
                   </div>
-                </button>
+                </Link>
 
                 <h2 className="mt-4 line-clamp-2 font-display text-base leading-snug font-bold capitalize sm:text-lg">
                   {book.bookTitle}
@@ -159,39 +120,14 @@ const LibraryPage = () => {
                   Added {formatLocalDate(book.purchasedAt)}
                 </p>
 
-                <div className="mt-4 grid gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleReadBook(book.bookId, book.bookTitle)}
-                    disabled={busy}
+                <div className="mt-4">
+                  <Link
+                    to={`/library/${book.bookId}/read`}
                     className="kb-btn kb-btn-teal kb-btn-sm w-full"
                   >
-                    {busy ? (
-                      <>
-                        <Loader2
-                          className="h-4 w-4 animate-spin"
-                          aria-hidden="true"
-                        />
-                        Opening…
-                      </>
-                    ) : (
-                      <>
-                        <BookOpen className="h-4 w-4" aria-hidden="true" />
-                        Read book
-                      </>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleDownloadBook(book.bookId, book.bookTitle)
-                    }
-                    disabled={busy}
-                    className="kb-btn kb-btn-secondary kb-btn-sm w-full"
-                  >
-                    <Download className="h-4 w-4" aria-hidden="true" />
-                    Download
-                  </button>
+                    <BookOpen className="h-4 w-4" aria-hidden="true" />
+                    Read book
+                  </Link>
                 </div>
               </li>
             );

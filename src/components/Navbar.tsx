@@ -124,20 +124,7 @@ const AccountMenu = ({
                 <Package className="h-4 w-4" aria-hidden="true" />
                 My orders
               </Link>
-              <Link
-                to="/wishlist"
-                role="menuitem"
-                className={menuItem}
-                onClick={onToggle}
-              >
-                <Heart className="h-4 w-4" aria-hidden="true" />
-                Wishlist
-                {wishlistCount > 0 && (
-                  <span className="ml-auto rounded-full bg-brand-light px-2 py-0.5 text-xs font-extrabold text-brand-dark">
-                    {wishlistCount}
-                  </span>
-                )}
-              </Link>
+              
               {userRole === "ADMIN" && (
                 <Link
                   to="/admin"

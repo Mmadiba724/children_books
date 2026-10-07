@@ -46,8 +46,11 @@ const emptyPage = (size: number): ReviewPage => ({
 });
 
 // Responses are wrapped as { success, message, data }; tolerate a bare body too.
+// A `data: null` must stay null, not fall back to the wrapper itself.
 const unwrap = <T>(body: unknown): T =>
-  ((body as { data?: unknown } | null)?.data ?? body) as T;
+  (body !== null && typeof body === "object" && "data" in body
+    ? (body as { data: unknown }).data
+    : body) as T;
 
 const reviewService = {
   // Public: reviews for a book plus the rating summary
@@ -95,7 +98,9 @@ const reviewService = {
       const response = await apiClient.get(
         `/api/v1/books/${bookId}/reviews/me`,
       );
-      return unwrap<Review | null>(response.data) ?? null;
+      const review = unwrap<Partial<Review> | null>(response.data);
+      // Anything without an id (null, {}, a bare wrapper) means "no review yet".
+      return review && review.id != null ? (review as Review) : null;
     } catch (error) {
       throw handleError(error as Error, { serviceName: "ReviewService" });
     }

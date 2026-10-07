@@ -1,12 +1,13 @@
 import { Star } from "lucide-react";
 
 type RatingStarsProps = {
-  readonly value: number;
+  readonly value?: number | null;
   readonly size?: "sm" | "md";
 };
 
 /** Read-only star rating; the visible stars are decorative, the label carries the value. */
-export default function RatingStars({ value, size = "md" }: RatingStarsProps) {
+export default function RatingStars({ value: raw, size = "md" }: RatingStarsProps) {
+  const value = Number.isFinite(raw) ? (raw as number) : 0;
   const dim = size === "sm" ? "h-4 w-4" : "h-5 w-5";
   return (
     <span

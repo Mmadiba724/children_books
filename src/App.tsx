@@ -17,6 +17,7 @@ import AboutPage from "./pages/AboutPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import LibraryPage from "./pages/LibraryPage";
+import ReaderPage from "./pages/ReaderPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
 import AllBooksPage from "./pages/AllBooksPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -97,6 +98,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <LibraryPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/library/:bookId/read"
+                  element={
+                    <ProtectedRoute>
+                      <ReaderPage />
                     </ProtectedRoute>
                   }
                 />

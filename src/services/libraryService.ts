@@ -1,5 +1,5 @@
 
-import apiClient, { API_BASE_URL } from '../config/api';
+import apiClient from '../config/api';
 import { handleError } from '../utils/errorHandler';
 
 export interface LibraryBook {
@@ -17,10 +17,34 @@ interface LibraryResponse {
     timestamp: string;
 }
 
-interface BookAccessUrl {
-    url: string;
-    expiresAt?: string;
-    format?: string;
+// Short-lived reader session for the in-app iframe viewer. Digital books are
+// read online only: downloadAllowed is false and no download endpoint is used.
+export interface ReaderSession {
+    bookId: number;
+    format: string;
+    /** Path relative to the API base, carries a short-lived token. */
+    iframeEmbedUrl: string;
+    expiresInSeconds: number;
+    displayMode: string;
+    downloadAllowed: boolean;
+}
+
+// Lifetime (exp - iat, in seconds) of the JWT carried in a read URL's ?token=,
+// or null if it can't be read. Only used to drive the session countdown.
+function tokenLifetimeSeconds(url: string): number | null {
+    try {
+        const token = new URL(url, 'http://localhost').searchParams.get('token');
+        const payload = token?.split('.')[1];
+        if (!payload) return null;
+        const json = JSON.parse(
+            atob(payload.replace(/-/g, '+').replace(/_/g, '/')),
+        ) as { exp?: number; iat?: number };
+        if (typeof json.exp !== 'number' || typeof json.iat !== 'number') return null;
+        const lifetime = json.exp - json.iat;
+        return lifetime > 0 ? lifetime : null;
+    } catch {
+        return null;
+    }
 }
 
 const libraryService = {
@@ -35,35 +59,39 @@ const libraryService = {
         }
     },
 
-    // Get book read URL (requires authentication)
-    // Returns a URL to read/view the book online
-    getBookReadUrl: async (bookId: string): Promise<BookAccessUrl> => {
+    // Start a reader session for a purchased book (requires authentication)
+    getReadSession: async (bookId: string | number): Promise<ReaderSession> => {
         try {
             const response = await apiClient.get(`/api/v1/library/${bookId}/read`);
-            // API returns path in data field: { success, data: "/api/v1/files/.../read", timestamp }
-            const path = response.data.data;
-            if (typeof path === 'string') {
-                return { url: `${API_BASE_URL}${path}` };
-            }
-            // Fallback for different response structure
-            return response.data.data || response.data;
-        } catch (error) {
-            throw handleError(error as Error, { serviceName: 'LibraryService' });
-        }
-    },
+            const data = response.data?.data ?? response.data;
 
-    // Get book download URL (requires authentication)
-    // Returns a URL to download the book file
-    getBookDownloadUrl: async (bookId: string): Promise<BookAccessUrl> => {
-        try {
-            const response = await apiClient.get(`/api/v1/library/${bookId}/download`);
-            // API returns path in data field: { success, data: "/api/v1/files/.../download", timestamp }
-            const path = response.data.data;
-            if (typeof path === 'string') {
-                return { url: `${API_BASE_URL}${path}` };
+            // Some deployments still return just the embed path as a string:
+            // { success, data: "/api/v1/files/.../read?token=..." }
+            if (typeof data === 'string' && data) {
+                return {
+                    bookId: Number(bookId),
+                    format: 'DIGITAL',
+                    iframeEmbedUrl: data,
+                    expiresInSeconds: tokenLifetimeSeconds(data) ?? 600,
+                    displayMode: 'iframe',
+                    downloadAllowed: false,
+                };
             }
-            // Fallback for different response structure
-            return response.data.data || response.data;
+
+            // Full reader-session object
+            const session = data as Partial<ReaderSession> | null;
+            if (!session || typeof session !== 'object' || !session.iframeEmbedUrl) {
+                throw new Error('Reader session unavailable');
+            }
+            return {
+                bookId: session.bookId ?? Number(bookId),
+                format: session.format ?? 'DIGITAL',
+                iframeEmbedUrl: session.iframeEmbedUrl,
+                expiresInSeconds:
+                    session.expiresInSeconds ?? tokenLifetimeSeconds(session.iframeEmbedUrl) ?? 600,
+                displayMode: session.displayMode ?? 'iframe',
+                downloadAllowed: session.downloadAllowed ?? false,
+            };
         } catch (error) {
             throw handleError(error as Error, { serviceName: 'LibraryService' });
         }
